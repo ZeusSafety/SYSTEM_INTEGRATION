@@ -1,0 +1,192 @@
+/* Reset y estilos base */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f5f5f5;
+    color: #333;
+}
+
+/* Header */
+.header {
+    background-color: white;
+    padding: 20px 30px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.logo {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+}
+
+.logo-text {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.zeus-text {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #000;
+    line-height: 1;
+    margin: 0;
+}
+
+.safety-text {
+    font-size: 1rem;
+    font-weight: normal;
+    color: #000;
+    margin: 0;
+    text-transform: uppercase;
+}
+
+.underline {
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(90deg, #FFD700, #FFA500);
+    border-radius: 2px;
+    margin-top: 5px;
+}
+
+/* Main Content */
+.main-content {
+    padding: 40px 30px;
+    min-height: calc(100vh - 120px);
+}
+
+.cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 25px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* Cards */
+.card {
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    border-left: 4px solid #FF6B35;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+
+.card-content {
+    padding: 25px;
+    position: relative;
+}
+
+.card-icon {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    font-size: 1.2rem;
+    color: #999;
+    opacity: 0.7;
+}
+
+.check-icon {
+    color: #28a745;
+}
+
+.cog-icon {
+    color: #e74c3c;
+}
+
+.card-title {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: #1a365d;
+    margin-bottom: 8px;
+    margin-top: 10px;
+}
+
+.card-subtitle {
+    font-size: 0.9rem;
+    color: #666;
+    line-height: 1.4;
+    margin: 0;
+}
+
+/* Card variants */
+.card-simple {
+    background-color: #fff3cd;
+}
+
+.card-test {
+    background-color: #d4edda;
+}
+
+.card-logistics-test {
+    background-color: #fff3cd;
+}
+
+.card-simple-test {
+    background-color: #d1ecf1;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .cards-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .header {
+        padding: 15px 20px;
+    }
+    
+    .main-content {
+        padding: 20px;
+    }
+    
+    .zeus-text {
+        font-size: 2rem;
+    }
+    
+    .safety-text {
+        font-size: 0.9rem;
+    }
+    
+    .logo {
+        width: 50px;
+        height: 50px;
+    }
+}
+
+@media (max-width: 480px) {
+    .card-content {
+        padding: 20px;
+    }
+    
+    .card-title {
+        font-size: 1.1rem;
+    }
+    
+    .card-subtitle {
+        font-size: 0.8rem;
+    }
+} 
