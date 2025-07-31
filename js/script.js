@@ -22,14 +22,16 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
         
-        // Efectos hover adicionales
-        card.addEventListener('mouseenter', function() {
-            this.style.transform = 'translateY(-4px)';
-        });
-        
-        card.addEventListener('mouseleave', function() {
-            this.style.transform = 'translateY(0)';
-        });
+        // Efectos hover adicionales - SOLO para tarjetas SIN enlaces
+        if (!card.querySelector('.card-link')) {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-4px)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+        }
     });
     
     // Función para mostrar información de la tarjeta
