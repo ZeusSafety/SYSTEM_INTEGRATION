@@ -5,19 +5,22 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Agregar evento click a cada tarjeta
     cards.forEach(card => {
-        card.addEventListener('click', function() {
-            // Obtener el título de la tarjeta
-            const title = this.querySelector('.card-title').textContent;
-            
-            // Simular navegación (aquí puedes agregar la lógica real de navegación)
-            console.log(`Navegando a: ${title}`);
-            
-            // Efecto visual al hacer click
-            this.style.transform = 'scale(0.98)';
-            setTimeout(() => {
-                this.style.transform = '';
-            }, 150);
-        });
+        // Solo agregar evento click si la tarjeta no tiene enlace
+        if (!card.querySelector('.card-link')) {
+            card.addEventListener('click', function() {
+                // Obtener el título de la tarjeta
+                const title = this.querySelector('.card-title').textContent;
+                
+                // Simular navegación (aquí puedes agregar la lógica real de navegación)
+                console.log(`Navegando a: ${title}`);
+                
+                // Efecto visual al hacer click
+                this.style.transform = 'scale(0.98)';
+                setTimeout(() => {
+                    this.style.transform = '';
+                }, 150);
+            });
+        }
         
         // Efectos hover adicionales
         card.addEventListener('mouseenter', function() {

@@ -140,6 +140,19 @@ body {
     background-color: #d4edda;
 }
 
+/* Card links */
+.card-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    height: 100%;
+}
+
+.card-link:hover {
+    text-decoration: none;
+    color: inherit;
+}
+
 .card-logistics-test {
     background-color: #fff3cd;
 }
