@@ -1,7 +1,7 @@
 // Configuración centralizada para URLs de Apps Script
 const APP_CONFIG = {
     // URL base de tu Apps Script - CAMBIA SOLO ESTA URL CUANDO DESPLIEGUES
-    APPS_SCRIPT_BASE_URL: 'https://script.google.com/macros/s/AKfycbyUbY65tXXpAEI3NQoP4cYiQms_ppEqvJXIUnG93k8kAtOk_z3Kv_LW1zsh7iY8GLYM/exec',
+    APPS_SCRIPT_BASE_URL: 'https://script.google.com/macros/s/AKfycbyITU_lcRI2FOx85ITRVsK--WClPAzb7v7dk22hO7lZYMCP_y1b-1zKl72I0v2Lhu-8/exec',
     
     // Páginas específicas - NO CAMBIAR ESTOS VALORES
     PAGES: {
@@ -9,7 +9,8 @@ const APP_CONFIG = {
         LISTADO_IMPORT: 'listado_import',
         LISTADO_IMPORT_UPDATE: 'listado_import_update',
         NUEVA_INCIDENCIA: 'incidencia_logistica_formulario',
-        LISTADO_INCIDENCIAS: 'incidencia_listado_logistica'
+        LISTADO_INCIDENCIAS: 'incidencia_listado_logistica',
+        FICHA_IMPORTACION: 'ficha_importacion'
     }
 };
 
