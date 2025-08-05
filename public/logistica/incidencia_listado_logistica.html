@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Listado de Incidencias Logísticas - Zeus Safety</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --azul-oscuro: #1e3a8a;
+            --azul-claro: #3b82f6;
+            --maiz-oscuro: #f59e0b;
+            --maiz-claro: #fbbf24;
+            --gris-claro: #f8fafc;
+            --gris-oscuro: #64748b;
+            --verde: #10b981;
+            --rojo: #ef4444;
+            --blanco: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--azul-oscuro);
+            color: white;
+            text-decoration: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(30, 58, 138, 0.3);
+        }
+
+        .btn-back:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(30, 58, 138, 0.4);
+            background: #1e40af;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: var(--blanco);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--azul-oscuro), var(--azul-claro));
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .alert {
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+
+        .alert-info {
+            background: #dbeafe;
+            color: #1e40af;
+            border: 1px solid #bfdbfe;
+        }
+
+        /* Filtros */
+        .filtros-section {
+            background: var(--gris-claro);
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            border: 2px solid #e2e8f0;
+        }
+
+        .filtros-section h3 {
+            color: var(--azul-oscuro);
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .filtros-form {
+            display: flex;
+            gap: 15px;
+            align-items: end;
+            flex-wrap: wrap;
+        }
+
+        .form-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--azul-oscuro);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--azul-claro);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--azul-claro), var(--azul-oscuro));
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--verde), #059669);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, var(--azul-claro), #1e40af);
+            color: white;
+        }
+
+        .btn-info:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, var(--maiz-claro), var(--maiz-oscuro));
+            color: white;
+        }
+
+        .btn-warning:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+        }
+
+        .btn-sm {
+            padding: 8px 15px;
+            font-size: 14px;
+        }
+
+        /* Tabla */
+        .tabla-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .section-header {
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--maiz-oscuro);
+            padding-bottom: 15px;
+        }
+
+        .section-header h3 {
+            color: var(--azul-oscuro);
+            margin: 0;
+            font-size: 1.4rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .table-responsive {
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 0;
+        }
+
+        .table thead th {
+            background: var(--azul-oscuro);
+            color: white;
+            border: none;
+            padding: 15px 10px;
+            font-weight: 600;
+            text-align: center;
+            vertical-align: middle;
+            font-size: 14px;
+        }
+
+        .table tbody td {
+            padding: 12px 10px;
+            vertical-align: middle;
+            border-bottom: 1px solid #e9ecef;
+            font-size: 14px;
+        }
+
+        .table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .pdf-link {
+            color: var(--azul-claro);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .pdf-link:hover {
+            text-decoration: underline;
+        }
+
+        .no-pdf {
+            color: var(--gris-oscuro);
+            font-style: italic;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 10000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 2% auto;
+            padding: 0;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 1200px;
+            max-height: 90vh;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, var(--azul-oscuro), var(--azul-claro));
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+
+        .close {
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            background: none;
+            border: none;
+        }
+
+        .close:hover {
+            opacity: 0.7;
+        }
+
+        .modal-body {
+            padding: 30px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .modal-section {
+            background: var(--gris-claro);
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .modal-section h4 {
+            color: var(--azul-oscuro);
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .observaciones-textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 14px;
+            font-family: inherit;
+            resize: vertical;
+        }
+
+        .observaciones-textarea:focus {
+            outline: none;
+            border-color: var(--azul-claro);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .productos-tabla {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .productos-tabla th {
+            background: var(--azul-oscuro);
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .productos-tabla td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .productos-tabla tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                border-radius: 15px;
+            }
+
+            .header {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            .filtros-form {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .modal-body {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .table {
+                font-size: 0.85rem;
+            }
+
+            .table th,
+            .table td {
+                padding: 8px 5px;
+            }
+
+            .btn-sm {
+                padding: 6px 10px;
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="../../logistica.html" class="btn-back">
+        <i class="fas fa-arrow-left"></i>
+        Volver a Logística
+    </a>
+
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-list"></i> Listado de Incidencias Logísticas</h1>
+            <p>Gestionar y revisar incidencias registradas</p>
+        </div>
+
+        <div class="content">
+            <div id="alertMessage"></div>
+
+            <!-- Filtros -->
+            <div class="filtros-section">
+                <h3><i class="fas fa-filter"></i> Filtros de Búsqueda</h3>
+                <div class="filtros-form">
+                    <div class="form-group">
+                        <label for="fechaDesde">Fecha Desde:</label>
+                        <input type="date" id="fechaDesde" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="fechaHasta">Fecha Hasta:</label>
+                        <input type="date" id="fechaHasta" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="buscarDespacho">Número de Despacho:</label>
+                        <input type="text" id="buscarDespacho" class="form-control" placeholder="Buscar por número de despacho">
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="filtrarIncencias()">
+                        <i class="fas fa-search"></i>
+                        Buscar
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tabla de Incidencias -->
+            <div class="tabla-section">
+                <div class="section-header">
+                    <h3><i class="fas fa-table"></i> Incidencias Registradas</h3>
+                </div>
+                <div class="table-responsive">
+                    <table id="incidenciasTable" class="table">
+                        <thead>
+                            <tr>
+                                <th>Número de Solicitud</th>
+                                <th>Fecha de Registro</th>
+                                <th>Fecha de Recepción</th>
+                                <th>Número de Despacho</th>
+                                <th>PDF Inicial</th>
+                                <th>PDF Incidencia</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="incidenciasBody">
+                            <!-- Los datos se cargarán dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Detalles -->
+    <div id="detallesModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-info-circle"></i> Detalles de la Incidencia</h2>
+                <span class="close" onclick="cerrarModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="modal-section">
+                    <h4><i class="fas fa-comment"></i> Observaciones</h4>
+                    <textarea id="observacionesDetalle" class="observaciones-textarea" readonly></textarea>
+                </div>
+                <div class="modal-section">
+                    <h4><i class="fas fa-box"></i> Productos Afectados</h4>
+                    <div class="table-responsive">
+                        <table class="productos-tabla">
+                            <thead>
+                                <tr>
+                                    <th>Producto</th>
+                                </tr>
+                            </thead>
+                            <tbody id="productosDetalle">
+                                <!-- Los productos se cargarán dinámicamente -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Variables globales
+        let incidenciasData = [];
+
+        // Función de navegación
+        function navegarA(pagina) {
+            const url = new URL(window.location.href);
+            url.searchParams.set('page', pagina);
+            window.location.href = url.toString();
+        }
+
+        // Función para mostrar alertas
+        function mostrarAlerta(mensaje, tipo) {
+            const alertDiv = document.getElementById('alertMessage');
+            alertDiv.innerHTML = `<div class="alert alert-${tipo}">${mensaje}</div>`;
+            
+            setTimeout(() => {
+                alertDiv.innerHTML = '';
+            }, 5000);
+        }
+
+        // Función para cargar incidencias desde la API
+        async function cargarIncencias() {
+            try {
+                // Simular carga de datos - aquí se conectaría con la API real
+                const datosSimulados = [
+                    {
+                        id: 1,
+                        numeroSolicitud: "INC-2024-001",
+                        fechaRegistro: "2024-01-15 10:30:00",
+                        fechaRecepcion: "2024-01-15 14:45:00",
+                        numeroDespacho: "DESP-2024-001",
+                        pdfInicial: "https://ejemplo.com/pdf1.pdf",
+                        pdfIncidencia: "https://ejemplo.com/pdf2.pdf",
+                        observaciones: "Falta de productos en el despacho. Se detectaron 3 productos faltantes y 2 productos dañados. Se requiere reemplazo inmediato.",
+                        productos: ["Guantes Econoflex Rojo 7", "Mascarillas N95", "Trajes de Protección", "Gafas de Seguridad", "Botas Industriales"]
+                    },
+                    {
+                        id: 2,
+                        numeroSolicitud: "INC-2024-002",
+                        fechaRegistro: "2024-01-16 09:15:00",
+                        fechaRecepcion: "2024-01-16 11:20:00",
+                        numeroDespacho: "DESP-2024-002",
+                        pdfInicial: "https://ejemplo.com/pdf3.pdf",
+                        pdfIncidencia: "",
+                        observaciones: "Productos vencidos detectados en el envío. Se encontraron 5 unidades con fecha de vencimiento expirada.",
+                        productos: ["Alcohol Isopropílico", "Desinfectante", "Toallas Desechables"]
+                    },
+                    {
+                        id: 3,
+                        numeroSolicitud: "INC-2024-003",
+                        fechaRegistro: "2024-01-17 16:45:00",
+                        fechaRecepcion: "2024-01-17 18:30:00",
+                        numeroDespacho: "DESP-2024-003",
+                        pdfInicial: "https://ejemplo.com/pdf4.pdf",
+                        pdfIncidencia: "https://ejemplo.com/pdf5.pdf",
+                        observaciones: "Cantidad incorrecta de productos. Se solicitó 100 unidades pero se recibieron solo 85. Se requiere envío de las 15 unidades faltantes.",
+                        productos: ["Guantes de Nitrilo", "Mascarillas KN95", "Protectores Faciales"]
+                    }
+                ];
+
+                incidenciasData = datosSimulados;
+                mostrarIncencias(incidenciasData);
+                console.log('✅ Incidencias cargadas:', incidenciasData.length);
+            } catch (error) {
+                console.error('❌ Error al cargar incidencias:', error);
+                mostrarAlerta('Error al cargar las incidencias', 'error');
+            }
+        }
+
+        // Función para mostrar incidencias en la tabla
+        function mostrarIncencias(incidencias) {
+            const tbody = document.getElementById('incidenciasBody');
+            tbody.innerHTML = '';
+
+            incidencias.forEach(incidencia => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${incidencia.numeroSolicitud}</td>
+                    <td>${formatearFecha(incidencia.fechaRegistro)}</td>
+                    <td>${formatearFecha(incidencia.fechaRecepcion)}</td>
+                    <td>${incidencia.numeroDespacho}</td>
+                    <td>
+                        ${incidencia.pdfInicial ? 
+                            `<a href="${incidencia.pdfInicial}" target="_blank" class="pdf-link">
+                                <i class="fas fa-file-pdf"></i> Ver PDF
+                            </a>` : 
+                            '<span class="no-pdf">No disponible</span>'
+                        }
+                    </td>
+                    <td>
+                        ${incidencia.pdfIncidencia ? 
+                            `<a href="${incidencia.pdfIncidencia}" target="_blank" class="pdf-link">
+                                <i class="fas fa-file-pdf"></i> Ver PDF
+                            </a>` : 
+                            '<span class="no-pdf">No disponible</span>'
+                        }
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-info btn-sm" onclick="actualizarIncidencia(${incidencia.id})" title="Actualizar">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                        <button type="button" class="btn btn-success btn-sm" onclick="verDetalles(${incidencia.id})" title="Ver Detalles">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Función para formatear fecha
+        function formatearFecha(fechaString) {
+            const fecha = new Date(fechaString);
+            return fecha.toLocaleDateString('es-ES', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        // Función para filtrar incidencias
+        function filtrarIncencias() {
+            const fechaDesde = document.getElementById('fechaDesde').value;
+            const fechaHasta = document.getElementById('fechaHasta').value;
+            const buscarDespacho = document.getElementById('buscarDespacho').value.toLowerCase();
+
+            let incidenciasFiltradas = incidenciasData;
+
+            // Filtrar por fechas
+            if (fechaDesde) {
+                incidenciasFiltradas = incidenciasFiltradas.filter(incidencia => 
+                    incidencia.fechaRegistro >= fechaDesde
+                );
+            }
+
+            if (fechaHasta) {
+                incidenciasFiltradas = incidenciasFiltradas.filter(incidencia => 
+                    incidencia.fechaRegistro <= fechaHasta + ' 23:59:59'
+                );
+            }
+
+            // Filtrar por número de despacho
+            if (buscarDespacho) {
+                incidenciasFiltradas = incidenciasFiltradas.filter(incidencia => 
+                    incidencia.numeroDespacho.toLowerCase().includes(buscarDespacho)
+                );
+            }
+
+            mostrarIncencias(incidenciasFiltradas);
+            console.log('🔍 Incidencias filtradas:', incidenciasFiltradas.length);
+        }
+
+        // Función para actualizar incidencia
+        function actualizarIncidencia(id) {
+            console.log('🔄 Actualizando incidencia:', id);
+            mostrarAlerta('Función de actualización en desarrollo', 'info');
+        }
+
+        // Función para ver detalles
+        function verDetalles(id) {
+            const incidencia = incidenciasData.find(inc => inc.id === id);
+            if (!incidencia) {
+                mostrarAlerta('No se encontró la incidencia', 'error');
+                return;
+            }
+
+            // Llenar modal con datos
+            document.getElementById('observacionesDetalle').value = incidencia.observaciones;
+            
+            const productosBody = document.getElementById('productosDetalle');
+            productosBody.innerHTML = '';
+            
+            incidencia.productos.forEach(producto => {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td>${producto}</td>`;
+                productosBody.appendChild(row);
+            });
+
+            // Mostrar modal
+            document.getElementById('detallesModal').style.display = 'block';
+        }
+
+        // Función para cerrar modal
+        function cerrarModal() {
+            document.getElementById('detallesModal').style.display = 'none';
+        }
+
+        // Cerrar modal al hacer clic fuera
+        window.onclick = function(event) {
+            const modal = document.getElementById('detallesModal');
+            if (event.target === modal) {
+                cerrarModal();
+            }
+        }
+
+        // Inicialización cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🔄 Cargando incidencias...');
+            cargarIncencias();
+            
+            // Establecer fechas por defecto (últimos 30 días)
+            const hoy = new Date();
+            const hace30Dias = new Date();
+            hace30Dias.setDate(hoy.getDate() - 30);
+            
+            document.getElementById('fechaDesde').value = hace30Dias.toISOString().split('T')[0];
+            document.getElementById('fechaHasta').value = hoy.toISOString().split('T')[0];
+        });
+    </script>
+</body>
+</html>

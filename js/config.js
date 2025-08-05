@@ -8,7 +8,7 @@ const APP_CONFIG = {
         IMPORTACIONES: 'importaciones',
         LISTADO_IMPORT: 'listado_import',
         LISTADO_IMPORT_UPDATE: 'listado_import_update',
-        NUEVA_INCIDENCIA: 'incidencia_logistica_formulario',
+        INCIDENCIA_LOGISTICA_FORMULARIO: 'incidencia_logistica_formulario',
         LISTADO_INCIDENCIAS: 'incidencia_listado_logistica',
         FICHA_IMPORTACION: 'ficha_importacion'
     }
