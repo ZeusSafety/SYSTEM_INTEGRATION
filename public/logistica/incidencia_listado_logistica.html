@@ -503,9 +503,8 @@
                     <table id="incidenciasTable" class="table">
                         <thead>
                             <tr>
-                                <th>Número de Solicitud</th>
+                                <th>ID Incidencia</th>
                                 <th>Fecha de Registro</th>
-                                <th>Fecha de Recepción</th>
                                 <th>Número de Despacho</th>
                                 <th>PDF Inicial</th>
                                 <th>PDF Incidencia</th>
@@ -576,49 +575,37 @@
         // Función para cargar incidencias desde la API
         async function cargarIncencias() {
             try {
-                // Simular carga de datos - aquí se conectaría con la API real
-                const datosSimulados = [
-                    {
-                        id: 1,
-                        numeroSolicitud: "INC-2024-001",
-                        fechaRegistro: "2024-01-15 10:30:00",
-                        fechaRecepcion: "2024-01-15 14:45:00",
-                        numeroDespacho: "DESP-2024-001",
-                        pdfInicial: "https://ejemplo.com/pdf1.pdf",
-                        pdfIncidencia: "https://ejemplo.com/pdf2.pdf",
-                        observaciones: "Falta de productos en el despacho. Se detectaron 3 productos faltantes y 2 productos dañados. Se requiere reemplazo inmediato.",
-                        productos: ["Guantes Econoflex Rojo 7", "Mascarillas N95", "Trajes de Protección", "Gafas de Seguridad", "Botas Industriales"]
-                    },
-                    {
-                        id: 2,
-                        numeroSolicitud: "INC-2024-002",
-                        fechaRegistro: "2024-01-16 09:15:00",
-                        fechaRecepcion: "2024-01-16 11:20:00",
-                        numeroDespacho: "DESP-2024-002",
-                        pdfInicial: "https://ejemplo.com/pdf3.pdf",
-                        pdfIncidencia: "",
-                        observaciones: "Productos vencidos detectados en el envío. Se encontraron 5 unidades con fecha de vencimiento expirada.",
-                        productos: ["Alcohol Isopropílico", "Desinfectante", "Toallas Desechables"]
-                    },
-                    {
-                        id: 3,
-                        numeroSolicitud: "INC-2024-003",
-                        fechaRegistro: "2024-01-17 16:45:00",
-                        fechaRecepcion: "2024-01-17 18:30:00",
-                        numeroDespacho: "DESP-2024-003",
-                        pdfInicial: "https://ejemplo.com/pdf4.pdf",
-                        pdfIncidencia: "https://ejemplo.com/pdf5.pdf",
-                        observaciones: "Cantidad incorrecta de productos. Se solicitó 100 unidades pero se recibieron solo 85. Se requiere envío de las 15 unidades faltantes.",
-                        productos: ["Guantes de Nitrilo", "Mascarillas KN95", "Protectores Faciales"]
+                const api = "https://incidenciaslogisticacrud-2946605267.us-central1.run.app";
+                const response = await fetch(api);
+                
+                if (response.status === 200) {
+                    const datos = await response.text();
+                    console.log("✅ Datos extraídos correctamente");
+                    
+                    let registros = [];
+                    try {
+                        // Intentar parsear como JSON
+                        registros = JSON.parse(datos);
+                    } catch (e) {
+                        console.log("Los datos no son JSON válido, procesando como texto");
+                        registros = [];
                     }
-                ];
-
-                incidenciasData = datosSimulados;
-                mostrarIncencias(incidenciasData);
-                console.log('✅ Incidencias cargadas:', incidenciasData.length);
+                    
+                    if (Array.isArray(registros)) {
+                        incidenciasData = registros;
+                    } else {
+                        incidenciasData = [];
+                    }
+                    
+                    mostrarIncencias(incidenciasData);
+                    console.log('✅ Incidencias cargadas:', incidenciasData.length);
+                } else {
+                    console.error("❌ Error al extraer los datos");
+                    throw new Error(`Error HTTP: ${response.status}`);
+                }
             } catch (error) {
                 console.error('❌ Error al cargar incidencias:', error);
-                mostrarAlerta('Error al cargar las incidencias', 'error');
+                mostrarAlerta('Error al cargar las incidencias: ' + error.message, 'error');
             }
         }
 
@@ -627,34 +614,38 @@
             const tbody = document.getElementById('incidenciasBody');
             tbody.innerHTML = '';
 
+            if (!Array.isArray(incidencias) || incidencias.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center">Sin registros</td></tr>';
+                return;
+            }
+
             incidencias.forEach(incidencia => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td>${incidencia.numeroSolicitud}</td>
-                    <td>${formatearFecha(incidencia.fechaRegistro)}</td>
-                    <td>${formatearFecha(incidencia.fechaRecepcion)}</td>
-                    <td>${incidencia.numeroDespacho}</td>
+                    <td>${incidencia.ID_INCIDENCIA || 'N/A'}</td>
+                    <td>${formatearFecha(incidencia.FECHA_REGISTRO)}</td>
+                    <td>${incidencia.NUMERO_DESPACHO || 'N/A'}</td>
                     <td>
-                        ${incidencia.pdfInicial ? 
-                            `<a href="${incidencia.pdfInicial}" target="_blank" class="pdf-link">
+                        ${incidencia.ARCHIVO_PDF_URL ? 
+                            `<a href="${incidencia.ARCHIVO_PDF_URL}" target="_blank" class="pdf-link">
                                 <i class="fas fa-file-pdf"></i> Ver PDF
                             </a>` : 
                             '<span class="no-pdf">No disponible</span>'
                         }
                     </td>
                     <td>
-                        ${incidencia.pdfIncidencia ? 
-                            `<a href="${incidencia.pdfIncidencia}" target="_blank" class="pdf-link">
+                        ${incidencia.PDF_INCIDENCIA_URL ? 
+                            `<a href="${incidencia.PDF_INCIDENCIA_URL}" target="_blank" class="pdf-link">
                                 <i class="fas fa-file-pdf"></i> Ver PDF
                             </a>` : 
                             '<span class="no-pdf">No disponible</span>'
                         }
                     </td>
                     <td>
-                        <button type="button" class="btn btn-info btn-sm" onclick="actualizarIncidencia(${incidencia.id})" title="Actualizar">
+                        <button type="button" class="btn btn-info btn-sm" onclick="actualizarIncidencia('${incidencia.ID_INCIDENCIA}')" title="Actualizar">
                             <i class="fas fa-sync-alt"></i>
                         </button>
-                        <button type="button" class="btn btn-success btn-sm" onclick="verDetalles(${incidencia.id})" title="Ver Detalles">
+                        <button type="button" class="btn btn-success btn-sm" onclick="verDetalles('${incidencia.ID_INCIDENCIA}')" title="Ver Detalles">
                             <i class="fas fa-eye"></i>
                         </button>
                     </td>
@@ -685,21 +676,33 @@
 
             // Filtrar por fechas
             if (fechaDesde) {
-                incidenciasFiltradas = incidenciasFiltradas.filter(incidencia => 
-                    incidencia.fechaRegistro >= fechaDesde
-                );
+                incidenciasFiltradas = incidenciasFiltradas.filter(incidencia => {
+                    if (!incidencia.FECHA_REGISTRO) return false;
+                    let f = incidencia.FECHA_REGISTRO;
+                    if (f && f.length >= 10) {
+                        let fRow = f.split(' ')[0].split('/').reverse().join('-');
+                        return fRow >= fechaDesde;
+                    }
+                    return false;
+                });
             }
 
             if (fechaHasta) {
-                incidenciasFiltradas = incidenciasFiltradas.filter(incidencia => 
-                    incidencia.fechaRegistro <= fechaHasta + ' 23:59:59'
-                );
+                incidenciasFiltradas = incidenciasFiltradas.filter(incidencia => {
+                    if (!incidencia.FECHA_REGISTRO) return false;
+                    let f = incidencia.FECHA_REGISTRO;
+                    if (f && f.length >= 10) {
+                        let fRow = f.split(' ')[0].split('/').reverse().join('-');
+                        return fRow <= fechaHasta;
+                    }
+                    return false;
+                });
             }
 
             // Filtrar por número de despacho
             if (buscarDespacho) {
                 incidenciasFiltradas = incidenciasFiltradas.filter(incidencia => 
-                    incidencia.numeroDespacho.toLowerCase().includes(buscarDespacho)
+                    String(incidencia.NUMERO_DESPACHO || '').toLowerCase().includes(buscarDespacho)
                 );
             }
 
@@ -715,23 +718,24 @@
 
         // Función para ver detalles
         function verDetalles(id) {
-            const incidencia = incidenciasData.find(inc => inc.id === id);
+            const incidencia = incidenciasData.find(inc => inc.ID_INCIDENCIA === id);
             if (!incidencia) {
                 mostrarAlerta('No se encontró la incidencia', 'error');
                 return;
             }
 
-            // Llenar modal con datos
-            document.getElementById('observacionesDetalle').value = incidencia.observaciones;
+            // Llenar modal con datos básicos
+            let detalles = `ID: ${incidencia.ID_INCIDENCIA}\n`;
+            detalles += `Fecha Registro: ${incidencia.FECHA_REGISTRO}\n`;
+            detalles += `Número Despacho: ${incidencia.NUMERO_DESPACHO}\n`;
+            detalles += `PDF Inicial: ${incidencia.ARCHIVO_PDF_URL || 'No disponible'}\n`;
+            detalles += `PDF Incidencia: ${incidencia.PDF_INCIDENCIA_URL || 'No disponible'}`;
             
+            document.getElementById('observacionesDetalle').value = detalles;
+            
+            // Limpiar tabla de productos ya que no tenemos esa información en la API
             const productosBody = document.getElementById('productosDetalle');
-            productosBody.innerHTML = '';
-            
-            incidencia.productos.forEach(producto => {
-                const row = document.createElement('tr');
-                row.innerHTML = `<td>${producto}</td>`;
-                productosBody.appendChild(row);
-            });
+            productosBody.innerHTML = '<tr><td>No hay información de productos disponible</td></tr>';
 
             // Mostrar modal
             document.getElementById('detallesModal').style.display = 'block';

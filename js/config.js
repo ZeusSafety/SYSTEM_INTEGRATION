@@ -10,7 +10,8 @@ const APP_CONFIG = {
         LISTADO_IMPORT_UPDATE: 'listado_import_update',
         INCIDENCIA_LOGISTICA_FORMULARIO: 'incidencia_logistica_formulario',
         LISTADO_INCIDENCIAS: 'incidencia_listado_logistica',
-        FICHA_IMPORTACION: 'ficha_importacion'
+        FICHA_IMPORTACION: 'ficha_importacion',
+        REG_INCIDENCIAS_lOGIS: "reg_indicencias_logis"
     }
 };
 
