@@ -5,176 +5,481 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Área de Administración: Gestión de incidencias (v12)</title>
   <style>
+    /* Importar Google Fonts */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    
+    * {
+      box-sizing: border-box;
+    }
+    
     body {
-      font-family: Arial, sans-serif;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       margin: 0;
-      background: #f5f5f5;
+      padding: 0;
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      color: #1e293b;
+      line-height: 1.6;
     }
+    
+    /* Header mejorado */
     header {
-      background: #17375d;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem 2rem;
+      background: linear-gradient(135deg, #17375d 0%, #1e4d7a 100%);
       color: white;
-      padding: 1rem;
-      text-align: center;
+      box-shadow: 0 4px 20px rgba(23, 55, 93, 0.3);
+      position: relative;
+      overflow: hidden;
     }
+    
+    header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+      opacity: 0.3;
+    }
+    
     header h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
       margin: 0;
-      font-size: 1.4rem;
+      position: relative;
+      z-index: 1;
+      letter-spacing: -0.025em;
     }
+    
+    /* Botón volver mejorado */
+    .btn-back {
+      background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      font-weight: 500;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 8px rgba(100, 116, 139, 0.3);
+      margin: 1rem 0 0 1rem;
+    }
+    
+    .btn-back:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(100, 116, 139, 0.4);
+    }
+    
+    /* Container principal */
     .container {
-      max-width: 1200px;
+      max-width: 1400px;
       margin: 0 auto;
-      padding: 1rem;
+      padding: 2rem;
     }
+    
+    /* Cards mejoradas */
     .card {
       background: white;
-      border-radius: 4px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      margin-bottom: 1.5rem;
+      border-radius: 16px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+      margin-bottom: 2rem;
+      overflow: hidden;
+      border: 1px solid rgba(226, 232, 240, 0.8);
+      transition: all 0.3s ease;
     }
+    
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
+    }
+    
     .card-header {
-      background: #2f75b5;
+      background: linear-gradient(135deg, #2f75b5 0%, #1e4d7a 100%);
       color: white;
-      padding: 0.75rem 1rem;
+      padding: 1.5rem 2rem;
+      position: relative;
+      overflow: hidden;
     }
+    
+    .card-header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%);
+      animation: shimmer 3s infinite;
+    }
+    
+    @keyframes shimmer {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+    
     .card-header h2 {
       margin: 0;
-      font-size: 1.1rem;
+      font-size: 1.25rem;
+      font-weight: 600;
+      position: relative;
+      z-index: 1;
     }
+    
     .card-body {
-      padding: 1rem;
+      padding: 2rem;
     }
+    
+    /* Botones mejorados */
     .btn {
-      padding: 0.4rem 0.75rem;
+      padding: 0.875rem 1.5rem;
       border: none;
-      border-radius: 4px;
+      border-radius: 12px;
       cursor: pointer;
-      font-size: 0.85rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+      font-family: inherit;
     }
+    
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: left 0.5s;
+    }
+    
+    .btn:hover::before {
+      left: 100%;
+    }
+    
     .btn-primary {
-      background: #17375d;
+      background: linear-gradient(135deg, #17375d 0%, #1e4d7a 100%);
       color: white;
+      box-shadow: 0 4px 15px rgba(23, 55, 93, 0.3);
     }
+    
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(23, 55, 93, 0.4);
+    }
+    
     .btn-secondary {
-      background: #4f81bd;
+      background: linear-gradient(135deg, #4f81bd 0%, #3b6aa0 100%);
       color: white;
+      box-shadow: 0 4px 15px rgba(79, 129, 189, 0.3);
     }
+    
+    .btn-secondary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(79, 129, 189, 0.4);
+    }
+    
     .btn-danger {
-      background: #c00000;
+      background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
       color: white;
+      box-shadow: 0 4px 15px rgba(220, 38, 38, 0.3);
     }
+    
+    .btn-danger:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(220, 38, 38, 0.4);
+    }
+    
     .btn-edit {
-      background: #007bff;
+      background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
       color: white;
+      box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
     }
+    
+    .btn-edit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0, 123, 255, 0.4);
+    }
+    
     .btn-edit[disabled] {
-      background: #ccc;
-      color: #666;
+      background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+      color: #adb5bd;
       cursor: not-allowed;
+      transform: none;
+      box-shadow: 0 2px 8px rgba(108, 117, 125, 0.2);
     }
+    
+    /* Tabla mejorada */
+    .table-responsive {
+      overflow-x: auto;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+    
     table {
       width: 100%;
-      border-collapse: collapse;
+      border-collapse: separate;
+      border-spacing: 0;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
     }
-    th, td {
-      padding: 0.5rem;
-      border: 1px solid #ddd;
-      font-size: 0.85rem;
-    }
+    
     th {
-      background: #17375d;
+      background: linear-gradient(135deg, #17375d 0%, #1e4d7a 100%);
       color: white;
+      padding: 1rem;
+      font-weight: 600;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border: none;
     }
+    
+    td {
+      padding: 1rem;
+      border-bottom: 1px solid #f1f5f9;
+      font-size: 0.9rem;
+      transition: background-color 0.2s ease;
+    }
+    
+    tr:hover td {
+      background-color: #f8fafc;
+    }
+    
     td:nth-child(3),
     td:nth-child(9),
     td:nth-child(10) {
-      /* evitar que fechas se corten en varias líneas */
       white-space: nowrap;
     }
-    td a {
-      color: #007bff;
-      text-decoration: underline;
+    
+    /* Enlaces mejorados */
+    .link-view, .link-pdf {
+      color: #2f75b5;
+      text-decoration: none;
       cursor: pointer;
+      font-weight: 600;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      background: rgba(47, 117, 181, 0.1);
+      transition: all 0.3s ease;
+      display: inline-block;
+      margin-right: 0.5rem;
     }
+    
+    .link-view:hover, .link-pdf:hover {
+      background: rgba(47, 117, 181, 0.2);
+      transform: translateY(-1px);
+    }
+    
+    /* Badges mejorados */
     .badge {
-      padding: 0.2rem 0.5rem;
-      border-radius: 0.25rem;
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
       color: white;
       font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
       display: inline-block;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
     }
-    .badge-pendiente { background: #ffc107; }
-    .badge-enproceso { background: #ff9800; }
-    .badge-completado { background: #4caf50; }
-    .table-responsive {
-      overflow-x: auto;
+    
+    .badge-pendiente {
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
     }
-
-    /* Estilos para las filas de filtros */
+    
+    .badge-enproceso {
+      background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+    }
+    
+    .badge-completado {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    }
+    
+    /* Filtros mejorados */
     .filter-row {
       display: flex;
       flex-wrap: wrap;
-      gap: 1rem;
-      align-items: center;
+      gap: 1.5rem;
+      align-items: end;
+      margin-bottom: 2rem;
+      padding: 1.5rem;
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
     }
+    
     .filter-group {
       display: flex;
       flex-direction: column;
-      font-size: 0.85rem;
+      font-size: 0.9rem;
     }
-    /* Estilos para enlaces de detalle */
-    .link-view {
-      color: #007bff;
-      text-decoration: underline;
-      cursor: pointer;
+    
+    .filter-group label {
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: #374151;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
     }
-    /* Modal styles */
+    
+    .filter-group input,
+    .filter-group select {
+      padding: 0.75rem 1rem;
+      border: 2px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      transition: all 0.3s ease;
+      background: white;
+    }
+    
+    .filter-group input:focus,
+    .filter-group select:focus {
+      outline: none;
+      border-color: #2f75b5;
+      box-shadow: 0 0 0 3px rgba(47, 117, 181, 0.1);
+    }
+    
+    /* Modal mejorado */
     .modal {
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0,0,0,0.5);
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(8px);
       display: none;
       justify-content: center;
-      align-items: flex-start;
-      padding-top: 5%;
+      align-items: center;
       z-index: 1000;
+      padding: 2rem;
     }
+    
     .modal-content {
       background: white;
-      padding: 1rem;
-      border-radius: 4px;
-      max-width: 600px;
-      width: 90%;
-      max-height: 80vh;
+      padding: 2rem;
+      border-radius: 20px;
+      max-width: 800px;
+      width: 100%;
+      max-height: 90vh;
       overflow-y: auto;
+      box-shadow: 0 25px 100px rgba(0, 0, 0, 0.25);
+      border: 1px solid rgba(226, 232, 240, 0.8);
     }
+    
     .modal-close {
       background: transparent;
       border: none;
-      font-size: 1.5rem;
+      font-size: 2rem;
       float: right;
       cursor: pointer;
+      color: #64748b;
+      transition: color 0.3s ease;
+      margin-bottom: 1rem;
     }
+    
+    .modal-close:hover {
+      color: #1e293b;
+    }
+    
+    /* Formulario mejorado */
     .form-group {
-      margin-bottom: 0.75rem;
+      margin-bottom: 1.5rem;
     }
+    
     .form-group label {
       display: block;
-      font-weight: bold;
-      margin-bottom: 0.25rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+      color: #374151;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
     }
+    
     .form-group input,
     .form-group select,
     .form-group textarea {
       width: 100%;
-      padding: 0.5rem;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      font-size: 0.9rem;
+      padding: 1rem;
+      border: 2px solid #e5e7eb;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      transition: all 0.3s ease;
+      background: white;
     }
-    .form-group textarea { resize: vertical; }
+    
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: #2f75b5;
+      box-shadow: 0 0 0 3px rgba(47, 117, 181, 0.1);
+    }
+    
+    .form-group textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+    
+    /* Responsive design */
+    @media (max-width: 768px) {
+      .container {
+        padding: 1rem;
+      }
+      
+      .card-body {
+        padding: 1.5rem;
+      }
+      
+      .filter-row {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      
+      .modal-content {
+        padding: 1.5rem;
+        margin: 1rem;
+      }
+    }
+    
+    /* Animaciones suaves */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .card {
+      animation: fadeIn 0.6s ease-out;
+    }
+    
+    /* Scrollbar personalizada */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+      background: linear-gradient(135deg, #17375d 0%, #2f75b5 100%);
+      border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(135deg, #1e4d7a 0%, #1e4d7a 100%);
+    }
   </style>
 </head>
 <body>
@@ -182,8 +487,8 @@
     <h1>Área de Administración: Gestión de incidencias</h1>
   </header>
 
-  <button onclick="window.top.location.href='<?= ScriptApp.getService().getUrl() ?>?page=admin'" class="btn btn-outline-secondary">
-              <i class="bi bi-arrow-left"></i> volver
+  <button onclick="window.top.location.href='<?= ScriptApp.getService().getUrl() ?>?page=admin'" class="btn-back">
+              <i class="bi bi-arrow-left"></i> Volver
             </button>
   <div class="container">
     <div class="card">
@@ -192,7 +497,7 @@
       </div>
       <div class="card-body">
         <!-- Filtros y acciones -->
-        <div class="filter-row" style="margin-bottom:0.75rem; display:flex; flex-wrap:wrap; gap:1rem; align-items:center;">
+        <div class="filter-row">
           <div class="filter-group">
             <label for="filterEstadoAdmin">Filtrar por estado</label>
             <select id="filterEstadoAdmin">
@@ -256,7 +561,7 @@
   <div id="editModal" class="modal">
     <div class="modal-content">
       <button class="modal-close" id="closeEdit">&times;</button>
-      <h3>Editar incidencia</h3>
+      <h3 style="color: #17375d; font-size: 1.5rem; font-weight: 700; margin-bottom: 2rem; border-bottom: 3px solid #17375d; padding-bottom: 1rem;">Editar incidencia</h3>
       <div class="form-group">
         <label for="editEstado">Estado</label>
         <select id="editEstado">
@@ -291,7 +596,9 @@
           <option value="EVELYN">Evelyn</option>
         </select>
       </div>
-      <button id="saveEdit" class="btn btn-primary">Guardar cambios</button>
+      <div style="text-align: right; margin-top: 2rem;">
+        <button id="saveEdit" class="btn btn-primary">Guardar cambios</button>
+      </div>
     </div>
   </div>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>

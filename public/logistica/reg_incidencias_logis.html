@@ -5,199 +5,580 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Área de Logística: Registro y seguimiento de incidencias (v12)</title>
   <style>
+    /* Importar Google Fonts */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    
+    * {
+      box-sizing: border-box;
+    }
+    
     body {
-      font-family: Arial, sans-serif;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       margin: 0;
       padding: 0;
-      background: #f5f5f5;
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      color: #1e293b;
+      line-height: 1.6;
     }
+    
+    /* Header mejorado */
     header {
       display: flex;
       align-items: center;
-      padding: 0.75rem 1rem;
-      background-color: #17375d;
+      padding: 1rem 2rem;
+      background: linear-gradient(135deg, #17375d 0%, #1e4d7a 100%);
       color: white;
-    }
-    header img {
-      height: 40px;
-      margin-right: 1rem;
-    }
-    header h1 {
-      font-size: 1.4rem;
-      margin: 0;
-    }
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 1rem;
-    }
-    .card {
-      background: white;
-      border-radius: 4px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      margin-bottom: 1.5rem;
+      box-shadow: 0 4px 20px rgba(23, 55, 93, 0.3);
+      position: relative;
       overflow: hidden;
     }
-    .card-header {
-      background: #2f75b5;
-      color: white;
-      padding: 0.75rem 1rem;
+    
+    header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+      opacity: 0.3;
     }
+    
+    header img {
+      height: 45px;
+      margin-right: 1.5rem;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+      position: relative;
+      z-index: 1;
+    }
+    
+    header h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin: 0;
+      position: relative;
+      z-index: 1;
+      letter-spacing: -0.025em;
+    }
+    
+    /* Botón volver mejorado */
+    .btn-back {
+      background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      font-weight: 500;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 8px rgba(100, 116, 139, 0.3);
+      margin: 1rem 0 0 1rem;
+    }
+    
+    .btn-back:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(100, 116, 139, 0.4);
+    }
+    
+    /* Container principal */
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+    
+    /* Cards mejoradas */
+    .card {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+      margin-bottom: 2rem;
+      overflow: hidden;
+      border: 1px solid rgba(226, 232, 240, 0.8);
+      transition: all 0.3s ease;
+    }
+    
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
+    }
+    
+    .card-header {
+      background: linear-gradient(135deg, #2f75b5 0%, #1e4d7a 100%);
+      color: white;
+      padding: 1.5rem 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .card-header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%);
+      animation: shimmer 3s infinite;
+    }
+    
+    @keyframes shimmer {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+    
     .card-header h2 {
       margin: 0;
-      font-size: 1.1rem;
+      font-size: 1.25rem;
+      font-weight: 600;
+      position: relative;
+      z-index: 1;
     }
+    
     .card-body {
-      padding: 1rem;
+      padding: 2rem;
     }
+    
+    /* Formulario mejorado */
     .form-row {
       display: flex;
       flex-wrap: wrap;
-      gap: 1rem;
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
     }
+    
     .form-group {
-      flex: 1 1 200px;
+      flex: 1 1 300px;
       display: flex;
       flex-direction: column;
     }
+    
     .form-group label {
-      font-weight: bold;
-      margin-bottom: 0.25rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: #374151;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
     }
+    
     .form-group input,
     .form-group select,
     .form-group textarea {
-      padding: 0.5rem;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      font-size: 0.9rem;
+      padding: 0.875rem 1rem;
+      border: 2px solid #e5e7eb;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      transition: all 0.3s ease;
+      background: #fafafa;
     }
+    
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: #2f75b5;
+      background: white;
+      box-shadow: 0 0 0 3px rgba(47, 117, 181, 0.1);
+    }
+    
     .form-group textarea {
       resize: vertical;
+      min-height: 100px;
     }
+    
+    /* Botones mejorados */
     .btn {
-      padding: 0.4rem 0.75rem;
+      padding: 0.875rem 1.5rem;
       border: none;
-      border-radius: 4px;
+      border-radius: 12px;
       cursor: pointer;
-      font-size: 0.85rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+      font-family: inherit;
     }
-    .btn-primary {
-      background: #17375d;
-      color: white;
-    }
-    .btn-secondary {
-      background: #4f81bd;
-      color: white;
-    }
-    .btn-danger {
-      background: #c00000;
-      color: white;
-    }
-    /* Table styles */
-    table {
+    
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
       width: 100%;
-      border-collapse: collapse;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: left 0.5s;
     }
-    th,
-    td {
-      padding: 0.5rem;
-      border: 1px solid #ddd;
-      font-size: 0.85rem;
+    
+    .btn:hover::before {
+      left: 100%;
     }
-    th {
-      background: #17375d;
+    
+    .btn-primary {
+      background: linear-gradient(135deg, #17375d 0%, #1e4d7a 100%);
       color: white;
+      box-shadow: 0 4px 15px rgba(23, 55, 93, 0.3);
     }
-    td:nth-child(3), /* fecha de emisión */
-    td:nth-child(10) {
-      /* evitar que las fechas se corten en dos líneas */
-      white-space: nowrap;
+    
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(23, 55, 93, 0.4);
     }
-    td a {
-      color: #007bff;
-      text-decoration: underline;
-      cursor: pointer;
-    }
-
-    /* Estilo para los enlaces "Ver" en la tabla de ítems */
-    .view-link {
-      color: #007bff;
-      text-decoration: underline;
-      cursor: pointer;
-    }
-    .badge {
-      padding: 0.2rem 0.5rem;
-      border-radius: 0.25rem;
+    
+    .btn-secondary {
+      background: linear-gradient(135deg, #4f81bd 0%, #3b6aa0 100%);
       color: white;
-      font-size: 0.75rem;
+      box-shadow: 0 4px 15px rgba(79, 129, 189, 0.3);
     }
-    .badge-pendiente {
-      background: #ffc107;
+    
+    .btn-secondary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(79, 129, 189, 0.4);
     }
-    .badge-enproceso {
-      background: #ff9800;
+    
+    .btn-danger {
+      background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+      color: white;
+      box-shadow: 0 4px 15px rgba(220, 38, 38, 0.3);
     }
-    .badge-completado {
-      background: #4caf50;
+    
+    .btn-danger:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(220, 38, 38, 0.4);
     }
+    
+    /* Tabla mejorada */
     .table-responsive {
       overflow-x: auto;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
     }
-
-    /* Ajuste para las filas de ítems: textos más amplios */
-.item-row textarea {
-      /* que ocupen más espacio horizontalmente y mantengan una altura moderada */
+    
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    
+    th {
+      background: linear-gradient(135deg, #17375d 0%, #1e4d7a 100%);
+      color: white;
+      padding: 1rem;
+      font-weight: 600;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border: none;
+    }
+    
+    td {
+      padding: 1rem;
+      border-bottom: 1px solid #f1f5f9;
+      font-size: 0.9rem;
+      transition: background-color 0.2s ease;
+    }
+    
+    tr:hover td {
+      background-color: #f8fafc;
+    }
+    
+    td:nth-child(3),
+    td:nth-child(10) {
+      white-space: nowrap;
+    }
+    
+    /* Enlaces mejorados */
+    .view-link {
+      color: #2f75b5;
+      text-decoration: none;
+      cursor: pointer;
+      font-weight: 600;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      background: rgba(47, 117, 181, 0.1);
+      transition: all 0.3s ease;
+      display: inline-block;
+    }
+    
+    .view-link:hover {
+      background: rgba(47, 117, 181, 0.2);
+      transform: translateY(-1px);
+    }
+    
+    /* Badges mejorados */
+    .badge {
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      color: white;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      display: inline-block;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+    
+    .badge-pendiente {
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    }
+    
+    .badge-enproceso {
+      background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+    }
+    
+    .badge-completado {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    }
+    
+    /* Filtros mejorados */
+    .filter-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      align-items: end;
+      margin-bottom: 2rem;
+      padding: 1.5rem;
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+    }
+    
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      font-size: 0.9rem;
+    }
+    
+    .filter-group label {
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: #374151;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    
+    .filter-group input,
+    .filter-group select {
+      padding: 0.75rem 1rem;
+      border: 2px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      transition: all 0.3s ease;
+      background: white;
+    }
+    
+    .filter-group input:focus,
+    .filter-group select:focus {
+      outline: none;
+      border-color: #2f75b5;
+      box-shadow: 0 0 0 3px rgba(47, 117, 181, 0.1);
+    }
+    
+    /* Items row mejorado */
+    .item-row {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      align-items: flex-start;
+    }
+    
+    .item-row textarea {
       flex: 1 1 48%;
-      min-height: 60px;
+      min-height: 80px;
+      padding: 1rem;
+      border: 2px solid #e5e7eb;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      transition: all 0.3s ease;
+      background: #fafafa;
     }
-
-    /* Separación entre el botón Agregar ítem y el select de tipo de incidencia */
-    #addItem {
-      margin-bottom: 1.25rem;
+    
+    .item-row textarea:focus {
+      outline: none;
+      border-color: #2f75b5;
+      background: white;
+      box-shadow: 0 0 0 3px rgba(47, 117, 181, 0.1);
     }
-    /* Modal styles */
+    
+    /* Modal mejorado */
     .modal {
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0, 0, 0, 0.5);
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(8px);
       display: none;
       justify-content: center;
-      align-items: flex-start;
-      padding-top: 5%;
+      align-items: center;
       z-index: 1000;
+      padding: 2rem;
     }
+    
     .modal-content {
       background: white;
-      padding: 1rem;
-      border-radius: 4px;
-      max-width: 600px;
-      width: 90%;
-      max-height: 80vh;
+      padding: 2rem;
+      border-radius: 20px;
+      max-width: 900px;
+      width: 100%;
+      max-height: 90vh;
       overflow-y: auto;
+      box-shadow: 0 25px 100px rgba(0, 0, 0, 0.25);
+      border: 1px solid rgba(226, 232, 240, 0.8);
     }
+    
     .modal-close {
       background: transparent;
       border: none;
-      font-size: 1.5rem;
+      font-size: 2rem;
       float: right;
       cursor: pointer;
+      color: #64748b;
+      transition: color 0.3s ease;
+      margin-bottom: 1rem;
     }
-    /* Filter section */
-    .filter-row {
+    
+    .modal-close:hover {
+      color: #1e293b;
+    }
+    
+    /* Modal sections mejoradas */
+    .modal-section {
+      margin-bottom: 2.5rem;
+      padding: 2rem;
+      border: 2px solid #e2e8f0;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    }
+    
+    .modal-section h3 {
+      margin-top: 0;
+      color: #17375d;
+      border-bottom: 3px solid #17375d;
+      padding-bottom: 1rem;
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+    }
+    
+    .modal-form-row {
       display: flex;
       flex-wrap: wrap;
-      gap: 1rem;
-      align-items: center;
-      margin-bottom: 0.75rem;
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
     }
-    .filter-group {
-      display: flex;
-      flex-direction: column;
-      font-size: 0.85rem;
+    
+    .modal-form-group {
+      flex: 1 1 300px;
+    }
+    
+    .modal-form-group label {
+      font-weight: 600;
+      display: block;
+      margin-bottom: 0.75rem;
+      color: #374151;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    
+    .modal-form-group input,
+    .modal-form-group select,
+    .modal-form-group textarea {
+      width: 100%;
+      padding: 1rem;
+      border: 2px solid #e5e7eb;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      transition: all 0.3s ease;
+      background: white;
+    }
+    
+    .modal-form-group input:focus,
+    .modal-form-group select:focus,
+    .modal-form-group textarea:focus {
+      outline: none;
+      border-color: #2f75b5;
+      box-shadow: 0 0 0 3px rgba(47, 117, 181, 0.1);
+    }
+    
+    .modal-form-group textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+    
+    .modal-buttons {
+      text-align: right;
+      margin-top: 2rem;
+    }
+    
+    /* Responsive design */
+    @media (max-width: 768px) {
+      .container {
+        padding: 1rem;
+      }
+      
+      .card-body {
+        padding: 1.5rem;
+      }
+      
+      .form-row {
+        gap: 1rem;
+      }
+      
+      .form-group {
+        flex: 1 1 100%;
+      }
+      
+      .filter-row {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      
+      .modal-content {
+        padding: 1.5rem;
+        margin: 1rem;
+      }
+    }
+    
+    /* Animaciones suaves */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .card {
+      animation: fadeIn 0.6s ease-out;
+    }
+    
+    /* Scrollbar personalizada */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+      background: linear-gradient(135deg, #17375d 0%, #2f75b5 100%);
+      border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(135deg, #1e4d7a 0%, #1e4d7a 100%);
     }
   </style>
 </head>
@@ -207,7 +588,7 @@
     <h1>Área de Logística: Registro y seguimiento de incidencias</h1>
   </header>
 
-  <button onclick="window.top.location.href='<?= ScriptApp.getService().getUrl() ?>?page=logistica'" class="btn btn-outline-secondary">
+  <button onclick="window.top.location.href='<?= ScriptApp.getService().getUrl() ?>?page=logistica'" class="btn-back">
               <i class="bi bi-arrow-left"></i> Volver
             </button>
   <div class="container">
@@ -219,25 +600,7 @@
         <form id="formLogistica">
           <div class="form-row">
             <div class="form-group">
-              <label for="mes">Mes *</label>
-              <select id="mes" required>
-                <option value="">Seleccione...</option>
-                <option value="ENERO">ENERO</option>
-                <option value="FEBRERO">FEBRERO</option>
-                <option value="MARZO">MARZO</option>
-                <option value="ABRIL">ABRIL</option>
-                <option value="MAYO">MAYO</option>
-                <option value="JUNIO">JUNIO</option>
-                <option value="JULIO">JULIO</option>
-                <option value="AGOSTO">AGOSTO</option>
-                <option value="SETIEMBRE">SETIEMBRE</option>
-                <option value="OCTUBRE">OCTUBRE</option>
-                <option value="NOVIEMBRE">NOVIEMBRE</option>
-                <option value="DICIEMBRE">DICIEMBRE</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="encargado">Encargado de la venta *</label>
+              <label for="encargado">Encargado del Comprobante *</label>
               <!-- Lista desplegable con nombres de los asesores de venta -->
               <select id="encargado" required>
                 <option value="">Seleccione...</option>
@@ -247,6 +610,9 @@
                 <option value="ALVARO">Alvaro</option>
                 <option value="EVELYN">Evelyn</option>
                 <option value="LIZETH">Lizeth</option>
+                <option value="JOSEPH">Joseph</option>
+                <option value="MANUEL">Manuel</option>
+                <option value="JOSSELYN">Joselyn</option>
               </select>
             </div>
             <div class="form-group">
@@ -266,6 +632,9 @@
                 <option value="JOSELYN">Joselyn</option>
                 <option value="VICTOR">Victor</option>
                 <option value="HERVIN">Hervin</option>
+                <option value="ALVARO">Alvaro</option>
+                <option value="EVELYN">Evelyn</option>
+                <option value="LIZETH">Lizeth</option>
               </select>
             </div>
             <div class="form-group">
@@ -307,7 +676,7 @@
             </div>
             <div class="form-group" style="flex:1 1 200px;">
               <label for="observacionDetalle">Observación detallada</label>
-              <textarea id="observacionDetalle" placeholder="Describa la incidencia" disabled></textarea>
+              <textarea id="observacionDetalle" placeholder="Describa la incidencia"></textarea>
             </div>
           </div>
           <button type="submit" class="btn btn-primary">Guardar incidencia</button>
@@ -350,20 +719,16 @@
           <table id="tablaIncidencias">
             <thead>
               <tr>
-                <th>Mes</th>
+                <th>N° Solicitud</th>
                 <th>Encargado</th>
                 <th>Fecha emisión</th>
                 <th>N° proforma</th>
                 <th>N° comprobante</th>
-                <th>Ítems</th>
                 <th>Responsable</th>
                 <th>Área</th>
                 <th>Tipo de incidencia</th>
-                <th>Fecha corrección</th>
                 <th>Estado</th>
-                <th>Solución</th>
-                <th>Obs. adicionales</th>
-                <th>Modificado por</th>
+                <th>Ver Detalle</th>
               </tr>
             </thead>
             <tbody></tbody>
@@ -407,6 +772,8 @@
       }
     ];
     const STORAGE_KEY = 'incidencias_v12';
+    let solicitudCounter = 1; // Contador para N° Solicitud
+    
     function loadStored() {
       const s = localStorage.getItem(STORAGE_KEY);
       return s ? JSON.parse(s) : [];
@@ -470,24 +837,17 @@
           if (!rec['FECHA DE EMISION'] || rec['FECHA DE EMISION'] > end) return;
         }
         const tr = document.createElement('tr');
-        const itemsHas = rec['ITEMS'] && rec['ITEMS'].length;
         const cells = [
-          rec['MES'] || '',
+          rec['N° SOLICITUD'] || idx + 1,
           rec['ENCARGADO DE LA VENTA'] || '',
           rec['FECHA DE EMISION'] || '',
           rec['N° DE PROFORMA'] || '',
           rec['N° DE COMPROBANTE'] || '',
-          itemsHas
-            ? '<span class="view-link" data-index="' + idx + '">Ver</span>'
-            : '',
           rec['RESPONSABLE'] || '',
           rec['AREA'] || '',
           rec['OBSERVACIONES'] || '',
-          rec['FECHA DE CORRECCION '] || '',
-          '<span class="badge ' + badgeClass(estado) + '"><span class="view-link" data-index="' + idx + '" style="color:white; text-decoration:none;">' + (estado || '') + '</span></span>',
-          rec['SOLUCION DE COMPROBANTE'] || '',
-          rec['OBSERVACIONES_ADMIN'] || '',
-          rec['MODIFICADO POR'] || ''
+          '<span class="badge ' + badgeClass(estado) + '">' + (estado || '') + '</span>',
+          '<span class="view-link" data-index="' + idx + '">Ver Detalle</span>'
         ];
         cells.forEach((html) => {
           const td = document.createElement('td');
@@ -496,7 +856,7 @@
         });
         tbody.appendChild(tr);
       });
-      // Asignar eventos a enlaces Ver
+      // Asignar eventos a enlaces Ver Detalle
       document.querySelectorAll('.view-link').forEach((el) => {
         el.addEventListener('click', function (e) {
           e.preventDefault();
@@ -512,38 +872,145 @@
       const rec = all[index];
       const container = document.getElementById('detailContent');
       container.innerHTML = '';
-      const fields = [
-        ['Mes', rec['MES']],
-        ['Encargado', rec['ENCARGADO DE LA VENTA']],
-        ['Fecha de emisión', rec['FECHA DE EMISION']],
-        ['N° de proforma', rec['N° DE PROFORMA']],
-        ['N° de comprobante', rec['N° DE COMPROBANTE']],
-        ['Responsable', rec['RESPONSABLE']],
-        ['Área', rec['AREA'] || ''],
-        ['Estado', rec['ESTADO']],
-        ['Fecha corrección', rec['FECHA DE CORRECCION '] || ''],
-        ['Solución comprobante', rec['SOLUCION DE COMPROBANTE'] || ''],
-        ['Tipo de incidencia', rec['OBSERVACIONES'] || ''],
-        ['Observación detallada', rec['OBSERVACION_DETALLE'] || ''],
-        ['Observaciones adicionales', rec['OBSERVACIONES_ADMIN'] || ''],
-        ['Modificado por', rec['MODIFICADO POR'] || '']
-      ];
-      fields.forEach(([label, value]) => {
-        const p = document.createElement('p');
-        p.innerHTML = '<strong>' + label + ':</strong> ' + (value || '');
-        container.appendChild(p);
-      });
+      
+      // Sección 1: Incidencia Descripción
+      const section1 = document.createElement('div');
+      section1.className = 'modal-section';
+      section1.innerHTML = `
+        <h3>Incidencia Descripción</h3>
+        <div class="modal-form-row">
+          <div class="modal-form-group">
+            <label>Encargado del Comprobante</label>
+            <input type="text" value="${rec['ENCARGADO DE LA VENTA'] || ''}" readonly>
+          </div>
+          <div class="modal-form-group">
+            <label>Fecha de emisión</label>
+            <input type="text" value="${rec['FECHA DE EMISION'] || ''}" readonly>
+          </div>
+        </div>
+        <div class="modal-form-row">
+          <div class="modal-form-group">
+            <label>N° de proforma</label>
+            <input type="text" value="${rec['N° DE PROFORMA'] || ''}" readonly>
+          </div>
+          <div class="modal-form-group">
+            <label>N° de comprobante</label>
+            <input type="text" value="${rec['N° DE COMPROBANTE'] || ''}" readonly>
+          </div>
+        </div>
+        <div class="modal-form-row">
+          <div class="modal-form-group">
+            <label>Responsable</label>
+            <input type="text" value="${rec['RESPONSABLE'] || ''}" readonly>
+          </div>
+          <div class="modal-form-group">
+            <label>Área</label>
+            <input type="text" value="${rec['AREA'] || ''}" readonly>
+          </div>
+        </div>
+        <div class="modal-form-row">
+          <div class="modal-form-group">
+            <label>Tipo de incidencia</label>
+            <input type="text" value="${rec['OBSERVACIONES'] || ''}" readonly>
+          </div>
+        </div>
+        <div class="modal-form-row">
+          <div class="modal-form-group">
+            <label>Observación detallada</label>
+            <textarea readonly>${rec['OBSERVACION_DETALLE'] || ''}</textarea>
+          </div>
+        </div>
+      `;
+      
+      // Agregar ítems si existen
       if (rec['ITEMS'] && rec['ITEMS'].length) {
-        const ul = document.createElement('ul');
-        rec['ITEMS'].forEach((it) => {
+        const itemsSection = document.createElement('div');
+        itemsSection.innerHTML = '<h4>Detalle de error y Debe ser:</h4>';
+        const itemsList = document.createElement('ul');
+        rec['ITEMS'].forEach((item, idx) => {
           const li = document.createElement('li');
-          li.innerHTML = '<strong>Detalle:</strong> ' + (it['DETALLE DE ERROR'] || '') + '<br><strong>Debe ser:</strong> ' + (it['DEBE SER'] || '');
-          ul.appendChild(li);
+          li.innerHTML = `<strong>Item ${idx + 1}:</strong><br>
+            <strong>Detalle de error:</strong> ${item['DETALLE DE ERROR'] || ''}<br>
+            <strong>Debe ser:</strong> ${item['DEBE SER'] || ''}`;
+          itemsList.appendChild(li);
         });
-        container.appendChild(ul);
+        itemsSection.appendChild(itemsList);
+        section1.appendChild(itemsSection);
       }
+      
+      // Sección 2: Incidencia Resuelta
+      const section2 = document.createElement('div');
+      section2.className = 'modal-section';
+      section2.innerHTML = `
+        <h3>Incidencia Resuelta</h3>
+        <div class="modal-form-row">
+          <div class="modal-form-group">
+            <label>Solución</label>
+            <textarea id="solucion" placeholder="Describa la solución">${rec['SOLUCION DE COMPROBANTE'] || ''}</textarea>
+          </div>
+        </div>
+        <div class="modal-form-row">
+          <div class="modal-form-group">
+            <label>Obs. Adicionales</label>
+            <textarea id="obsAdicionales" placeholder="Observaciones adicionales">${rec['OBSERVACIONES_ADMIN'] || ''}</textarea>
+          </div>
+        </div>
+        <div class="modal-form-row">
+          <div class="modal-form-group">
+            <label>Modificado por</label>
+            <input type="text" id="modificadoPor" placeholder="Nombre de quien modifica" value="${rec['MODIFICADO POR'] || ''}">
+          </div>
+          <div class="modal-form-group">
+            <label>Fecha Corrección</label>
+            <input type="date" id="fechaCorreccion" value="${rec['FECHA DE CORRECCION '] || ''}">
+          </div>
+        </div>
+        <div class="modal-buttons">
+          <button type="button" class="btn btn-primary" onclick="saveChanges(${index})">Guardar Cambios</button>
+        </div>
+      `;
+      
+      container.appendChild(section1);
+      container.appendChild(section2);
       document.getElementById('detailModal').style.display = 'flex';
     }
+    
+    // Función para guardar cambios en el modal
+    function saveChanges(index) {
+      const all = [...loadStored(), ...initialData];
+      const rec = all[index];
+      
+      // Obtener valores del modal
+      const solucion = document.getElementById('solucion').value;
+      const obsAdicionales = document.getElementById('obsAdicionales').value;
+      const modificadoPor = document.getElementById('modificadoPor').value;
+      const fechaCorreccion = document.getElementById('fechaCorreccion').value;
+      
+      // Actualizar el registro
+      rec['SOLUCION DE COMPROBANTE'] = solucion;
+      rec['OBSERVACIONES_ADMIN'] = obsAdicionales;
+      rec['MODIFICADO POR'] = modificadoPor;
+      rec['FECHA DE CORRECCION '] = fechaCorreccion;
+      
+      // Si se completó la solución, cambiar estado a COMPLETADO
+      if (solucion.trim() && fechaCorreccion) {
+        rec['ESTADO'] = 'COMPLETADO';
+      } else if (solucion.trim()) {
+        rec['ESTADO'] = 'EN PROCESO';
+      }
+      
+      // Guardar cambios
+      const stored = loadStored();
+      if (index < stored.length) {
+        stored[index] = rec;
+        saveStored(stored);
+      }
+      
+      // Cerrar modal y actualizar lista
+      document.getElementById('detailModal').style.display = 'none';
+      renderList();
+    }
+    
     // Cerrar modal
     document.getElementById('closeDetail').addEventListener('click', () => {
       document.getElementById('detailModal').style.display = 'none';
@@ -551,7 +1018,6 @@
     // Guardar incidencia
     document.getElementById('formLogistica').addEventListener('submit', function (e) {
       e.preventDefault();
-      const mes = document.getElementById('mes').value;
       const encargado = document.getElementById('encargado').value;
       const fechaEmision = document.getElementById('fechaEmision').value;
       const proforma = document.getElementById('proforma').value;
@@ -568,7 +1034,7 @@
       });
       // Crear registro
       const newRec = {
-        'MES': mes,
+        'N° SOLICITUD': solicitudCounter++,
         'ENCARGADO DE LA VENTA': encargado,
         // Combina la fecha ingresada con la hora actual para registrar la hora de solicitud
         'FECHA DE EMISION': fechaEmision ? (fechaEmision + ' ' + new Date().toLocaleTimeString()) : '',
@@ -601,22 +1067,18 @@
     // Habilitar/deshabilitar observación detallada según el tipo de incidencia
     document.getElementById('tipoIncidencia').addEventListener('change', function() {
       const detField = document.getElementById('observacionDetalle');
-      if (this.value === 'OTROS') {
-        detField.disabled = false;
-      } else {
-        detField.value = '';
-        detField.disabled = true;
-      }
+      // Ahora siempre está habilitado
+      detField.disabled = false;
     });
     // Exportar CSV
     document.getElementById('exportCSV').addEventListener('click', function () {
       const all = [...initialData, ...loadStored()];
-      let csv = 'MES,ENCARGADO DE LA VENTA,FECHA DE EMISION,N° DE PROFORMA,N° DE COMPROBANTE,DETALLE DE ERROR,DEBE SER,RESPONSABLE,AREA,TIPO DE INCIDENCIA,OBSERVACION DETALLADA,FECHA DE CORRECCION,ESTADO,SOLUCION DE COMPROBANTE,OBSERVACIONES ADICIONALES,MODIFICADO POR\n';
+      let csv = 'N° SOLICITUD,ENCARGADO DE LA VENTA,FECHA DE EMISION,N° DE PROFORMA,N° DE COMPROBANTE,DETALLE DE ERROR,DEBE SER,RESPONSABLE,AREA,TIPO DE INCIDENCIA,OBSERVACION DETALLADA,FECHA DE CORRECCION,ESTADO,SOLUCION DE COMPROBANTE,OBSERVACIONES ADICIONALES,MODIFICADO POR\n';
       all.forEach((rec) => {
         const items = rec['ITEMS'] && rec['ITEMS'].length ? rec['ITEMS'] : [{ 'DETALLE DE ERROR': '', 'DEBE SER': '' }];
         items.forEach((item) => {
         const row = [
-            rec['MES'] || '',
+            rec['N° SOLICITUD'] || '',
             rec['ENCARGADO DE LA VENTA'] || '',
             rec['FECHA DE EMISION'] || '',
             rec['N° DE PROFORMA'] || '',
