@@ -749,18 +749,13 @@
             }
             
             console.log('✅ Incidencia encontrada:', incidencia);
-
-            // Llenar modal con datos básicos
-            let detalles = `ID: ${incidencia.ID_INCIDENCIA}\n`;
-            detalles += `Fecha Registro: ${incidencia.FECHA_REGISTRO}\n`;
-            detalles += `Número Despacho: ${incidencia.NUMERO_DESPACHO}\n`;
-            detalles += `PDF Inicial: ${incidencia.ARCHIVO_PDF_URL || 'No disponible'}\n`;
-            detalles += `PDF Incidencia: ${incidencia.PDF_INCIDENCIA_URL || 'No disponible'}`;
-            
-            document.getElementById('observacionesDetalle').value = detalles;
             
             // Mostrar modal primero
             document.getElementById('detallesModal').style.display = 'block';
+            
+            // Mostrar observaciones en el textarea
+            const observacionesTextarea = document.getElementById('observacionesDetalle');
+            observacionesTextarea.value = incidencia.OBSERVACIONES || 'Sin observaciones registradas';
             
             // Cargar productos desde la API
             await cargarProductosIncidencia(id);
