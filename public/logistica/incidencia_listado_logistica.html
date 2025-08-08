@@ -346,11 +346,19 @@
 
         .modal-body {
             padding: 30px;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
+            display: flex;
+            flex-direction: column;
             gap: 30px;
             max-height: 70vh;
             overflow-y: auto;
+        }
+
+        .productos-section {
+            flex: 2;
+        }
+
+        .observaciones-section {
+            flex: 1;
         }
 
         .modal-section {
@@ -371,7 +379,7 @@
 
         .observaciones-textarea {
             width: 100%;
-            min-height: 200px;
+            min-height: 120px;
             padding: 15px;
             border: 2px solid #e2e8f0;
             border-radius: 10px;
@@ -436,7 +444,7 @@
             }
 
             .modal-body {
-                grid-template-columns: 1fr;
+                flex-direction: column;
                 gap: 20px;
             }
 
@@ -528,17 +536,17 @@
                 <span class="close" onclick="cerrarModal()">&times;</span>
             </div>
             <div class="modal-body">
-                <div class="modal-section">
-                    <h4><i class="fas fa-comment"></i> Observaciones</h4>
-                    <textarea id="observacionesDetalle" class="observaciones-textarea" readonly></textarea>
-                </div>
-                <div class="modal-section">
+                <div class="modal-section productos-section">
                     <h4><i class="fas fa-box"></i> Productos Afectados</h4>
                     <div class="table-responsive">
                         <table class="productos-tabla">
                             <thead>
                                 <tr>
+                                    <th>Unidad de Medida</th>
                                     <th>Producto</th>
+                                    <th>Cantidad Inicial</th>
+                                    <th>Cantidad Recibida</th>
+                                    <th>Motivo</th>
                                 </tr>
                             </thead>
                             <tbody id="productosDetalle">
@@ -546,6 +554,10 @@
                             </tbody>
                         </table>
                     </div>
+                </div>
+                <div class="modal-section observaciones-section">
+                    <h4><i class="fas fa-comment"></i> Observaciones</h4>
+                    <textarea id="observacionesDetalle" class="observaciones-textarea" readonly></textarea>
                 </div>
             </div>
         </div>
@@ -593,6 +605,7 @@
                     
                     if (Array.isArray(registros)) {
                         incidenciasData = registros;
+                        console.log('📋 Primeras 3 incidencias:', registros.slice(0, 3));
                     } else {
                         incidenciasData = [];
                     }
@@ -717,12 +730,25 @@
         }
 
         // Función para ver detalles
-        function verDetalles(id) {
-            const incidencia = incidenciasData.find(inc => inc.ID_INCIDENCIA === id);
+        async function verDetalles(id) {
+            console.log('🔍 Buscando incidencia con ID:', id, 'Tipo:', typeof id);
+            console.log('📊 Datos disponibles:', incidenciasData);
+            
+            // Buscar por ID como string o número
+            const incidencia = incidenciasData.find(inc => {
+                const incId = String(inc.ID_INCIDENCIA);
+                const searchId = String(id);
+                console.log('🔍 Comparando:', incId, 'con', searchId);
+                return incId === searchId;
+            });
+            
             if (!incidencia) {
+                console.log('❌ No se encontró la incidencia con ID:', id);
                 mostrarAlerta('No se encontró la incidencia', 'error');
                 return;
             }
+            
+            console.log('✅ Incidencia encontrada:', incidencia);
 
             // Llenar modal con datos básicos
             let detalles = `ID: ${incidencia.ID_INCIDENCIA}\n`;
@@ -733,12 +759,82 @@
             
             document.getElementById('observacionesDetalle').value = detalles;
             
-            // Limpiar tabla de productos ya que no tenemos esa información en la API
-            const productosBody = document.getElementById('productosDetalle');
-            productosBody.innerHTML = '<tr><td>No hay información de productos disponible</td></tr>';
-
-            // Mostrar modal
+            // Mostrar modal primero
             document.getElementById('detallesModal').style.display = 'block';
+            
+            // Cargar productos desde la API
+            await cargarProductosIncidencia(id);
+        }
+
+        // Función para cargar productos de una incidencia específica
+        async function cargarProductosIncidencia(idIncidencia) {
+            try {
+                const api = "https://incidenciaslogisticacrud-2946605267.us-central1.run.app";
+                const response = await fetch(`${api}?id=${idIncidencia}`);
+                
+                if (response.status === 200) {
+                    const datos = await response.text();
+                    console.log("✅ Datos de productos extraídos correctamente");
+                    console.log("📄 Datos raw de la API:", datos);
+                    console.log("📄 Tipo de datos:", typeof datos);
+                    
+                    let productos = [];
+                    try {
+                        // Intentar parsear como JSON
+                        productos = JSON.parse(datos);
+                        console.log("✅ JSON parseado correctamente:", productos);
+                        console.log("📊 Tipo de productos:", typeof productos);
+                        console.log("📊 Es array:", Array.isArray(productos));
+                    } catch (e) {
+                        console.log("❌ Los datos no son JSON válido:", e.message);
+                        console.log("📄 Datos que causaron error:", datos);
+                        productos = [];
+                    }
+                    
+                    mostrarProductosIncidencia(productos);
+                    console.log('✅ Productos cargados:', productos.length);
+                } else {
+                    console.error("❌ Error al extraer los datos de productos");
+                    mostrarProductosIncidencia([]);
+                }
+            } catch (error) {
+                console.error('❌ Error al cargar productos:', error);
+                mostrarProductosIncidencia([]);
+            }
+        }
+
+        // Función para mostrar productos en el modal
+        function mostrarProductosIncidencia(productos) {
+            console.log("🎯 Mostrando productos:", productos);
+            const productosBody = document.getElementById('productosDetalle');
+            productosBody.innerHTML = '';
+
+            // Si es un objeto individual, convertirlo a array
+            let productosArray = productos;
+            if (productos && typeof productos === 'object' && !Array.isArray(productos)) {
+                console.log("🔄 Convirtiendo objeto individual a array");
+                productosArray = [productos];
+            }
+
+            if (!Array.isArray(productosArray) || productosArray.length === 0) {
+                console.log("📭 No hay productos para mostrar");
+                productosBody.innerHTML = '<tr><td>No hay productos registrados para esta incidencia</td></tr>';
+                return;
+            }
+
+            console.log("📦 Productos a mostrar:", productosArray.length);
+            productosArray.forEach((producto, index) => {
+                console.log(`📦 Producto ${index + 1}:`, producto);
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${producto.UNIDAD_MEDIDA || 'N/A'}</td>
+                    <td>${producto.PRODUCTO || 'N/A'}</td>
+                    <td>${producto.CANTIDAD_INICIAL || 'N/A'}</td>
+                    <td>${producto.CANTIDAD_RECIBIDA || 'N/A'}</td>
+                    <td>${producto.MOTIVO || 'N/A'}</td>
+                `;
+                productosBody.appendChild(row);
+            });
         }
 
         // Función para cerrar modal
