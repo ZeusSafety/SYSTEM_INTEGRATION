@@ -527,7 +527,7 @@
           <table id="tablaAdmin">
             <thead>
               <tr>
-                <th>Mes</th>
+                <th>N° DE SOLICITUD</th>
                 <th>Encargado</th>
                 <th>Fecha emisión</th>
                 <th>N° proforma</th>
@@ -565,9 +565,11 @@
       <div class="form-group">
         <label for="editEstado">Estado</label>
         <select id="editEstado">
-          <option value="PENDIENTE">Pendiente</option>
-          <option value="EN PROCESO">En proceso</option>
-          <option value="COMPLETADO">Completado</option>
+            <option value="PENDIENTE" style="background-color: yellow; color: black;">PENDIENTE</option>
+            <option value="EN REVISION" style="background-color: orange; color: white;">EN REVISION</option>
+            <option value="COMPLETADO" style="background-color: blue; color: white;">COMPLETADO</option>
+            <option value="NOTIFICADO" style="background-color: green; color: white;">NOTIFICADO</option>
+            <option value="OBSERVADO" style="background-color: red; color: white;">OBSERVADO</option>
         </select>
       </div>
       <div class="form-group">
@@ -578,8 +580,11 @@
         <label for="editSolucion">Solución de comprobante</label>
         <select id="editSolucion">
           <option value="">Seleccione...</option>
-          <option value="SE ANULO">SE ANULO</option>
-          <option value="SE MODIFICO">SE MODIFICO</option>
+          <option value="ANULADO">ANULADO</option>
+          <option value="MODIFICADO">MODIFICADO</option>
+          <option value="COMPRA">COMPRA</option>
+          <option value="VENTA">VENTA</option>
+          <option value="NO HAY INCIDENCIA">NO HAY INCIDENCIA</option>
         </select>
       </div>
       <div class="form-group">
@@ -594,6 +599,14 @@
           <option value="HERVIN">Hervin</option>
           <option value="SANDRA">Sandra</option>
           <option value="EVELYN">Evelyn</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="editActaRealizada">ACTA REALIZADA</label>
+        <select id="editActaRealizada">
+          <option value="">Seleccione...</option>
+          <option value="SI">SI</option>
+          <option value="NO">NO</option>
         </select>
       </div>
       <div style="text-align: right; margin-top: 2rem;">
@@ -668,7 +681,7 @@
         }
         const tr = document.createElement('tr');
         const cells = [
-          rec['MES'] || '',
+          rec['N° SOLICITUD'] || idx + 1,
           rec['ENCARGADO DE LA VENTA'] || '',
           rec['FECHA DE EMISION'] || '',
           rec['N° DE PROFORMA'] || '',
@@ -732,7 +745,7 @@
       const container = document.getElementById('detailContentAdmin');
       container.innerHTML = '';
       const fields = [
-        ['Mes', rec['MES']],
+        ['N° DE SOLICITUD', rec['N° SOLICITUD'] || ''],
         ['Encargado', rec['ENCARGADO DE LA VENTA']],
         ['Fecha de emisión', rec['FECHA DE EMISION']],
         ['N° de proforma', rec['N° DE PROFORMA']],
@@ -777,6 +790,7 @@
       document.getElementById('editSolucion').value = rec['SOLUCION DE COMPROBANTE'] || '';
       document.getElementById('editObservaciones').value = rec['OBSERVACIONES_ADMIN'] || '';
       document.getElementById('editModificadoPor').value = rec['MODIFICADO POR'] || '';
+      document.getElementById('editActaRealizada').value = rec['ACTA REALIZADA'] || '';
       document.getElementById('editModal').style.display = 'flex';
     }
     document.getElementById('closeEdit').addEventListener('click', () => {
@@ -793,6 +807,7 @@
       rec['SOLUCION DE COMPROBANTE'] = document.getElementById('editSolucion').value;
       rec['OBSERVACIONES_ADMIN'] = document.getElementById('editObservaciones').value;
       rec['MODIFICADO POR'] = document.getElementById('editModificadoPor').value;
+      rec['ACTA REALIZADA'] = document.getElementById('editActaRealizada').value;
       stored[currentEditIndex] = rec;
       saveStored(stored);
       document.getElementById('editModal').style.display = 'none';
@@ -810,7 +825,7 @@
       y += 10;
       doc.setFontSize(10);
         const entries = [
-        ['Mes', rec['MES']],
+        ['N° DE SOLICITUD', rec['N° SOLICITUD'] || ''],
         ['Encargado', rec['ENCARGADO DE LA VENTA']],
         ['Fecha de emisión', rec['FECHA DE EMISION']],
         ['N° de proforma', rec['N° DE PROFORMA']],
@@ -866,12 +881,12 @@
     // Exportar CSV
     document.getElementById('exportCSV').addEventListener('click', () => {
       const all = [...initialData, ...loadStored()];
-      let csv = 'MES,ENCARGADO DE LA VENTA,FECHA DE EMISION,N° DE PROFORMA,N° DE COMPROBANTE,DETALLE DE ERROR,DEBE SER,RESPONSABLE,AREA,TIPO DE INCIDENCIA,OBSERVACION DETALLADA,FECHA DE CORRECCION,ESTADO,SOLUCION DE COMPROBANTE,OBSERVACIONES ADICIONALES,MODIFICADO POR\n';
+      let csv = 'N° DE SOLICITUD,ENCARGADO DE LA VENTA,FECHA DE EMISION,N° DE PROFORMA,N° DE COMPROBANTE,DETALLE DE ERROR,DEBE SER,RESPONSABLE,AREA,TIPO DE INCIDENCIA,OBSERVACION DETALLADA,FECHA DE CORRECCION,ESTADO,SOLUCION DE COMPROBANTE,OBSERVACIONES ADICIONALES,MODIFICADO POR\n';
       all.forEach((rec) => {
         const items = rec['ITEMS'] && rec['ITEMS'].length ? rec['ITEMS'] : [{ 'DETALLE DE ERROR': '', 'DEBE SER': '' }];
         items.forEach((item) => {
         const row = [
-          rec['MES'] || '',
+          rec['N° SOLICITUD'] || '',
           rec['ENCARGADO DE LA VENTA'] || '',
           rec['FECHA DE EMISION'] || '',
           rec['N° DE PROFORMA'] || '',
