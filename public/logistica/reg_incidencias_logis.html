@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Área de Logística: Registro y seguimiento de incidencias (v12)</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f5f5f5;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      padding: 0.75rem 1rem;
+      background-color: #17375d;
+      color: white;
+    }
+    header img {
+      height: 40px;
+      margin-right: 1rem;
+    }
+    header h1 {
+      font-size: 1.4rem;
+      margin: 0;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1rem;
+    }
+    .card {
+      background: white;
+      border-radius: 4px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      margin-bottom: 1.5rem;
+      overflow: hidden;
+    }
+    .card-header {
+      background: #2f75b5;
+      color: white;
+      padding: 0.75rem 1rem;
+    }
+    .card-header h2 {
+      margin: 0;
+      font-size: 1.1rem;
+    }
+    .card-body {
+      padding: 1rem;
+    }
+    .form-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .form-group {
+      flex: 1 1 200px;
+      display: flex;
+      flex-direction: column;
+    }
+    .form-group label {
+      font-weight: bold;
+      margin-bottom: 0.25rem;
+    }
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      padding: 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 0.9rem;
+    }
+    .form-group textarea {
+      resize: vertical;
+    }
+    .btn {
+      padding: 0.4rem 0.75rem;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+    .btn-primary {
+      background: #17375d;
+      color: white;
+    }
+    .btn-secondary {
+      background: #4f81bd;
+      color: white;
+    }
+    .btn-danger {
+      background: #c00000;
+      color: white;
+    }
+    /* Table styles */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th,
+    td {
+      padding: 0.5rem;
+      border: 1px solid #ddd;
+      font-size: 0.85rem;
+    }
+    th {
+      background: #17375d;
+      color: white;
+    }
+    td:nth-child(3), /* fecha de emisión */
+    td:nth-child(10) {
+      /* evitar que las fechas se corten en dos líneas */
+      white-space: nowrap;
+    }
+    td a {
+      color: #007bff;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
+    /* Estilo para los enlaces "Ver" en la tabla de ítems */
+    .view-link {
+      color: #007bff;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+    .badge {
+      padding: 0.2rem 0.5rem;
+      border-radius: 0.25rem;
+      color: white;
+      font-size: 0.75rem;
+    }
+    .badge-pendiente {
+      background: #ffc107;
+    }
+    .badge-enproceso {
+      background: #ff9800;
+    }
+    .badge-completado {
+      background: #4caf50;
+    }
+    .table-responsive {
+      overflow-x: auto;
+    }
+
+    /* Ajuste para las filas de ítems: textos más amplios */
+.item-row textarea {
+      /* que ocupen más espacio horizontalmente y mantengan una altura moderada */
+      flex: 1 1 48%;
+      min-height: 60px;
+    }
+
+    /* Separación entre el botón Agregar ítem y el select de tipo de incidencia */
+    #addItem {
+      margin-bottom: 1.25rem;
+    }
+    /* Modal styles */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      display: none;
+      justify-content: center;
+      align-items: flex-start;
+      padding-top: 5%;
+      z-index: 1000;
+    }
+    .modal-content {
+      background: white;
+      padding: 1rem;
+      border-radius: 4px;
+      max-width: 600px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+    .modal-close {
+      background: transparent;
+      border: none;
+      font-size: 1.5rem;
+      float: right;
+      cursor: pointer;
+    }
+    /* Filter section */
+    .filter-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: center;
+      margin-bottom: 0.75rem;
+    }
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <img src="logo_empresa.png" alt="Logo" onerror="this.style.display='none'" />
+    <h1>Área de Logística: Registro y seguimiento de incidencias</h1>
+  </header>
+
+  <button onclick="window.top.location.href='<?= ScriptApp.getService().getUrl() ?>?page=logistica'" class="btn btn-outline-secondary">
+              <i class="bi bi-arrow-left"></i> Volver
+            </button>
+  <div class="container">
+    <div class="card">
+      <div class="card-header">
+        <h2>Registrar nueva incidencia</h2>
+      </div>
+      <div class="card-body">
+        <form id="formLogistica">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="mes">Mes *</label>
+              <select id="mes" required>
+                <option value="">Seleccione...</option>
+                <option value="ENERO">ENERO</option>
+                <option value="FEBRERO">FEBRERO</option>
+                <option value="MARZO">MARZO</option>
+                <option value="ABRIL">ABRIL</option>
+                <option value="MAYO">MAYO</option>
+                <option value="JUNIO">JUNIO</option>
+                <option value="JULIO">JULIO</option>
+                <option value="AGOSTO">AGOSTO</option>
+                <option value="SETIEMBRE">SETIEMBRE</option>
+                <option value="OCTUBRE">OCTUBRE</option>
+                <option value="NOVIEMBRE">NOVIEMBRE</option>
+                <option value="DICIEMBRE">DICIEMBRE</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="encargado">Encargado de la venta *</label>
+              <!-- Lista desplegable con nombres de los asesores de venta -->
+              <select id="encargado" required>
+                <option value="">Seleccione...</option>
+                <option value="HERVIN">Hervin</option>
+                <option value="KIMBERLY">Kimberly</option>
+                <option value="JOSE">Jose</option>
+                <option value="ALVARO">Alvaro</option>
+                <option value="EVELYN">Evelyn</option>
+                <option value="LIZETH">Lizeth</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="fechaEmision">Fecha de emisión *</label>
+              <input type="date" id="fechaEmision" required />
+            </div>
+            <div class="form-group">
+              <label for="responsable">Responsable incidencia *</label>
+              <!-- Lista desplegable de responsables -->
+              <select id="responsable" required>
+                <option value="">Seleccione...</option>
+                <option value="SANDRA">Sandra</option>
+                <option value="JOSE">Jose</option>
+                <option value="KIMBERLY">Kimberly</option>
+                <option value="JOSEPH">Joseph</option>
+                <option value="MANUEL">Manuel</option>
+                <option value="JOSELYN">Joselyn</option>
+                <option value="VICTOR">Victor</option>
+                <option value="HERVIN">Hervin</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="area">Área *</label>
+              <select id="area" required>
+                <option value="">Seleccione...</option>
+                <option value="VENTAS">Ventas</option>
+                <option value="FACTURACION">Facturación</option>
+                <option value="LOGISTICA">Logística</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="proforma">N° de proforma *</label>
+              <input type="text" id="proforma" required />
+            </div>
+            <div class="form-group">
+              <label for="comprobante">N° de comprobante *</label>
+              <input type="text" id="comprobante" required />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Ítems (detalle de error y debe ser)</label>
+            <div id="itemsContainer"></div>
+            <button type="button" class="btn btn-secondary" id="addItem">Agregar ítem</button>
+          </div>
+          <!-- Tipo de incidencia y observación detallada -->
+          <div class="form-row">
+            <div class="form-group" style="flex:1 1 200px;">
+              <label for="tipoIncidencia">Tipo de incidencia *</label>
+              <select id="tipoIncidencia" required>
+                <option value="">Seleccione...</option>
+                <option value="ERROR DE COLOR">ERROR DE COLOR</option>
+                <option value="ERROR DE TALLA">ERROR DE TALLA</option>
+                <option value="ERROR DE CANTIDAD O PRECIO">ERROR DE CANTIDAD O PRECIO</option>
+                <option value="OTROS">OTROS</option>
+              </select>
+            </div>
+            <div class="form-group" style="flex:1 1 200px;">
+              <label for="observacionDetalle">Observación detallada</label>
+              <textarea id="observacionDetalle" placeholder="Describa la incidencia" disabled></textarea>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary">Guardar incidencia</button>
+        </form>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <h2>Listado de incidencias</h2>
+      </div>
+      <div class="card-body">
+        <div class="filter-row">
+          <div class="filter-group">
+            <label for="filterEstado">Filtrar por estado</label>
+            <select id="filterEstado">
+              <option value="TODOS">Todos</option>
+              <option value="PENDIENTE">Pendiente</option>
+              <option value="EN PROCESO">En proceso</option>
+              <option value="COMPLETADO">Completado</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="filterStart">Desde</label>
+            <input type="date" id="filterStart" />
+          </div>
+          <div class="filter-group">
+            <label for="filterEnd">Hasta</label>
+            <input type="date" id="filterEnd" />
+          </div>
+          <div class="filter-group" style="margin-top:1.25rem;">
+            <button id="applyFilter" class="btn btn-secondary">Aplicar filtros</button>
+          </div>
+          <div style="margin-left:auto; display:flex; gap:0.5rem; align-items:center;">
+            <button id="exportCSV" class="btn btn-secondary">Exportar CSV</button>
+            <!-- Generador de reportes (reemplaza limpiar registros) -->
+            <button id="generateReport" class="btn btn-secondary">Generar reporte</button>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table id="tablaIncidencias">
+            <thead>
+              <tr>
+                <th>Mes</th>
+                <th>Encargado</th>
+                <th>Fecha emisión</th>
+                <th>N° proforma</th>
+                <th>N° comprobante</th>
+                <th>Ítems</th>
+                <th>Responsable</th>
+                <th>Área</th>
+                <th>Tipo de incidencia</th>
+                <th>Fecha corrección</th>
+                <th>Estado</th>
+                <th>Solución</th>
+                <th>Obs. adicionales</th>
+                <th>Modificado por</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Modal para detalles -->
+  <div id="detailModal" class="modal">
+    <div class="modal-content">
+      <button class="modal-close" id="closeDetail">&times;</button>
+      <div id="detailContent"></div>
+    </div>
+  </div>
+  <!-- Librerías para generación de reportes -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script>
+    // Datos importados (no editables)
+    const initialData = [
+      {
+        
+      },
+      {
+        "MES": "",
+        "ENCARGADO DE LA VENTA": "",
+        "FECHA DE EMISION": "",
+        "N° DE PROFORMA": "",
+        "N° DE COMPROBANTE": "",
+        "RESPONSABLE": "",
+        "AREA": "",
+        "OBSERVACIONES": "",
+        "OBSERVACION_DETALLE": "",
+        "FECHA DE CORRECCION ": "",
+        "ESTADO": "",
+        "SOLUCION DE COMPROBANTE": "",
+        "OBSERVACIONES_ADMIN": "",
+        "MODIFICADO POR": "",
+        "ITEMS": []
+      }
+    ];
+    const STORAGE_KEY = 'incidencias_v12';
+    function loadStored() {
+      const s = localStorage.getItem(STORAGE_KEY);
+      return s ? JSON.parse(s) : [];
+    }
+    function saveStored(data) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+    // Añadir fila de ítem
+    function addItemRow(det = '', debe = '') {
+      const container = document.getElementById('itemsContainer');
+      const row = document.createElement('div');
+      row.className = 'item-row';
+      const detArea = document.createElement('textarea');
+      detArea.placeholder = 'Detalle de error';
+      detArea.required = true;
+      detArea.value = det;
+      const debeArea = document.createElement('textarea');
+      debeArea.placeholder = 'Debe ser';
+      debeArea.required = true;
+      debeArea.value = debe;
+      const delBtn = document.createElement('button');
+      delBtn.type = 'button';
+      delBtn.className = 'btn btn-danger';
+      delBtn.textContent = 'Eliminar';
+      delBtn.onclick = () => row.remove();
+      row.style.display = 'flex';
+      row.style.gap = '0.5rem';
+      row.style.marginBottom = '0.5rem';
+      row.appendChild(detArea);
+      row.appendChild(debeArea);
+      row.appendChild(delBtn);
+      container.appendChild(row);
+    }
+    // Obtener clase de badge según estado
+  function badgeClass(val) {
+      const v = (val || '').toUpperCase();
+      if (v === 'PENDIENTE') return 'badge-pendiente';
+      if (v === 'EN PROCESO') return 'badge-enproceso';
+      if (v === 'COMPLETADO') return 'badge-completado';
+      return '';
+    }  
+    // Renderizar listado de incidencias
+    function renderList() {
+      const tbody = document.querySelector('#tablaIncidencias tbody');
+      tbody.innerHTML = '';
+      const estadoFiltro = document.getElementById('filterEstado').value;
+      const start = document.getElementById('filterStart').value;
+      const end = document.getElementById('filterEnd').value;
+      // Ordenar: mostrar primero las incidencias registradas localmente (más recientes primero) y luego las importadas
+      const local = loadStored();
+      const all = [...local, ...initialData];
+      all.forEach((rec, idx) => {
+        const estado = rec['ESTADO'] || '';
+        // Filtrar por estado
+        if (estadoFiltro !== 'TODOS' && estado.toUpperCase() !== estadoFiltro) return;
+        // Filtrar por fecha
+        if (start) {
+          if (!rec['FECHA DE EMISION'] || rec['FECHA DE EMISION'] < start) return;
+        }
+        if (end) {
+          if (!rec['FECHA DE EMISION'] || rec['FECHA DE EMISION'] > end) return;
+        }
+        const tr = document.createElement('tr');
+        const itemsHas = rec['ITEMS'] && rec['ITEMS'].length;
+        const cells = [
+          rec['MES'] || '',
+          rec['ENCARGADO DE LA VENTA'] || '',
+          rec['FECHA DE EMISION'] || '',
+          rec['N° DE PROFORMA'] || '',
+          rec['N° DE COMPROBANTE'] || '',
+          itemsHas
+            ? '<span class="view-link" data-index="' + idx + '">Ver</span>'
+            : '',
+          rec['RESPONSABLE'] || '',
+          rec['AREA'] || '',
+          rec['OBSERVACIONES'] || '',
+          rec['FECHA DE CORRECCION '] || '',
+          '<span class="badge ' + badgeClass(estado) + '"><span class="view-link" data-index="' + idx + '" style="color:white; text-decoration:none;">' + (estado || '') + '</span></span>',
+          rec['SOLUCION DE COMPROBANTE'] || '',
+          rec['OBSERVACIONES_ADMIN'] || '',
+          rec['MODIFICADO POR'] || ''
+        ];
+        cells.forEach((html) => {
+          const td = document.createElement('td');
+          td.innerHTML = html;
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      });
+      // Asignar eventos a enlaces Ver
+      document.querySelectorAll('.view-link').forEach((el) => {
+        el.addEventListener('click', function (e) {
+          e.preventDefault();
+          const i = parseInt(this.dataset.index);
+          showDetail(i);
+        });
+      });
+    }
+    // Mostrar detalles de una incidencia en modal
+    function showDetail(index) {
+      // Utilizar el mismo orden que en renderList: primero los registros locales y luego los importados
+      const all = [...loadStored(), ...initialData];
+      const rec = all[index];
+      const container = document.getElementById('detailContent');
+      container.innerHTML = '';
+      const fields = [
+        ['Mes', rec['MES']],
+        ['Encargado', rec['ENCARGADO DE LA VENTA']],
+        ['Fecha de emisión', rec['FECHA DE EMISION']],
+        ['N° de proforma', rec['N° DE PROFORMA']],
+        ['N° de comprobante', rec['N° DE COMPROBANTE']],
+        ['Responsable', rec['RESPONSABLE']],
+        ['Área', rec['AREA'] || ''],
+        ['Estado', rec['ESTADO']],
+        ['Fecha corrección', rec['FECHA DE CORRECCION '] || ''],
+        ['Solución comprobante', rec['SOLUCION DE COMPROBANTE'] || ''],
+        ['Tipo de incidencia', rec['OBSERVACIONES'] || ''],
+        ['Observación detallada', rec['OBSERVACION_DETALLE'] || ''],
+        ['Observaciones adicionales', rec['OBSERVACIONES_ADMIN'] || ''],
+        ['Modificado por', rec['MODIFICADO POR'] || '']
+      ];
+      fields.forEach(([label, value]) => {
+        const p = document.createElement('p');
+        p.innerHTML = '<strong>' + label + ':</strong> ' + (value || '');
+        container.appendChild(p);
+      });
+      if (rec['ITEMS'] && rec['ITEMS'].length) {
+        const ul = document.createElement('ul');
+        rec['ITEMS'].forEach((it) => {
+          const li = document.createElement('li');
+          li.innerHTML = '<strong>Detalle:</strong> ' + (it['DETALLE DE ERROR'] || '') + '<br><strong>Debe ser:</strong> ' + (it['DEBE SER'] || '');
+          ul.appendChild(li);
+        });
+        container.appendChild(ul);
+      }
+      document.getElementById('detailModal').style.display = 'flex';
+    }
+    // Cerrar modal
+    document.getElementById('closeDetail').addEventListener('click', () => {
+      document.getElementById('detailModal').style.display = 'none';
+    });
+    // Guardar incidencia
+    document.getElementById('formLogistica').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const mes = document.getElementById('mes').value;
+      const encargado = document.getElementById('encargado').value;
+      const fechaEmision = document.getElementById('fechaEmision').value;
+      const proforma = document.getElementById('proforma').value;
+      const comprobante = document.getElementById('comprobante').value;
+      const responsable = document.getElementById('responsable').value;
+      // El campo de observaciones se divide en tipo de incidencia y observación detallada
+      const itemsContainer = document.getElementById('itemsContainer');
+      const rows = itemsContainer.querySelectorAll('.item-row');
+      const items = [];
+      rows.forEach((r) => {
+        const det = r.children[0].value;
+        const debe = r.children[1].value;
+        items.push({ 'DETALLE DE ERROR': det, 'DEBE SER': debe });
+      });
+      // Crear registro
+      const newRec = {
+        'MES': mes,
+        'ENCARGADO DE LA VENTA': encargado,
+        // Combina la fecha ingresada con la hora actual para registrar la hora de solicitud
+        'FECHA DE EMISION': fechaEmision ? (fechaEmision + ' ' + new Date().toLocaleTimeString()) : '',
+        'N° DE PROFORMA': proforma,
+        'N° DE COMPROBANTE': comprobante,
+        'RESPONSABLE': responsable,
+        'AREA': document.getElementById('area').value,
+        // Guardamos el tipo de incidencia en OBSERVACIONES y la descripción detallada en OBSERVACION_DETALLE
+        'OBSERVACIONES': document.getElementById('tipoIncidencia').value,
+        'OBSERVACION_DETALLE': document.getElementById('observacionDetalle').value || '',
+        'FECHA DE CORRECCION ': '',
+        'ESTADO': 'PENDIENTE',
+        'SOLUCION DE COMPROBANTE': '',
+        'OBSERVACIONES_ADMIN': '',
+        'MODIFICADO POR': '',
+        'ITEMS': items
+      };
+      const stored = loadStored();
+      // Insertar al inicio para que las nuevas incidencias aparezcan primero
+      stored.unshift(newRec);
+      saveStored(stored);
+      // Limpiar formulario
+      this.reset();
+      document.getElementById('itemsContainer').innerHTML = '';
+      renderList();
+    });
+    // Agregar ítem
+    document.getElementById('addItem').addEventListener('click', () => addItemRow());
+
+    // Habilitar/deshabilitar observación detallada según el tipo de incidencia
+    document.getElementById('tipoIncidencia').addEventListener('change', function() {
+      const detField = document.getElementById('observacionDetalle');
+      if (this.value === 'OTROS') {
+        detField.disabled = false;
+      } else {
+        detField.value = '';
+        detField.disabled = true;
+      }
+    });
+    // Exportar CSV
+    document.getElementById('exportCSV').addEventListener('click', function () {
+      const all = [...initialData, ...loadStored()];
+      let csv = 'MES,ENCARGADO DE LA VENTA,FECHA DE EMISION,N° DE PROFORMA,N° DE COMPROBANTE,DETALLE DE ERROR,DEBE SER,RESPONSABLE,AREA,TIPO DE INCIDENCIA,OBSERVACION DETALLADA,FECHA DE CORRECCION,ESTADO,SOLUCION DE COMPROBANTE,OBSERVACIONES ADICIONALES,MODIFICADO POR\n';
+      all.forEach((rec) => {
+        const items = rec['ITEMS'] && rec['ITEMS'].length ? rec['ITEMS'] : [{ 'DETALLE DE ERROR': '', 'DEBE SER': '' }];
+        items.forEach((item) => {
+        const row = [
+            rec['MES'] || '',
+            rec['ENCARGADO DE LA VENTA'] || '',
+            rec['FECHA DE EMISION'] || '',
+            rec['N° DE PROFORMA'] || '',
+            rec['N° DE COMPROBANTE'] || '',
+            item['DETALLE DE ERROR'] || '',
+            item['DEBE SER'] || '',
+            rec['RESPONSABLE'] || '',
+            rec['AREA'] || '',
+            rec['OBSERVACIONES'] || '',
+            rec['OBSERVACION_DETALLE'] || '',
+            rec['FECHA DE CORRECCION '] || '',
+            rec['ESTADO'] || '',
+            rec['SOLUCION DE COMPROBANTE'] || '',
+            rec['OBSERVACIONES_ADMIN'] || '',
+            rec['MODIFICADO POR'] || ''
+          ];
+          csv += row.map((x) => '"' + (x || '').replace(/"/g, '""') + '"').join(',') + '\n';
+        });
+      });
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'incidencias_logistica.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+    // Generar reporte en PDF de todas las incidencias
+    document.getElementById('generateReport').addEventListener('click', async () => {
+      // Captura la tabla filtrada y genera un PDF como imagen
+      const table = document.querySelector('#tablaIncidencias');
+      if (!table) return;
+      const canvas = await html2canvas(table);
+      const imgData = canvas.toDataURL('image/png');
+      const { jsPDF } = window.jspdf;
+      // Usamos orientación horizontal para ajustarse a la tabla
+      const doc = new jsPDF('l', 'pt', 'a4');
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const imgWidth = pageWidth - 20; // márgenes
+      const imgHeight = canvas.height * imgWidth / canvas.width;
+      // Si la imagen es más alta que la página, escalar a la altura máxima
+      const finalHeight = imgHeight > pageHeight - 20 ? pageHeight - 20 : imgHeight;
+      const finalWidth = imgHeight > pageHeight - 20 ? (canvas.width * finalHeight / canvas.height) : imgWidth;
+      const x = (pageWidth - finalWidth) / 2;
+      const y = 10;
+      doc.addImage(imgData, 'PNG', x, y, finalWidth, finalHeight);
+      doc.save('reporte_incidencias_logistica.pdf');
+    });
+    // Aplicar filtros
+    document.getElementById('applyFilter').addEventListener('click', () => {
+      renderList();
+    });
+    // Render inicial y actualizar al cargar / cambio en almacenamiento
+    window.addEventListener('load', renderList);
+    window.addEventListener('storage', () => renderList());
+  </script>
+</body>
+</html>

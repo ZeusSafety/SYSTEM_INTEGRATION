@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Área de Administración: Gestión de incidencias (v12)</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background: #f5f5f5;
+    }
+    header {
+      background: #17375d;
+      color: white;
+      padding: 1rem;
+      text-align: center;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 1.4rem;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1rem;
+    }
+    .card {
+      background: white;
+      border-radius: 4px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      margin-bottom: 1.5rem;
+    }
+    .card-header {
+      background: #2f75b5;
+      color: white;
+      padding: 0.75rem 1rem;
+    }
+    .card-header h2 {
+      margin: 0;
+      font-size: 1.1rem;
+    }
+    .card-body {
+      padding: 1rem;
+    }
+    .btn {
+      padding: 0.4rem 0.75rem;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+    .btn-primary {
+      background: #17375d;
+      color: white;
+    }
+    .btn-secondary {
+      background: #4f81bd;
+      color: white;
+    }
+    .btn-danger {
+      background: #c00000;
+      color: white;
+    }
+    .btn-edit {
+      background: #007bff;
+      color: white;
+    }
+    .btn-edit[disabled] {
+      background: #ccc;
+      color: #666;
+      cursor: not-allowed;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      padding: 0.5rem;
+      border: 1px solid #ddd;
+      font-size: 0.85rem;
+    }
+    th {
+      background: #17375d;
+      color: white;
+    }
+    td:nth-child(3),
+    td:nth-child(9),
+    td:nth-child(10) {
+      /* evitar que fechas se corten en varias líneas */
+      white-space: nowrap;
+    }
+    td a {
+      color: #007bff;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+    .badge {
+      padding: 0.2rem 0.5rem;
+      border-radius: 0.25rem;
+      color: white;
+      font-size: 0.75rem;
+      display: inline-block;
+    }
+    .badge-pendiente { background: #ffc107; }
+    .badge-enproceso { background: #ff9800; }
+    .badge-completado { background: #4caf50; }
+    .table-responsive {
+      overflow-x: auto;
+    }
+
+    /* Estilos para las filas de filtros */
+    .filter-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: center;
+    }
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      font-size: 0.85rem;
+    }
+    /* Estilos para enlaces de detalle */
+    .link-view {
+      color: #007bff;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+    /* Modal styles */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      justify-content: center;
+      align-items: flex-start;
+      padding-top: 5%;
+      z-index: 1000;
+    }
+    .modal-content {
+      background: white;
+      padding: 1rem;
+      border-radius: 4px;
+      max-width: 600px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+    .modal-close {
+      background: transparent;
+      border: none;
+      font-size: 1.5rem;
+      float: right;
+      cursor: pointer;
+    }
+    .form-group {
+      margin-bottom: 0.75rem;
+    }
+    .form-group label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 0.25rem;
+    }
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 0.9rem;
+    }
+    .form-group textarea { resize: vertical; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Área de Administración: Gestión de incidencias</h1>
+  </header>
+
+  <button onclick="window.top.location.href='<?= ScriptApp.getService().getUrl() ?>?page=admin'" class="btn btn-outline-secondary">
+              <i class="bi bi-arrow-left"></i> volver
+            </button>
+  <div class="container">
+    <div class="card">
+      <div class="card-header">
+        <h2>Listado de incidencias</h2>
+      </div>
+      <div class="card-body">
+        <!-- Filtros y acciones -->
+        <div class="filter-row" style="margin-bottom:0.75rem; display:flex; flex-wrap:wrap; gap:1rem; align-items:center;">
+          <div class="filter-group">
+            <label for="filterEstadoAdmin">Filtrar por estado</label>
+            <select id="filterEstadoAdmin">
+              <option value="TODOS">Todos</option>
+              <option value="PENDIENTE">Pendiente</option>
+              <option value="EN PROCESO">En proceso</option>
+              <option value="COMPLETADO">Completado</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="filterStartAdmin">Desde</label>
+            <input type="date" id="filterStartAdmin" />
+          </div>
+          <div class="filter-group">
+            <label for="filterEndAdmin">Hasta</label>
+            <input type="date" id="filterEndAdmin" />
+          </div>
+          <div class="filter-group" style="margin-top:1.25rem;">
+            <button id="applyFilterAdmin" class="btn btn-secondary">Aplicar filtros</button>
+          </div>
+          <div style="margin-left:auto; display:flex; gap:0.5rem; align-items:center;">
+            <button id="exportCSV" class="btn btn-secondary">Exportar CSV</button>
+            <button id="generateReportAdmin" class="btn btn-secondary">Generar reporte</button>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table id="tablaAdmin">
+            <thead>
+              <tr>
+                <th>Mes</th>
+                <th>Encargado</th>
+                <th>Fecha emisión</th>
+                <th>N° proforma</th>
+                <th>N° comprobante</th>
+                <th>Ítems</th>
+                <th>Responsable</th>
+                <th>Área</th>
+                <th>Tipo de incidencia</th>
+                <th>Fecha corrección</th>
+                <th>Estado</th>
+                <th>Solución</th>
+                <th>Obs. adicionales</th>
+                <th>Modificado por</th>
+                <th>Acción</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Modal detalle -->
+  <div id="detailModalAdmin" class="modal">
+    <div class="modal-content">
+      <button class="modal-close" id="closeDetailAdmin">&times;</button>
+      <div id="detailContentAdmin"></div>
+    </div>
+  </div>
+  <!-- Modal edición -->
+  <div id="editModal" class="modal">
+    <div class="modal-content">
+      <button class="modal-close" id="closeEdit">&times;</button>
+      <h3>Editar incidencia</h3>
+      <div class="form-group">
+        <label for="editEstado">Estado</label>
+        <select id="editEstado">
+          <option value="PENDIENTE">Pendiente</option>
+          <option value="EN PROCESO">En proceso</option>
+          <option value="COMPLETADO">Completado</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="editFecha">Fecha de corrección</label>
+        <input type="date" id="editFecha" />
+      </div>
+      <div class="form-group">
+        <label for="editSolucion">Solución de comprobante</label>
+        <select id="editSolucion">
+          <option value="">Seleccione...</option>
+          <option value="SE ANULO">SE ANULO</option>
+          <option value="SE MODIFICO">SE MODIFICO</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="editObservaciones">Observaciones adicionales</label>
+        <textarea id="editObservaciones"></textarea>
+      </div>
+      <div class="form-group">
+        <label for="editModificadoPor">Modificado por</label>
+        <select id="editModificadoPor">
+          <option value="">Seleccione...</option>
+          <option value="KIMBERLY">Kimberly</option>
+          <option value="HERVIN">Hervin</option>
+          <option value="SANDRA">Sandra</option>
+          <option value="EVELYN">Evelyn</option>
+        </select>
+      </div>
+      <button id="saveEdit" class="btn btn-primary">Guardar cambios</button>
+    </div>
+  </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script>
+    // Datos importados de Excel
+    const initialData = [
+      {
+        
+      },
+      {
+        "MES": "",
+        "ENCARGADO DE LA VENTA": "",
+        "FECHA DE EMISION": "",
+        "N° DE PROFORMA": "",
+        "N° DE COMPROBANTE": "",
+        "RESPONSABLE": "",
+        "AREA": "",
+        "OBSERVACIONES": "",
+        "OBSERVACION_DETALLE": "",
+        "FECHA DE CORRECCION ": "",
+        "ESTADO": "",
+        "SOLUCION DE COMPROBANTE": "",
+        "OBSERVACIONES_ADMIN": "",
+        "MODIFICADO POR": "",
+        "ITEMS": []
+      }
+    ];
+    const STORAGE_KEY = 'incidencias_v12';
+    function loadStored() {
+      const s = localStorage.getItem(STORAGE_KEY);
+      return s ? JSON.parse(s) : [];
+    }
+    function saveStored(data) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+    // Obtener clase de badge según estado
+    function badgeClass(val) {
+      const v = (val || '').toUpperCase();
+      if (v === 'PENDIENTE') return 'badge-pendiente';
+      if (v === 'EN PROCESO') return 'badge-enproceso';
+      if (v === 'COMPLETADO') return 'badge-completado';
+      return '';
+    }
+    // Renderizar tabla
+    function renderTable() {
+      const tbody = document.querySelector('#tablaAdmin tbody');
+      tbody.innerHTML = '';
+      // Ordenar: incidencias locales primero (últimas primero) y luego las importadas
+      const local = loadStored();
+      const all = [...local, ...initialData];
+      const estadoFiltro = document.getElementById('filterEstadoAdmin').value;
+      const start = document.getElementById('filterStartAdmin').value;
+      const end = document.getElementById('filterEndAdmin').value;
+      all.forEach((rec, idx) => {
+        const estado = rec['ESTADO'] || '';
+        // Filtrar por estado
+        if (estadoFiltro !== 'TODOS' && estado.toUpperCase() !== estadoFiltro) return;
+        // Filtrar por fecha
+        if (start) {
+          const fecha = (rec['FECHA DE EMISION'] || '').substring(0, 10);
+          if (!fecha || fecha < start) return;
+        }
+        if (end) {
+          const fecha = (rec['FECHA DE EMISION'] || '').substring(0, 10);
+          if (!fecha || fecha > end) return;
+        }
+        const tr = document.createElement('tr');
+        const cells = [
+          rec['MES'] || '',
+          rec['ENCARGADO DE LA VENTA'] || '',
+          rec['FECHA DE EMISION'] || '',
+          rec['N° DE PROFORMA'] || '',
+          rec['N° DE COMPROBANTE'] || '',
+          (rec['ITEMS'] && rec['ITEMS'].length ? '<span class="link-view" data-index="' + idx + '">Ver</span> <a href="#" class="link-pdf" data-index="' + idx + '">PDF</a>' : ''),
+          rec['RESPONSABLE'] || '',
+          rec['AREA'] || '',
+          rec['OBSERVACIONES'] || '',
+          rec['FECHA DE CORRECCION '] || '',
+          '<span class="badge ' + badgeClass(estado) + '">' + (estado || '') + '</span>',
+          rec['SOLUCION DE COMPROBANTE'] || '',
+          rec['OBSERVACIONES_ADMIN'] || '',
+          rec['MODIFICADO POR'] || '',
+          ''
+        ];
+        cells.forEach((html) => {
+          const td = document.createElement('td');
+          td.innerHTML = html;
+          tr.appendChild(td);
+        });
+        // Acción editar
+        const actionTd = tr.lastChild;
+        // Sólo editable si pertenece a local (indice < local.length)
+        if (idx < local.length) {
+          const btn = document.createElement('button');
+          btn.textContent = 'Editar';
+          btn.className = 'btn btn-edit';
+          btn.dataset.index = idx;
+          btn.addEventListener('click', () => openEdit(idx));
+          actionTd.appendChild(btn);
+        } else {
+          const btn = document.createElement('button');
+          btn.textContent = 'Editar';
+          btn.className = 'btn btn-edit';
+          btn.disabled = true;
+          actionTd.appendChild(btn);
+        }
+        tbody.appendChild(tr);
+      });
+      // Agregar eventos a enlaces de vista y PDF
+      document.querySelectorAll('.link-view').forEach((link) => {
+        link.addEventListener('click', function (e) {
+          e.preventDefault();
+          const i = parseInt(this.dataset.index);
+          showDetail(i);
+        });
+      });
+      document.querySelectorAll('.link-pdf').forEach((link) => {
+        link.addEventListener('click', function (e) {
+          e.preventDefault();
+          const i = parseInt(this.dataset.index);
+          generatePDF(i);
+        });
+      });
+    }
+    // Mostrar detalles en modal
+    function showDetail(index) {
+      // Utilizar el mismo orden que la tabla: incidencias locales primero y luego las importadas
+      const all = [...loadStored(), ...initialData];
+      const rec = all[index];
+      const container = document.getElementById('detailContentAdmin');
+      container.innerHTML = '';
+      const fields = [
+        ['Mes', rec['MES']],
+        ['Encargado', rec['ENCARGADO DE LA VENTA']],
+        ['Fecha de emisión', rec['FECHA DE EMISION']],
+        ['N° de proforma', rec['N° DE PROFORMA']],
+        ['N° de comprobante', rec['N° DE COMPROBANTE']],
+        ['Responsable', rec['RESPONSABLE']],
+        ['Área', rec['AREA'] || ''],
+        ['Estado', rec['ESTADO']],
+        ['Fecha corrección', rec['FECHA DE CORRECCION '] || ''],
+        ['Solución comprobante', rec['SOLUCION DE COMPROBANTE'] || ''],
+        ['Tipo de incidencia', rec['OBSERVACIONES'] || ''],
+        ['Observación detallada', rec['OBSERVACION_DETALLE'] || ''],
+        ['Observaciones adicionales', rec['OBSERVACIONES_ADMIN'] || ''],
+        ['Modificado por', rec['MODIFICADO POR'] || '']
+      ];
+      fields.forEach(([label, value]) => {
+        const p = document.createElement('p');
+        p.innerHTML = '<strong>' + label + ':</strong> ' + (value || '');
+        container.appendChild(p);
+      });
+      if (rec['ITEMS'] && rec['ITEMS'].length) {
+        const ul = document.createElement('ul');
+        rec['ITEMS'].forEach((it) => {
+          const li = document.createElement('li');
+          li.innerHTML = '<strong>Detalle:</strong> ' + (it['DETALLE DE ERROR'] || '') + '<br><strong>Debe ser:</strong> ' + (it['DEBE SER'] || '');
+          ul.appendChild(li);
+        });
+        container.appendChild(ul);
+      }
+      document.getElementById('detailModalAdmin').style.display = 'flex';
+    }
+    document.getElementById('closeDetailAdmin').addEventListener('click', () => {
+      document.getElementById('detailModalAdmin').style.display = 'none';
+    });
+    // Variables para editar
+    let currentEditIndex = null;
+    function openEdit(idx) {
+      currentEditIndex = idx;
+      const stored = loadStored();
+      const rec = stored[idx];
+      document.getElementById('editEstado').value = rec['ESTADO'] || 'PENDIENTE';
+      document.getElementById('editFecha').value = rec['FECHA DE CORRECCION '] || '';
+      document.getElementById('editSolucion').value = rec['SOLUCION DE COMPROBANTE'] || '';
+      document.getElementById('editObservaciones').value = rec['OBSERVACIONES_ADMIN'] || '';
+      document.getElementById('editModificadoPor').value = rec['MODIFICADO POR'] || '';
+      document.getElementById('editModal').style.display = 'flex';
+    }
+    document.getElementById('closeEdit').addEventListener('click', () => {
+      document.getElementById('editModal').style.display = 'none';
+    });
+    document.getElementById('saveEdit').addEventListener('click', () => {
+      if (currentEditIndex === null) return;
+      const stored = loadStored();
+      const rec = stored[currentEditIndex];
+      rec['ESTADO'] = document.getElementById('editEstado').value;
+      // Combinar la fecha seleccionada con la hora actual para registrar con hora
+      const fechaCorreccion = document.getElementById('editFecha').value;
+      rec['FECHA DE CORRECCION '] = fechaCorreccion ? (fechaCorreccion + ' ' + new Date().toLocaleTimeString()) : '';
+      rec['SOLUCION DE COMPROBANTE'] = document.getElementById('editSolucion').value;
+      rec['OBSERVACIONES_ADMIN'] = document.getElementById('editObservaciones').value;
+      rec['MODIFICADO POR'] = document.getElementById('editModificadoPor').value;
+      stored[currentEditIndex] = rec;
+      saveStored(stored);
+      document.getElementById('editModal').style.display = 'none';
+      renderTable();
+    });
+    // Generar PDF
+    function generatePDF(index) {
+      const all = [...initialData, ...loadStored()];
+      const rec = all[index];
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      let y = 10;
+      doc.setFontSize(14);
+      doc.text('Detalle de Incidencia', 105, y, { align: 'center' });
+      y += 10;
+      doc.setFontSize(10);
+        const entries = [
+        ['Mes', rec['MES']],
+        ['Encargado', rec['ENCARGADO DE LA VENTA']],
+        ['Fecha de emisión', rec['FECHA DE EMISION']],
+        ['N° de proforma', rec['N° DE PROFORMA']],
+        ['N° de comprobante', rec['N° DE COMPROBANTE']],
+        ['Responsable', rec['RESPONSABLE']],
+        ['Área', rec['AREA'] || ''],
+        ['Estado', rec['ESTADO']],
+        ['Fecha corrección', rec['FECHA DE CORRECCION '] || ''],
+        ['Solución comprobante', rec['SOLUCION DE COMPROBANTE'] || ''],
+        ['Tipo de incidencia', rec['OBSERVACIONES'] || ''],
+        ['Observación detallada', rec['OBSERVACION_DETALLE'] || ''],
+        ['Observaciones adicionales', rec['OBSERVACIONES_ADMIN'] || ''],
+        ['Modificado por', rec['MODIFICADO POR'] || '']
+      ];
+      entries.forEach(([label, value]) => {
+        doc.text(`${label}: ${value || ''}`, 10, y);
+        y += 6;
+      });
+      if (rec['ITEMS'] && rec['ITEMS'].length) {
+        y += 4;
+        doc.text('Ítems:', 10, y);
+        y += 6;
+        rec['ITEMS'].forEach((item, indexItem) => {
+          doc.text(`Detalle ${indexItem + 1}: ${item['DETALLE DE ERROR'] || ''}`, 10, y);
+          y += 6;
+          doc.text(`Debe ser ${indexItem + 1}: ${item['DEBE SER'] || ''}`, 10, y);
+          y += 6;
+        });
+      }
+      doc.save(`incidencia_${rec['N° DE PROFORMA'] || 'detalle'}.pdf`);
+    }
+
+    // Genera un informe PDF de todas las incidencias registradas según el filtro actual, capturando la tabla como imagen
+    function generateReportAdmin() {
+      const table = document.querySelector('#tablaAdmin');
+      if (!table) return;
+      html2canvas(table).then((canvas) => {
+        const imgData = canvas.toDataURL('image/png');
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('l', 'pt', 'a4');
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+        const imgWidth = pageWidth - 20;
+        const imgHeight = canvas.height * imgWidth / canvas.width;
+        const finalHeight = imgHeight > pageHeight - 20 ? pageHeight - 20 : imgHeight;
+        const finalWidth = imgHeight > pageHeight - 20 ? (canvas.width * finalHeight / canvas.height) : imgWidth;
+        const x = (pageWidth - finalWidth) / 2;
+        const y = 10;
+        doc.addImage(imgData, 'PNG', x, y, finalWidth, finalHeight);
+        doc.save('reporte_incidencias_admin.pdf');
+      });
+    }
+    // Exportar CSV
+    document.getElementById('exportCSV').addEventListener('click', () => {
+      const all = [...initialData, ...loadStored()];
+      let csv = 'MES,ENCARGADO DE LA VENTA,FECHA DE EMISION,N° DE PROFORMA,N° DE COMPROBANTE,DETALLE DE ERROR,DEBE SER,RESPONSABLE,AREA,TIPO DE INCIDENCIA,OBSERVACION DETALLADA,FECHA DE CORRECCION,ESTADO,SOLUCION DE COMPROBANTE,OBSERVACIONES ADICIONALES,MODIFICADO POR\n';
+      all.forEach((rec) => {
+        const items = rec['ITEMS'] && rec['ITEMS'].length ? rec['ITEMS'] : [{ 'DETALLE DE ERROR': '', 'DEBE SER': '' }];
+        items.forEach((item) => {
+        const row = [
+          rec['MES'] || '',
+          rec['ENCARGADO DE LA VENTA'] || '',
+          rec['FECHA DE EMISION'] || '',
+          rec['N° DE PROFORMA'] || '',
+          rec['N° DE COMPROBANTE'] || '',
+          item['DETALLE DE ERROR'] || '',
+          item['DEBE SER'] || '',
+          rec['RESPONSABLE'] || '',
+          rec['AREA'] || '',
+          rec['OBSERVACIONES'] || '',
+          rec['OBSERVACION_DETALLE'] || '',
+          rec['FECHA DE CORRECCION '] || '',
+          rec['ESTADO'] || '',
+          rec['SOLUCION DE COMPROBANTE'] || '',
+          rec['OBSERVACIONES_ADMIN'] || '',
+          rec['MODIFICADO POR'] || ''
+        ];
+          csv += row.map((x) => '"' + (x || '').replace(/"/g, '""') + '"').join(',') + '\n';
+        });
+      });
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'incidencias_admin.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+    // Aplicar filtros en administración
+    document.getElementById('applyFilterAdmin').addEventListener('click', () => {
+      renderTable();
+    });
+
+    // Generar reporte PDF de todas las incidencias en administración
+    document.getElementById('generateReportAdmin').addEventListener('click', generateReportAdmin);
+    // Inicializar
+    window.addEventListener('load', renderTable);
+    window.addEventListener('storage', () => renderTable());
+  </script>
+</body>
+</html>
