@@ -577,10 +577,37 @@
       border-radius: 4px;
     }
     
-    ::-webkit-scrollbar-thumb:hover {
-      background: linear-gradient(135deg, #1e4d7a 0%, #1e4d7a 100%);
-    }
-  </style>
+         ::-webkit-scrollbar-thumb:hover {
+       background: linear-gradient(135deg, #1e4d7a 0%, #1e4d7a 100%);
+     }
+     
+     /* Notificaciones */
+     .notification {
+       position: fixed;
+       top: 20px;
+       right: 20px;
+       padding: 1rem 1.5rem;
+       border-radius: 12px;
+       color: white;
+       font-weight: 600;
+       z-index: 10000;
+       transform: translateX(400px);
+       transition: transform 0.3s ease;
+       box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+     }
+     
+     .notification.show {
+       transform: translateX(0);
+     }
+     
+     .notification.success {
+       background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+     }
+     
+     .notification.error {
+       background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+     }
+   </style>
 </head>
 <body>
   <header>
@@ -715,12 +742,13 @@
           <div class="filter-group" style="margin-top:1.25rem;">
             <button id="applyFilter" class="btn btn-secondary">Aplicar filtros</button>
           </div>
-          <div style="margin-left:auto; display:flex; gap:0.5rem; align-items:center;">
-            <button id="refreshAPI" class="btn btn-secondary">🔄 Refrescar API</button>
-            <button id="exportCSV" class="btn btn-secondary">Exportar CSV</button>
-            <!-- Generador de reportes (reemplaza limpiar registros) -->
-            <button id="generateReport" class="btn btn-secondary">Generar reporte</button>
-          </div>
+                     <div style="margin-left:auto; display:flex; gap:0.5rem; align-items:center;">
+             <button id="refreshAPI" class="btn btn-secondary">🔄 Refrescar API</button>
+             <button id="refreshTable" class="btn btn-secondary">🔄 Refrescar Tabla</button>
+             <button id="exportCSV" class="btn btn-secondary">Exportar CSV</button>
+             <!-- Generador de reportes (reemplaza limpiar registros) -->
+             <button id="generateReport" class="btn btn-secondary">Generar reporte</button>
+           </div>
         </div>
         <div class="table-responsive">
           <table id="tablaIncidencias">
@@ -778,26 +806,56 @@
     
     // Función para consumir la API
     async function fetchAPIData() {
+      console.log("=== INICIO fetchAPIData ===");
+      console.log("API_URL:", API_URL);
+      console.log("API_PARAMS:", API_PARAMS);
+      console.log("API_HEADERS:", API_HEADERS);
+      
       try {
         const url = new URL(API_URL);
         Object.keys(API_PARAMS).forEach(key => url.searchParams.append(key, API_PARAMS[key]));
+        console.log("URL final construida:", url.toString());
         
+        console.log("Realizando fetch GET a la API...");
         const response = await fetch(url, {
           method: 'GET',
           headers: API_HEADERS
         });
         
+        console.log("Respuesta recibida de la API:");
+        console.log("- Status:", response.status);
+        console.log("- Status Text:", response.statusText);
+        console.log("- Headers:", Object.fromEntries(response.headers.entries()));
+        
         if (response.status === 200) {
-          console.log("Datos extraídos correctamente de la API");
+          console.log("✅ Datos extraídos correctamente de la API");
           const data = await response.json();
+          console.log("Datos JSON obtenidos:", data);
           return data;
         } else {
-          console.error("Error al extraer los datos de la API:", response.status);
+          console.error("❌ Error al extraer los datos de la API:");
+          console.error("- Status Code:", response.status);
+          console.error("- Status Text:", response.statusText);
+          
+          // Intentar obtener el texto de la respuesta
+          try {
+            const errorText = await response.text();
+            console.error("- Response Text:", errorText);
+          } catch (textError) {
+            console.error("- No se pudo leer el texto de la respuesta:", textError);
+          }
+          
           return [];
         }
       } catch (error) {
-        console.error("Error al consumir la API:", error);
+        console.error("❌ Error al consumir la API:");
+        console.error("- Error Type:", error.constructor.name);
+        console.error("- Error Message:", error.message);
+        console.error("- Error Stack:", error.stack);
+        console.error("- Error Details:", error);
         return [];
+      } finally {
+        console.log("=== FIN fetchAPIData ===");
       }
     }
     
@@ -1009,10 +1067,6 @@
             <label>Fecha Corrección</label>
             <input type="date" id="fechaCorreccion" value="${rec['FECHA DE CORRECCION '] || ''}">
           </div>
-        </div>
-        <div class="modal-buttons">
-          <button type="button" class="btn btn-primary" onclick="saveChanges(${index})">Guardar Cambios</button>
-        </div>
       `;
       
       container.appendChild(section1);
@@ -1060,51 +1114,229 @@
     document.getElementById('closeDetail').addEventListener('click', () => {
       document.getElementById('detailModal').style.display = 'none';
     });
+         // Función para mostrar notificaciones
+     function showNotification(message, type = 'success') {
+       // Remover notificaciones existentes
+       const existingNotifications = document.querySelectorAll('.notification');
+       existingNotifications.forEach(notification => notification.remove());
+       
+       // Crear nueva notificación
+       const notification = document.createElement('div');
+       notification.className = `notification ${type}`;
+       notification.textContent = message;
+       
+       document.body.appendChild(notification);
+       
+       // Mostrar notificación
+       setTimeout(() => {
+         notification.classList.add('show');
+       }, 100);
+       
+       // Ocultar notificación después de 3 segundos
+       setTimeout(() => {
+         notification.classList.remove('show');
+         setTimeout(() => {
+           notification.remove();
+         }, 300);
+       }, 3000);
+     }
+
+     // Función para guardar incidencia en la API
+     async function saveIncidenciaToAPI(formData) {
+      console.log("=== INICIO saveIncidenciaToAPI ===");
+      console.log("API_URL:", API_URL);
+      console.log("API_HEADERS:", API_HEADERS);
+      console.log("formData a enviar:", JSON.stringify(formData, null, 2));
+      
+      try {
+        console.log("Realizando fetch POST a la API...");
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          headers: API_HEADERS,
+          body: JSON.stringify(formData)
+        });
+        
+        console.log("Respuesta recibida de la API:");
+        console.log("- Status:", response.status);
+        console.log("- Status Text:", response.statusText);
+        console.log("- Headers:", Object.fromEntries(response.headers.entries()));
+        
+        // Intentar obtener el texto de la respuesta
+        let responseText = '';
+        try {
+          responseText = await response.text();
+          console.log("- Response Text:", responseText);
+        } catch (textError) {
+          console.log("- No se pudo leer el texto de la respuesta:", textError);
+        }
+        
+        if (response.status === 200) {
+          console.log("✅ Incidencia guardada correctamente en la API");
+          return true;
+        } else {
+          console.error("❌ Error al guardar la incidencia en la API:");
+          console.error("- Status Code:", response.status);
+          console.error("- Status Text:", response.statusText);
+          console.error("- Response Text:", responseText);
+          return false;
+        }
+      } catch (error) {
+        console.error("❌ Error de red/excepción al guardar la incidencia:");
+        console.error("- Error Type:", error.constructor.name);
+        console.error("- Error Message:", error.message);
+        console.error("- Error Stack:", error.stack);
+        console.error("- Error Details:", error);
+        return false;
+      } finally {
+        console.log("=== FIN saveIncidenciaToAPI ===");
+      }
+    }
+
     // Guardar incidencia
-    document.getElementById('formLogistica').addEventListener('submit', function (e) {
+    document.getElementById('formLogistica').addEventListener('submit', async function (e) {
+      console.log("=== INICIO SUBMIT FORMULARIO ===");
       e.preventDefault();
+      
+      // Obtener datos del formulario
       const encargado = document.getElementById('encargado').value;
       const fechaEmision = document.getElementById('fechaEmision').value;
       const proforma = document.getElementById('proforma').value;
       const comprobante = document.getElementById('comprobante').value;
       const responsable = document.getElementById('responsable').value;
-      // El campo de observaciones se divide en tipo de incidencia y observación detallada
+      const area = document.getElementById('area').value;
+      const tipoIncidencia = document.getElementById('tipoIncidencia').value;
+      const observacionDetalle = document.getElementById('observacionDetalle').value || '';
+      
+      console.log("Datos del formulario obtenidos:");
+      console.log("- encargado:", encargado);
+      console.log("- fechaEmision:", fechaEmision);
+      console.log("- proforma:", proforma);
+      console.log("- comprobante:", comprobante);
+      console.log("- responsable:", responsable);
+      console.log("- area:", area);
+      console.log("- tipoIncidencia:", tipoIncidencia);
+      console.log("- observacionDetalle:", observacionDetalle);
+      
+      // Obtener ítems del formulario
       const itemsContainer = document.getElementById('itemsContainer');
       const rows = itemsContainer.querySelectorAll('.item-row');
-      const items = [];
-      rows.forEach((r) => {
+      console.log("Filas de items encontradas:", rows.length);
+      
+      const detalle = [];
+      rows.forEach((r, index) => {
         const det = r.children[0].value;
         const debe = r.children[1].value;
-        items.push({ 'DETALLE DE ERROR': det, 'DEBE SER': debe });
+        console.log(`Item ${index + 1}:`, { det, debe });
+        if (det && debe) {
+          detalle.push({
+            "error": det,
+            "solucion": debe
+          });
+        }
       });
-      // Crear registro
-      const newRec = {
-        'N° SOLICITUD': solicitudCounter++,
-        'ENCARGADO DE LA VENTA': encargado,
-        // Combina la fecha ingresada con la hora actual para registrar la hora de solicitud
-        'FECHA DE EMISION': fechaEmision ? (fechaEmision + ' ' + new Date().toLocaleTimeString()) : '',
-        'N° DE PROFORMA': proforma,
-        'N° DE COMPROBANTE': comprobante,
-        'RESPONSABLE': responsable,
-        'AREA': document.getElementById('area').value,
-        // Guardamos el tipo de incidencia en OBSERVACIONES y la descripción detallada en OBSERVACION_DETALLE
-        'OBSERVACIONES': document.getElementById('tipoIncidencia').value,
-        'OBSERVACION_DETALLE': document.getElementById('observacionDetalle').value || '',
-        'FECHA DE CORRECCION ': '',
-        'ESTADO': 'PENDIENTE',
-        'SOLUCION DE COMPROBANTE': '',
-        'OBSERVACIONES_ADMIN': '',
-        'MODIFICADO POR': '',
-        'ITEMS': items
+      
+      console.log("Array detalle final:", detalle);
+      
+      // Preparar datos para la API
+      const fechaCompleta = fechaEmision ? (fechaEmision + ' ' + new Date().toLocaleTimeString()) : '';
+      console.log("Fecha completa generada:", fechaCompleta);
+      
+      const apiData = {
+        "fecha_emision": fechaCompleta,
+        "encargado_comprobante": encargado,
+        "responsable_incidencia": responsable,
+        "area": area,
+        "numero_proforma": proforma,
+        "numero_comprobante": comprobante,
+        "tipo_incidencia": tipoIncidencia,
+        "observacion": observacionDetalle,
+        "detalle": detalle
       };
-      const stored = loadStored();
-      // Insertar al inicio para que las nuevas incidencias aparezcan primero
-      stored.unshift(newRec);
-      saveStored(stored);
-      // Limpiar formulario
-      this.reset();
-      document.getElementById('itemsContainer').innerHTML = '';
-      renderList();
+      
+      console.log("Datos preparados para la API:", JSON.stringify(apiData, null, 2));
+      
+      // Mostrar estado de carga
+      const submitButton = this.querySelector('button[type="submit"]');
+      const originalText = submitButton.textContent;
+      submitButton.textContent = '🔄 Guardando...';
+      submitButton.disabled = true;
+      
+      try {
+        console.log("Iniciando guardado en la API...");
+        // Guardar en la API
+        const success = await saveIncidenciaToAPI(apiData);
+        console.log("Resultado del guardado en API:", success);
+        
+        if (success) {
+          console.log("✅ Guardado exitoso, procediendo a guardar localmente...");
+          // Crear registro local también para mantener consistencia
+          const newRec = {
+            'N° SOLICITUD': solicitudCounter++,
+            'ENCARGADO DE LA VENTA': encargado,
+            'FECHA DE EMISION': apiData.fecha_emision,
+            'N° DE PROFORMA': proforma,
+            'N° DE COMPROBANTE': comprobante,
+            'RESPONSABLE': responsable,
+            'AREA': area,
+            'OBSERVACIONES': tipoIncidencia,
+            'OBSERVACION_DETALLE': observacionDetalle,
+            'FECHA DE CORRECCION ': '',
+            'ESTADO': 'PENDIENTE',
+            'SOLUCION DE COMPROBANTE': '',
+            'OBSERVACIONES_ADMIN': '',
+            'MODIFICADO POR': '',
+            'ITEMS': detalle.map(item => ({ 'DETALLE DE ERROR': item.error, 'DEBE SER': item.solucion }))
+          };
+          
+          const stored = loadStored();
+          console.log("Datos locales cargados, registros existentes:", stored.length);
+          stored.unshift(newRec);
+          saveStored(stored);
+          console.log("✅ Registro guardado localmente");
+          
+          // Limpiar formulario
+          this.reset();
+          document.getElementById('itemsContainer').innerHTML = '';
+          console.log("✅ Formulario limpiado");
+          
+          // Refrescar datos de la API y actualizar tabla
+          console.log("Refrescando datos de la API...");
+          await loadAPIData();
+          
+                     // Mostrar mensaje de éxito
+           submitButton.textContent = '✅ Guardado';
+           showNotification('✅ Incidencia guardada exitosamente en la API', 'success');
+           setTimeout(() => {
+             submitButton.textContent = originalText;
+             submitButton.disabled = false;
+           }, 2000);
+           
+         } else {
+           console.log("❌ Guardado fallido en la API");
+           // Mostrar error
+           submitButton.textContent = '❌ Error';
+           showNotification('❌ Error al guardar la incidencia. Por favor, intente nuevamente.', 'error');
+           setTimeout(() => {
+             submitButton.textContent = originalText;
+             submitButton.disabled = false;
+           }, 2000);
+         }
+         
+       } catch (error) {
+         console.error('❌ Error en el proceso de guardado:');
+         console.error('- Error Type:', error.constructor.name);
+         console.error('- Error Message:', error.message);
+         console.error('- Error Stack:', error.stack);
+         console.error('- Error Details:', error);
+         submitButton.textContent = '❌ Error';
+         showNotification('❌ Error al guardar la incidencia. Por favor, intente nuevamente.', 'error');
+         setTimeout(() => {
+           submitButton.textContent = originalText;
+           submitButton.disabled = false;
+         }, 2000);
+       } finally {
+         console.log("=== FIN SUBMIT FORMULARIO ===");
+       }
     });
     // Agregar ítem
     document.getElementById('addItem').addEventListener('click', () => addItemRow());
@@ -1183,38 +1415,79 @@
     
     // Función para cargar datos de la API al inicio
     async function loadAPIData() {
-      const data = await fetchAPIData();
-      if (data && Array.isArray(data)) {
-        apiData = mapAPIDataToTableFormat(data);
-        console.log(`Se cargaron ${apiData.length} registros de la API`);
-        updateStats();
-        renderList();
+      console.log("=== INICIO loadAPIData ===");
+      try {
+        const data = await fetchAPIData();
+        console.log("Datos obtenidos de fetchAPIData:", data);
+        
+        if (data && Array.isArray(data)) {
+          apiData = mapAPIDataToTableFormat(data);
+          console.log(`✅ Se cargaron ${apiData.length} registros de la API`);
+          console.log("Datos mapeados:", apiData);
+          updateStats();
+          renderList();
+        } else {
+          console.log("❌ No se obtuvieron datos válidos de la API");
+          console.log("Tipo de datos:", typeof data);
+          console.log("Datos:", data);
+        }
+      } catch (error) {
+        console.error("❌ Error en loadAPIData:", error);
+        console.error("- Error Type:", error.constructor.name);
+        console.error("- Error Message:", error.message);
+        console.error("- Error Stack:", error.stack);
+      } finally {
+        console.log("=== FIN loadAPIData ===");
       }
     }
     
-    // Evento para refrescar datos de la API
-    document.getElementById('refreshAPI').addEventListener('click', async () => {
-      const button = document.getElementById('refreshAPI');
-      const originalText = button.textContent;
-      button.textContent = '🔄 Cargando...';
-      button.disabled = true;
-      
-      try {
-        await loadAPIData();
-        button.textContent = '✅ Actualizado';
-        setTimeout(() => {
-          button.textContent = originalText;
-          button.disabled = false;
-        }, 2000);
-      } catch (error) {
-        console.error('Error al refrescar datos:', error);
-        button.textContent = '❌ Error';
-        setTimeout(() => {
-          button.textContent = originalText;
-          button.disabled = false;
-        }, 2000);
-      }
-    });
+         // Evento para refrescar datos de la API
+     document.getElementById('refreshAPI').addEventListener('click', async () => {
+       const button = document.getElementById('refreshAPI');
+       const originalText = button.textContent;
+       button.textContent = '🔄 Cargando...';
+       button.disabled = true;
+       
+       try {
+         await loadAPIData();
+         button.textContent = '✅ Actualizado';
+         setTimeout(() => {
+           button.textContent = originalText;
+           button.disabled = false;
+         }, 2000);
+       } catch (error) {
+         console.error('Error al refrescar datos:', error);
+         button.textContent = '❌ Error';
+         setTimeout(() => {
+           button.textContent = originalText;
+           button.disabled = false;
+         }, 2000);
+       }
+     });
+     
+     // Evento para refrescar solo la tabla (sin cargar API)
+     document.getElementById('refreshTable').addEventListener('click', () => {
+       const button = document.getElementById('refreshTable');
+       const originalText = button.textContent;
+       button.textContent = '🔄 Actualizando...';
+       button.disabled = true;
+       
+       try {
+         renderList();
+         button.textContent = '✅ Actualizado';
+         setTimeout(() => {
+           button.textContent = originalText;
+           button.disabled = false;
+         }, 1500);
+       } catch (error) {
+         console.error('Error al refrescar tabla:', error);
+         button.textContent = '❌ Error';
+         setTimeout(() => {
+           button.textContent = originalText;
+           button.disabled = false;
+         }, 1500);
+       }
+     });
     
     // Aplicar filtros
     document.getElementById('applyFilter').addEventListener('click', () => {
