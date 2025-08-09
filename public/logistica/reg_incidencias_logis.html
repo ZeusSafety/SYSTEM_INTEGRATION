@@ -754,8 +754,7 @@
             <button id="applyFilter" class="btn btn-secondary">Aplicar filtros</button>
           </div>
                      <div style="margin-left:auto; display:flex; gap:0.5rem; align-items:center;">
-             <button id="refreshAPI" class="btn btn-secondary">🔄 Refrescar API</button>
-             <button id="refreshTable" class="btn btn-secondary">🔄 Refrescar Tabla</button>
+             <button id="refreshAPI" class="btn btn-secondary">🔄 Refrescar Datos</button>
              <button id="exportCSV" class="btn btn-secondary">Exportar CSV</button>
              <!-- Generador de reportes (reemplaza limpiar registros) -->
              <button id="generateReport" class="btn btn-secondary">Generar reporte</button>
@@ -859,23 +858,31 @@
     
     // Función para mapear datos de la API al formato de la tabla
     function mapAPIDataToTableFormat(apiData) {
-      return apiData.map(item => ({
-        'N° SOLICITUD': item.ID || '',
-        'ENCARGADO DE LA VENTA': item.ENCARGADO_COMPROBANTE || '',
-        'FECHA DE EMISION': item.FECHA_EMISION || '',
-        'N° DE PROFORMA': item.NUMERO_PROFORMA || '',
-        'N° DE COMPROBANTE': item.NUMERO_COMPROBANTE || '',
-        'RESPONSABLE': item.RESPONSABLE_INCIDENCIA || '',
-        'AREA': item.AREA || '',
-        'OBSERVACIONES': item.TIPO_INDICENCIA || '',
-        'ESTADO': item.ESTADO_INCIDENCIA || '',
-        'OBSERVACION_DETALLE': '',
-        'FECHA DE CORRECCION ': '',
-        'SOLUCION DE COMPROBANTE': '',
-        'OBSERVACIONES_ADMIN': '',
-        'MODIFICADO POR': '',
-        'ITEMS': []
-      }));
+      console.log("=== MAPAPIDATATOTABLEFORMAT DEBUG ===");
+      console.log("Datos originales de la API:", apiData);
+      
+      return apiData.map(item => {
+        console.log("Procesando item:", item);
+        console.log("TIPO_INDICENCIA value:", item.TIPO_INDICENCIA);
+        
+        return {
+          'N° SOLICITUD': item.ID || '',
+          'ENCARGADO DE LA VENTA': item.ENCARGADO_COMPROBANTE || '',
+          'FECHA DE EMISION': item.FECHA_EMISION || '',
+          'N° DE PROFORMA': item.NUMERO_PROFORMA || '',
+          'N° DE COMPROBANTE': item.NUMERO_COMPROBANTE || '',
+          'RESPONSABLE': item.RESPONSABLE_INCIDENCIA || '',
+          'AREA': item.AREA || '',
+          'OBSERVACIONES': item.TIPO_INDICENCIA || '',
+          'ESTADO': item.ESTADO_INCIDENCIA || '',
+          'OBSERVACION_DETALLE': '',
+          'FECHA DE CORRECCION ': '',
+          'SOLUCION DE COMPROBANTE': '',
+          'OBSERVACIONES_ADMIN': '',
+          'MODIFICADO POR': '',
+          'ITEMS': []
+        };
+      });
     }
     // Añadir fila de ítem
     function addItemRow(det = '', debe = '') {
@@ -926,6 +933,10 @@
       
       apiData.forEach((rec, idx) => {
         const estado = rec['ESTADO'] || '';
+        console.log("=== RENDERLIST ITEM DEBUG ===");
+        console.log("Índice:", idx);
+        console.log("OBSERVACIONES (TIPO_INDICENCIA):", rec['OBSERVACIONES']);
+        
         // Filtrar por estado
         if (estadoFiltro !== 'TODOS' && estado.toUpperCase() !== estadoFiltro) return;
         // Filtrar por fecha
@@ -970,6 +981,12 @@
     // Mostrar detalles de una incidencia en modal
     function showDetail(index) {
       const rec = apiData[index];
+      console.log("=== SHOWDETAIL DEBUG ===");
+      console.log("Índice:", index);
+      console.log("Datos del registro:", rec);
+      console.log("OBSERVACIONES (TIPO_INDICENCIA):", rec['OBSERVACIONES']);
+      console.log("OBSERVACION_DETALLE:", rec['OBSERVACION_DETALLE']);
+      
       const container = document.getElementById('detailContent');
       container.innerHTML = '';
       
