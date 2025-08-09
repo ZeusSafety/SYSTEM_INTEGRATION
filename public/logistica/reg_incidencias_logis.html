@@ -699,6 +699,12 @@
             </select>
           </div>
           <div class="filter-group">
+            <label>Estadísticas</label>
+            <div id="statsInfo" style="padding: 0.5rem; background: rgba(47, 117, 181, 0.1); border-radius: 8px; font-size: 0.8rem; color: #17375d;">
+              <span id="localCount">0</span> locales, <span id="apiCount">0</span> de API
+            </div>
+          </div>
+          <div class="filter-group">
             <label for="filterStart">Desde</label>
             <input type="date" id="filterStart" />
           </div>
@@ -710,6 +716,7 @@
             <button id="applyFilter" class="btn btn-secondary">Aplicar filtros</button>
           </div>
           <div style="margin-left:auto; display:flex; gap:0.5rem; align-items:center;">
+            <button id="refreshAPI" class="btn btn-secondary">🔄 Refrescar API</button>
             <button id="exportCSV" class="btn btn-secondary">Exportar CSV</button>
             <!-- Generador de reportes (reemplaza limpiar registros) -->
             <button id="generateReport" class="btn btn-secondary">Generar reporte</button>
@@ -748,29 +755,16 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script>
-    // Datos importados (no editables)
-    const initialData = [
-      {
-        
-      },
-      {
-        "MES": "",
-        "ENCARGADO DE LA VENTA": "",
-        "FECHA DE EMISION": "",
-        "N° DE PROFORMA": "",
-        "N° DE COMPROBANTE": "",
-        "RESPONSABLE": "",
-        "AREA": "",
-        "OBSERVACIONES": "",
-        "OBSERVACION_DETALLE": "",
-        "FECHA DE CORRECCION ": "",
-        "ESTADO": "",
-        "SOLUCION DE COMPROBANTE": "",
-        "OBSERVACIONES_ADMIN": "",
-        "MODIFICADO POR": "",
-        "ITEMS": []
-      }
-    ];
+    // Configuración de la API
+    const API_URL = "https://incidenciaslogisticaproformas-2946605267.us-central1.run.app";
+    const API_PARAMS = { tipo: "listado" };
+    const API_HEADERS = { "Content-Type": "application/json" };
+    
+    // Datos importados (no editables) - ELIMINADO: solo se usan datos de API y locales
+    
+    // Variable para almacenar datos de la API
+    let apiData = [];
+    
     const STORAGE_KEY = 'incidencias_v12';
     let solicitudCounter = 1; // Contador para N° Solicitud
     
@@ -780,6 +774,52 @@
     }
     function saveStored(data) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+    
+    // Función para consumir la API
+    async function fetchAPIData() {
+      try {
+        const url = new URL(API_URL);
+        Object.keys(API_PARAMS).forEach(key => url.searchParams.append(key, API_PARAMS[key]));
+        
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: API_HEADERS
+        });
+        
+        if (response.status === 200) {
+          console.log("Datos extraídos correctamente de la API");
+          const data = await response.json();
+          return data;
+        } else {
+          console.error("Error al extraer los datos de la API:", response.status);
+          return [];
+        }
+      } catch (error) {
+        console.error("Error al consumir la API:", error);
+        return [];
+      }
+    }
+    
+    // Función para mapear datos de la API al formato de la tabla
+    function mapAPIDataToTableFormat(apiData) {
+      return apiData.map(item => ({
+        'N° SOLICITUD': item.ID || '',
+        'ENCARGADO DE LA VENTA': item.ENCARGADO_COMPROBANTE || '',
+        'FECHA DE EMISION': item.FECHA_EMISION || '',
+        'N° DE PROFORMA': item.NUMERO_PROFORMA || '',
+        'N° DE COMPROBANTE': item.NUMERO_COMPROBANTE || '',
+        'RESPONSABLE': item.RESPONSABLE_INCIDENCIA || '',
+        'AREA': item.AREA || '',
+        'OBSERVACIONES': item.TIPO_INDICENCIA || '',
+        'ESTADO': item.ESTADO_INCIDENCIA || '',
+        'OBSERVACION_DETALLE': '',
+        'FECHA DE CORRECCION ': '',
+        'SOLUCION DE COMPROBANTE': '',
+        'OBSERVACIONES_ADMIN': '',
+        'MODIFICADO POR': '',
+        'ITEMS': []
+      }));
     }
     // Añadir fila de ítem
     function addItemRow(det = '', debe = '') {
@@ -822,9 +862,11 @@
       const estadoFiltro = document.getElementById('filterEstado').value;
       const start = document.getElementById('filterStart').value;
       const end = document.getElementById('filterEnd').value;
-      // Ordenar: mostrar primero las incidencias registradas localmente (más recientes primero) y luego las importadas
+      
+      // Combinar todos los datos: locales y API
       const local = loadStored();
-      const all = [...local, ...initialData];
+      const all = [...local, ...apiData];
+      
       all.forEach((rec, idx) => {
         const estado = rec['ESTADO'] || '';
         // Filtrar por estado
@@ -864,11 +906,14 @@
           showDetail(i);
         });
       });
+      
+      // Actualizar estadísticas
+      updateStats();
     }
     // Mostrar detalles de una incidencia en modal
     function showDetail(index) {
-      // Utilizar el mismo orden que en renderList: primero los registros locales y luego los importados
-      const all = [...loadStored(), ...initialData];
+      // Utilizar el mismo orden que en renderList: locales y API
+      const all = [...loadStored(), ...apiData];
       const rec = all[index];
       const container = document.getElementById('detailContent');
       container.innerHTML = '';
@@ -977,7 +1022,7 @@
     
     // Función para guardar cambios en el modal
     function saveChanges(index) {
-      const all = [...loadStored(), ...initialData];
+      const all = [...loadStored(), ...apiData];
       const rec = all[index];
       
       // Obtener valores del modal
@@ -1072,7 +1117,7 @@
     });
     // Exportar CSV
     document.getElementById('exportCSV').addEventListener('click', function () {
-      const all = [...initialData, ...loadStored()];
+      const all = [...loadStored(), ...apiData];
       let csv = 'N° SOLICITUD,ENCARGADO DE LA VENTA,FECHA DE EMISION,N° DE PROFORMA,N° DE COMPROBANTE,DETALLE DE ERROR,DEBE SER,RESPONSABLE,AREA,TIPO DE INCIDENCIA,OBSERVACION DETALLADA,FECHA DE CORRECCION,ESTADO,SOLUCION DE COMPROBANTE,OBSERVACIONES ADICIONALES,MODIFICADO POR\n';
       all.forEach((rec) => {
         const items = rec['ITEMS'] && rec['ITEMS'].length ? rec['ITEMS'] : [{ 'DETALLE DE ERROR': '', 'DEBE SER': '' }];
@@ -1128,12 +1173,60 @@
       doc.addImage(imgData, 'PNG', x, y, finalWidth, finalHeight);
       doc.save('reporte_incidencias_logistica.pdf');
     });
+    // Función para actualizar estadísticas
+    function updateStats() {
+      const localCount = loadStored().length;
+      const apiCount = apiData.length;
+      document.getElementById('localCount').textContent = localCount;
+      document.getElementById('apiCount').textContent = apiCount;
+    }
+    
+    // Función para cargar datos de la API al inicio
+    async function loadAPIData() {
+      const data = await fetchAPIData();
+      if (data && Array.isArray(data)) {
+        apiData = mapAPIDataToTableFormat(data);
+        console.log(`Se cargaron ${apiData.length} registros de la API`);
+        updateStats();
+        renderList();
+      }
+    }
+    
+    // Evento para refrescar datos de la API
+    document.getElementById('refreshAPI').addEventListener('click', async () => {
+      const button = document.getElementById('refreshAPI');
+      const originalText = button.textContent;
+      button.textContent = '🔄 Cargando...';
+      button.disabled = true;
+      
+      try {
+        await loadAPIData();
+        button.textContent = '✅ Actualizado';
+        setTimeout(() => {
+          button.textContent = originalText;
+          button.disabled = false;
+        }, 2000);
+      } catch (error) {
+        console.error('Error al refrescar datos:', error);
+        button.textContent = '❌ Error';
+        setTimeout(() => {
+          button.textContent = originalText;
+          button.disabled = false;
+        }, 2000);
+      }
+    });
+    
     // Aplicar filtros
     document.getElementById('applyFilter').addEventListener('click', () => {
       renderList();
     });
+    
     // Render inicial y actualizar al cargar / cambio en almacenamiento
-    window.addEventListener('load', renderList);
+    window.addEventListener('load', () => {
+      loadAPIData(); // Cargar datos de la API al inicio
+      renderList();
+      updateStats(); // Actualizar estadísticas iniciales
+    });
     window.addEventListener('storage', () => renderList());
   </script>
 </body>
