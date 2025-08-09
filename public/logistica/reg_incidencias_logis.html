@@ -240,6 +240,17 @@
       box-shadow: 0 8px 25px rgba(79, 129, 189, 0.4);
     }
     
+    .btn-warning {
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      color: white;
+      box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+    }
+    
+    .btn-warning:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4);
+    }
+    
     .btn-danger {
       background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
       color: white;
@@ -728,7 +739,7 @@
           <div class="filter-group">
             <label>Estadísticas</label>
             <div id="statsInfo" style="padding: 0.5rem; background: rgba(47, 117, 181, 0.1); border-radius: 8px; font-size: 0.8rem; color: #17375d;">
-              <span id="localCount">0</span> locales, <span id="apiCount">0</span> de API
+              <span id="apiCount">0</span> registros de API
             </div>
           </div>
           <div class="filter-group">
@@ -788,21 +799,8 @@
     const API_PARAMS = { tipo: "listado" };
     const API_HEADERS = { "Content-Type": "application/json" };
     
-    // Datos importados (no editables) - ELIMINADO: solo se usan datos de API y locales
-    
     // Variable para almacenar datos de la API
     let apiData = [];
-    
-    const STORAGE_KEY = 'incidencias_v12';
-    let solicitudCounter = 1; // Contador para N° Solicitud
-    
-    function loadStored() {
-      const s = localStorage.getItem(STORAGE_KEY);
-      return s ? JSON.parse(s) : [];
-    }
-    function saveStored(data) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    }
     
     // Función para consumir la API
     async function fetchAPIData() {
@@ -913,6 +911,8 @@
       if (v === 'COMPLETADO') return 'badge-completado';
       return '';
     }  
+
+
     // Renderizar listado de incidencias
     function renderList() {
       const tbody = document.querySelector('#tablaIncidencias tbody');
@@ -921,11 +921,10 @@
       const start = document.getElementById('filterStart').value;
       const end = document.getElementById('filterEnd').value;
       
-      // Combinar todos los datos: locales y API
-      const local = loadStored();
-      const all = [...local, ...apiData];
+      console.log("=== RENDERLIST DEBUG ===");
+      console.log("Datos API:", apiData.length, "registros");
       
-      all.forEach((rec, idx) => {
+      apiData.forEach((rec, idx) => {
         const estado = rec['ESTADO'] || '';
         // Filtrar por estado
         if (estadoFiltro !== 'TODOS' && estado.toUpperCase() !== estadoFiltro) return;
@@ -970,9 +969,7 @@
     }
     // Mostrar detalles de una incidencia en modal
     function showDetail(index) {
-      // Utilizar el mismo orden que en renderList: locales y API
-      const all = [...loadStored(), ...apiData];
-      const rec = all[index];
+      const rec = apiData[index];
       const container = document.getElementById('detailContent');
       container.innerHTML = '';
       
@@ -1076,8 +1073,7 @@
     
     // Función para guardar cambios en el modal
     function saveChanges(index) {
-      const all = [...loadStored(), ...apiData];
-      const rec = all[index];
+      const rec = apiData[index];
       
       // Obtener valores del modal
       const solucion = document.getElementById('solucion').value;
@@ -1096,13 +1092,6 @@
         rec['ESTADO'] = 'COMPLETADO';
       } else if (solucion.trim()) {
         rec['ESTADO'] = 'EN PROCESO';
-      }
-      
-      // Guardar cambios
-      const stored = loadStored();
-      if (index < stored.length) {
-        stored[index] = rec;
-        saveStored(stored);
       }
       
       // Cerrar modal y actualizar lista
@@ -1268,31 +1257,7 @@
         console.log("Resultado del guardado en API:", success);
         
         if (success) {
-          console.log("✅ Guardado exitoso, procediendo a guardar localmente...");
-          // Crear registro local también para mantener consistencia
-          const newRec = {
-            'N° SOLICITUD': solicitudCounter++,
-            'ENCARGADO DE LA VENTA': encargado,
-            'FECHA DE EMISION': apiData.fecha_emision,
-            'N° DE PROFORMA': proforma,
-            'N° DE COMPROBANTE': comprobante,
-            'RESPONSABLE': responsable,
-            'AREA': area,
-            'OBSERVACIONES': tipoIncidencia,
-            'OBSERVACION_DETALLE': observacionDetalle,
-            'FECHA DE CORRECCION ': '',
-            'ESTADO': 'PENDIENTE',
-            'SOLUCION DE COMPROBANTE': '',
-            'OBSERVACIONES_ADMIN': '',
-            'MODIFICADO POR': '',
-            'ITEMS': detalle.map(item => ({ 'DETALLE DE ERROR': item.error, 'DEBE SER': item.solucion }))
-          };
-          
-          const stored = loadStored();
-          console.log("Datos locales cargados, registros existentes:", stored.length);
-          stored.unshift(newRec);
-          saveStored(stored);
-          console.log("✅ Registro guardado localmente");
+          console.log("✅ Guardado exitoso en la API");
           
           // Limpiar formulario
           this.reset();
@@ -1302,6 +1267,8 @@
           // Refrescar datos de la API y actualizar tabla
           console.log("Refrescando datos de la API...");
           await loadAPIData();
+          console.log("Actualizando tabla...");
+          renderList();
           
                      // Mostrar mensaje de éxito
            submitButton.textContent = '✅ Guardado';
@@ -1349,9 +1316,8 @@
     });
     // Exportar CSV
     document.getElementById('exportCSV').addEventListener('click', function () {
-      const all = [...loadStored(), ...apiData];
       let csv = 'N° SOLICITUD,ENCARGADO DE LA VENTA,FECHA DE EMISION,N° DE PROFORMA,N° DE COMPROBANTE,DETALLE DE ERROR,DEBE SER,RESPONSABLE,AREA,TIPO DE INCIDENCIA,OBSERVACION DETALLADA,FECHA DE CORRECCION,ESTADO,SOLUCION DE COMPROBANTE,OBSERVACIONES ADICIONALES,MODIFICADO POR\n';
-      all.forEach((rec) => {
+      apiData.forEach((rec) => {
         const items = rec['ITEMS'] && rec['ITEMS'].length ? rec['ITEMS'] : [{ 'DETALLE DE ERROR': '', 'DEBE SER': '' }];
         items.forEach((item) => {
         const row = [
@@ -1407,9 +1373,7 @@
     });
     // Función para actualizar estadísticas
     function updateStats() {
-      const localCount = loadStored().length;
       const apiCount = apiData.length;
-      document.getElementById('localCount').textContent = localCount;
       document.getElementById('apiCount').textContent = apiCount;
     }
     
@@ -1424,6 +1388,7 @@
           apiData = mapAPIDataToTableFormat(data);
           console.log(`✅ Se cargaron ${apiData.length} registros de la API`);
           console.log("Datos mapeados:", apiData);
+          
           updateStats();
           renderList();
         } else {
@@ -1488,19 +1453,20 @@
          }, 1500);
        }
      });
+     
+
     
     // Aplicar filtros
     document.getElementById('applyFilter').addEventListener('click', () => {
       renderList();
     });
     
-    // Render inicial y actualizar al cargar / cambio en almacenamiento
+    // Render inicial y actualizar al cargar
     window.addEventListener('load', () => {
       loadAPIData(); // Cargar datos de la API al inicio
       renderList();
       updateStats(); // Actualizar estadísticas iniciales
     });
-    window.addEventListener('storage', () => renderList());
   </script>
 </body>
 </html>
