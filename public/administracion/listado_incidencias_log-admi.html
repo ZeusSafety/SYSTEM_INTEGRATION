@@ -556,6 +556,7 @@
             <thead>
               <tr>
                 <th>N° DE<br>SOLICITUD</th>
+                <th>REGISTRADO<br>POR</th>
                 <th>MES</th>
                 <th>ENCARGADO</th>
                 <th>FECHA DE<br>EMISIÓN</th>
@@ -569,6 +570,7 @@
                 <th>SOLUCIÓN</th>
                 <th>OBS<br>ADICIONALES</th>
                 <th>MODIFICADO<br>POR</th>
+                <th>COMPRA/<br>VENTA</th>
                 <th>ACCIÓN</th>
               </tr>
             </thead>
@@ -602,11 +604,23 @@
       </div>
       <div class="form-group">
         <label for="updateModificadoPor">Modificado por</label>
-        <input type="text" id="updateModificadoPor" placeholder="Nombre de quien modifica">
+        <select id="updateModificadoPor">
+          <option value="">Seleccione...</option>
+          <option value="HERVIN">HERVIN</option>
+          <option value="KIMBERLY">KIMBERLY</option>
+        </select>
       </div>
       <div class="form-group">
         <label for="updateFechaCorreccion">Fecha Corrección</label>
         <input type="date" id="updateFechaCorreccion">
+      </div>
+      <div class="form-group">
+        <label for="updateCompraVenta">Compra/Venta</label>
+        <select id="updateCompraVenta">
+          <option value="">Seleccione...</option>
+          <option value="COMPRA">COMPRA</option>
+          <option value="VENTA">VENTA</option>
+        </select>
       </div>
       <div style="text-align: right; margin-top: 2rem;">
         <button id="saveUpdate" class="btn btn-primary">Guardar cambios</button>
@@ -630,6 +644,42 @@
         'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
       ];
       return months[monthNumber - 1] || '';
+    }
+    
+    // Función para convertir fecha de MySQL a formato dd/mm/yyyy
+    function formatDate(dateString) {
+      if (!dateString) return '';
+      
+      // Si ya está en formato dd/mm/yyyy, retornarlo tal como está
+      if (dateString.includes('/')) return dateString;
+      
+      // Convertir de formato MySQL (YYYY-MM-DD) a dd/mm/yyyy
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return dateString; // Si no es una fecha válida, retornar el string original
+      
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear();
+      
+      return `${day}/${month}/${year}`;
+    }
+    
+    // Función para convertir fecha de dd/mm/yyyy a formato MySQL
+    function formatDateToMySQL(dateString) {
+      if (!dateString) return '';
+      
+      // Si ya está en formato MySQL, retornarlo tal como está
+      if (dateString.includes('-')) return dateString;
+      
+      // Convertir de formato dd/mm/yyyy a MySQL (YYYY-MM-DD)
+      const parts = dateString.split('/');
+      if (parts.length !== 3) return dateString;
+      
+      const day = parts[0];
+      const month = parts[1];
+      const year = parts[2];
+      
+      return `${year}-${month}-${day}`;
     }
     
     // Función para obtener datos de la API
@@ -705,9 +755,10 @@
         const tr = document.createElement('tr');
         const cells = [
           rec['ID'] || idx + 1,
+          rec['REGISTRADO_POR'] || '',
           getMonthName(rec['MONTH(FECHA_EMISION)'] || ''),
           rec['ENCARGADO_COMPROBANTE'] || '',
-          rec['FECHA_EMISION'] || '',
+          formatDate(rec['DATE(FECHA_EMISION)'] || rec['FECHA_EMISION'] || ''),
           rec['NUMERO_PROFORMA'] || '',
           rec['NUMERO_COMPROBANTE'] || '',
           rec['RESPONSABLE_INCIDENCIA'] || '',
@@ -718,6 +769,7 @@
           rec['SOLUCION'] || '',
           rec['OBSERVACION_ADICIONAL_CORRECION'] || '',
           rec['MODIFICADO_POR'] || '',
+          rec['COMPRA_VENTA'] || '',
           '<button class="btn btn-edit" data-index="' + idx + '">Actualizar</button>'
         ];
         
@@ -748,9 +800,10 @@
       
       const fields = [
         ['N° DE SOLICITUD', rec['ID'] || ''],
+        ['Registrado por', rec['REGISTRADO_POR'] || ''],
         ['Mes', getMonthName(rec['MONTH(FECHA_EMISION)'] || '')],
         ['Encargado', rec['ENCARGADO_COMPROBANTE'] || ''],
-        ['Fecha de emisión', rec['FECHA_EMISION'] || ''],
+        ['Fecha de emisión', formatDate(rec['DATE(FECHA_EMISION)'] || rec['FECHA_EMISION'] || '')],
         ['N° de proforma', rec['NUMERO_PROFORMA'] || ''],
         ['N° de comprobante', rec['NUMERO_COMPROBANTE'] || ''],
         ['Responsable', rec['RESPONSABLE_INCIDENCIA'] || ''],
@@ -760,7 +813,8 @@
         ['Estado', rec['ESTADO_INCIDENCIA'] || ''],
         ['Solución', rec['SOLUCION'] || ''],
         ['Observaciones adicionales', rec['OBSERVACION_ADICIONAL_CORRECION'] || ''],
-        ['Modificado por', rec['MODIFICADO_POR'] || '']
+        ['Modificado por', rec['MODIFICADO_POR'] || ''],
+        ['Compra/Venta', rec['COMPRA_VENTA'] || '']
       ];
       
       fields.forEach(([label, value]) => {
@@ -785,6 +839,7 @@
       document.getElementById('updateObsAdicionales').value = rec['OBSERVACION_ADICIONAL_CORRECION'] || '';
       document.getElementById('updateModificadoPor').value = rec['MODIFICADO_POR'] || '';
       document.getElementById('updateFechaCorreccion').value = rec['FECHA_CORRECION'] ? rec['FECHA_CORRECION'].substring(0, 10) : '';
+      document.getElementById('updateCompraVenta').value = rec['COMPRA_VENTA'] || '';
       
       document.getElementById('updateModal').style.display = 'flex';
     }
@@ -803,9 +858,10 @@
       
       const entries = [
         ['N° DE SOLICITUD', rec['ID'] || ''],
+        ['Registrado por', rec['REGISTRADO_POR'] || ''],
         ['Mes', getMonthName(rec['MONTH(FECHA_EMISION)'] || '')],
         ['Encargado', rec['ENCARGADO_COMPROBANTE'] || ''],
-        ['Fecha de emisión', rec['FECHA_EMISION'] || ''],
+        ['Fecha de emisión', formatDate(rec['DATE(FECHA_EMISION)'] || rec['FECHA_EMISION'] || '')],
         ['N° de proforma', rec['NUMERO_PROFORMA'] || ''],
         ['N° de comprobante', rec['NUMERO_COMPROBANTE'] || ''],
         ['Responsable', rec['RESPONSABLE_INCIDENCIA'] || ''],
@@ -815,7 +871,8 @@
         ['Estado', rec['ESTADO_INCIDENCIA'] || ''],
         ['Solución', rec['SOLUCION'] || ''],
         ['Observaciones adicionales', rec['OBSERVACION_ADICIONAL_CORRECION'] || ''],
-        ['Modificado por', rec['MODIFICADO_POR'] || '']
+        ['Modificado por', rec['MODIFICADO_POR'] || ''],
+        ['Compra/Venta', rec['COMPRA_VENTA'] || '']
       ];
       
       entries.forEach(([label, value]) => {
@@ -851,14 +908,15 @@
     
     // Exportar CSV
     function exportCSV() {
-      let csv = 'N° DE SOLICITUD,MES,ENCARGADO,FECHA DE EMISIÓN,N° PROFORMA,N° COMPROBANTE,RESPONSABLE,AREA,TIPO DE INCIDENCIA,FECHA DE CORRECCIÓN,ESTADO,SOLUCIÓN,OBS ADICIONALES,MODIFICADO POR\n';
+      let csv = 'N° DE SOLICITUD,REGISTRADO POR,MES,ENCARGADO,FECHA DE EMISIÓN,N° PROFORMA,N° COMPROBANTE,RESPONSABLE,AREA,TIPO DE INCIDENCIA,FECHA DE CORRECCIÓN,ESTADO,SOLUCIÓN,OBS ADICIONALES,MODIFICADO POR,COMPRA/VENTA\n';
       
       apiData.forEach((rec) => {
         const row = [
           rec['ID'] || '',
+          rec['REGISTRADO_POR'] || '',
           getMonthName(rec['MONTH(FECHA_EMISION)'] || ''),
           rec['ENCARGADO_COMPROBANTE'] || '',
-          rec['FECHA_EMISION'] || '',
+          formatDate(rec['DATE(FECHA_EMISION)'] || rec['FECHA_EMISION'] || ''),
           rec['NUMERO_PROFORMA'] || '',
           rec['NUMERO_COMPROBANTE'] || '',
           rec['RESPONSABLE_INCIDENCIA'] || '',
@@ -868,7 +926,8 @@
           rec['ESTADO_INCIDENCIA'] || '',
           rec['SOLUCION'] || '',
           rec['OBSERVACION_ADICIONAL_CORRECION'] || '',
-          rec['MODIFICADO_POR'] || ''
+          rec['MODIFICADO_POR'] || '',
+          rec['COMPRA_VENTA'] || ''
         ];
         csv += row.map((x) => '"' + (x || '').replace(/"/g, '""') + '"').join(',') + '\n';
       });
@@ -891,7 +950,7 @@
       document.getElementById('updateModal').style.display = 'none';
     });
     
-    document.getElementById('saveUpdate').addEventListener('click', () => {
+    document.getElementById('saveUpdate').addEventListener('click', async () => {
       if (currentUpdateIndex === null) return;
       
       const rec = apiData[currentUpdateIndex];
@@ -901,23 +960,76 @@
       const obsAdicionales = document.getElementById('updateObsAdicionales').value;
       const modificadoPor = document.getElementById('updateModificadoPor').value;
       const fechaCorreccion = document.getElementById('updateFechaCorreccion').value;
+      const compraVenta = document.getElementById('updateCompraVenta').value;
       
-      // Actualizar el registro local (en una implementación real, aquí se enviaría a la API)
-      rec['SOLUCION'] = solucion;
-      rec['OBSERVACION_ADICIONAL_CORRECION'] = obsAdicionales;
-      rec['MODIFICADO_POR'] = modificadoPor;
-      rec['FECHA_CORRECION'] = fechaCorreccion ? (fechaCorreccion + ' ' + new Date().toLocaleTimeString()) : '';
-      
-      // Si se completó la solución, cambiar estado a COMPLETADO
-      if (solucion.trim() && fechaCorreccion) {
-        rec['ESTADO_INCIDENCIA'] = 'COMPLETADO';
-      } else if (solucion.trim()) {
-        rec['ESTADO_INCIDENCIA'] = 'EN PROCESO';
+      // Validar campos obligatorios
+      if (!solucion.trim() || !modificadoPor.trim() || !fechaCorreccion || !compraVenta) {
+        alert('Por favor, complete todos los campos obligatorios: Solución, Modificado por, Fecha de corrección y Compra/Venta');
+        return;
       }
       
-      // Cerrar modal y actualizar tabla
-      document.getElementById('updateModal').style.display = 'none';
-      renderTable();
+      try {
+        // Crear fecha y hora actual en formato datetime
+        const now = new Date();
+        const fechaHoraActual = now.getFullYear() + '-' + 
+                               String(now.getMonth() + 1).padStart(2, '0') + '-' + 
+                               String(now.getDate()).padStart(2, '0') + ' ' + 
+                               String(now.getHours()).padStart(2, '0') + ':' + 
+                               String(now.getMinutes()).padStart(2, '0') + ':' + 
+                               String(now.getSeconds()).padStart(2, '0');
+        
+        // Preparar payload para la API
+        const payload = {
+          id: parseInt(rec['ID']),
+          obs_adicionales: obsAdicionales,
+          solucion: solucion,
+          modificado_por: modificadoPor,
+          fecha_correcion: fechaHoraActual,
+          compra_venta: compraVenta
+        };
+        
+        const headers = { "Content-Type": "application/json" };
+        
+        // Llamar a la API para actualizar
+        const response = await fetch(API_BASE_URL, {
+          method: 'PUT',
+          headers: headers,
+          body: JSON.stringify(payload)
+        });
+        
+        if (response.status === 200) {
+          console.log("Actualizado correctamente");
+          
+          // Actualizar el registro local
+          rec['SOLUCION'] = solucion;
+          rec['OBSERVACION_ADICIONAL_CORRECION'] = obsAdicionales;
+          rec['MODIFICADO_POR'] = modificadoPor;
+          rec['FECHA_CORRECION'] = payload.fecha_correcion;
+          rec['COMPRA_VENTA'] = compraVenta;
+          
+          // Si se completó la solución, cambiar estado a COMPLETADO
+          if (solucion.trim() && fechaCorreccion) {
+            rec['ESTADO_INCIDENCIA'] = 'COMPLETADO';
+          } else if (solucion.trim()) {
+            rec['ESTADO_INCIDENCIA'] = 'EN PROCESO';
+          }
+          
+          // Cerrar modal y actualizar tabla
+          document.getElementById('updateModal').style.display = 'none';
+          renderTable();
+          
+          // Mostrar mensaje de éxito
+          alert('Incidencia actualizada correctamente');
+        } else {
+          console.error("Datos no actualizados");
+          const errorText = await response.text();
+          console.error(errorText);
+          alert('Error al actualizar la incidencia. Por favor, intente nuevamente.');
+        }
+      } catch (error) {
+        console.error("Error al actualizar:", error);
+        alert('Error de conexión al actualizar la incidencia. Por favor, intente nuevamente.');
+      }
     });
     
     document.getElementById('exportCSV').addEventListener('click', exportCSV);
