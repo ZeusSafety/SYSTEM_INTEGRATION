@@ -487,8 +487,8 @@
     <h1>Área de Administración: Gestión de incidencias</h1>
   </header>
 
-  <button onclick="window.top.location.href='<?= ScriptApp.getService().getUrl() ?>?page=admin'" class="btn-back">
-              <i class="bi bi-arrow-left"></i> Volver
+  <button class="btn-back">
+              <a href="../../administracion.html" class="bi bi-arrow-left"> Volver</a>
             </button>
   <div class="container">
     <div class="card">
@@ -528,20 +528,15 @@
             <thead>
               <tr>
                 <th>N° DE SOLICITUD</th>
+                <th>Estado</th>
                 <th>Encargado</th>
                 <th>Fecha emisión</th>
                 <th>N° proforma</th>
                 <th>N° comprobante</th>
-                <th>Ítems</th>
                 <th>Responsable</th>
-                <th>Área</th>
-                <th>Tipo de incidencia</th>
-                <th>Fecha corrección</th>
-                <th>Estado</th>
-                <th>Solución</th>
-                <th>Obs. adicionales</th>
                 <th>Modificado por</th>
-                <th>Acción</th>
+                <th>Ítems</th>
+                <th>Actualizar</th>
               </tr>
             </thead>
             <tbody></tbody>
@@ -557,71 +552,39 @@
       <div id="detailContentAdmin"></div>
     </div>
   </div>
-  <!-- Modal edición -->
-  <div id="editModal" class="modal">
+  
+  <!-- Modal Actualizar Incidencia -->
+  <div id="updateModal" class="modal">
     <div class="modal-content">
-      <button class="modal-close" id="closeEdit">&times;</button>
-      <h3 style="color: #17375d; font-size: 1.5rem; font-weight: 700; margin-bottom: 2rem; border-bottom: 3px solid #17375d; padding-bottom: 1rem;">Editar incidencia</h3>
+      <button class="modal-close" id="closeUpdate">&times;</button>
+      <h3 style="color: #17375d; font-size: 1.5rem; font-weight: 700; margin-bottom: 2rem; border-bottom: 3px solid #17375d; padding-bottom: 1rem;">Incidencia Resuelta</h3>
       <div class="form-group">
-        <label for="editEstado">Estado</label>
-        <select id="editEstado">
-            <option value="PENDIENTE" style="background-color: yellow; color: black;">PENDIENTE</option>
-            <option value="EN REVISION" style="background-color: orange; color: white;">EN REVISION</option>
-            <option value="COMPLETADO" style="background-color: blue; color: white;">COMPLETADO</option>
-            <option value="NOTIFICADO" style="background-color: green; color: white;">NOTIFICADO</option>
-            <option value="OBSERVADO" style="background-color: red; color: white;">OBSERVADO</option>
-        </select>
+        <label for="updateSolucion">Solución</label>
+        <textarea id="updateSolucion" placeholder="Describa la solución"></textarea>
       </div>
       <div class="form-group">
-        <label for="editFecha">Fecha de corrección</label>
-        <input type="date" id="editFecha" />
+        <label for="updateObsAdicionales">Obs. Adicionales</label>
+        <textarea id="updateObsAdicionales" placeholder="Observaciones adicionales"></textarea>
       </div>
       <div class="form-group">
-        <label for="editSolucion">Solución de comprobante</label>
-        <select id="editSolucion">
-          <option value="">Seleccione...</option>
-          <option value="ANULADO">ANULADO</option>
-          <option value="MODIFICADO">MODIFICADO</option>
-          <option value="COMPRA">COMPRA</option>
-          <option value="VENTA">VENTA</option>
-          <option value="NO HAY INCIDENCIA">NO HAY INCIDENCIA</option>
-        </select>
+        <label for="updateModificadoPor">Modificado por</label>
+        <input type="text" id="updateModificadoPor" placeholder="Nombre de quien modifica">
       </div>
       <div class="form-group">
-        <label for="editObservaciones">Observaciones adicionales</label>
-        <textarea id="editObservaciones"></textarea>
-      </div>
-      <div class="form-group">
-        <label for="editModificadoPor">Modificado por</label>
-        <select id="editModificadoPor">
-          <option value="">Seleccione...</option>
-          <option value="KIMBERLY">Kimberly</option>
-          <option value="HERVIN">Hervin</option>
-          <option value="SANDRA">Sandra</option>
-          <option value="EVELYN">Evelyn</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label for="editActaRealizada">ACTA REALIZADA</label>
-        <select id="editActaRealizada">
-          <option value="">Seleccione...</option>
-          <option value="SI">SI</option>
-          <option value="NO">NO</option>
-        </select>
+        <label for="updateFechaCorreccion">Fecha Corrección</label>
+        <input type="date" id="updateFechaCorreccion">
       </div>
       <div style="text-align: right; margin-top: 2rem;">
-        <button id="saveEdit" class="btn btn-primary">Guardar cambios</button>
+        <button id="saveUpdate" class="btn btn-primary">Guardar cambios</button>
       </div>
     </div>
   </div>
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script>
     // Datos importados de Excel
     const initialData = [
-      {
-        
-      },
       {
         "MES": "",
         "ENCARGADO DE LA VENTA": "",
@@ -629,25 +592,13 @@
         "N° DE PROFORMA": "",
         "N° DE COMPROBANTE": "",
         "RESPONSABLE": "",
-        "AREA": "",
         "OBSERVACIONES": "",
         "OBSERVACION_DETALLE": "",
-        "FECHA DE CORRECCION ": "",
         "ESTADO": "",
-        "SOLUCION DE COMPROBANTE": "",
-        "OBSERVACIONES_ADMIN": "",
         "MODIFICADO POR": "",
         "ITEMS": []
       }
     ];
-    const STORAGE_KEY = 'incidencias_v12';
-    function loadStored() {
-      const s = localStorage.getItem(STORAGE_KEY);
-      return s ? JSON.parse(s) : [];
-    }
-    function saveStored(data) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    }
     // Obtener clase de badge según estado
     function badgeClass(val) {
       const v = (val || '').toUpperCase();
@@ -660,13 +611,11 @@
     function renderTable() {
       const tbody = document.querySelector('#tablaAdmin tbody');
       tbody.innerHTML = '';
-      // Ordenar: incidencias locales primero (últimas primero) y luego las importadas
-      const local = loadStored();
-      const all = [...local, ...initialData];
       const estadoFiltro = document.getElementById('filterEstadoAdmin').value;
       const start = document.getElementById('filterStartAdmin').value;
       const end = document.getElementById('filterEndAdmin').value;
-      all.forEach((rec, idx) => {
+      
+      initialData.forEach((rec, idx) => {
         const estado = rec['ESTADO'] || '';
         // Filtrar por estado
         if (estadoFiltro !== 'TODOS' && estado.toUpperCase() !== estadoFiltro) return;
@@ -679,48 +628,30 @@
           const fecha = (rec['FECHA DE EMISION'] || '').substring(0, 10);
           if (!fecha || fecha > end) return;
         }
+        
         const tr = document.createElement('tr');
         const cells = [
           rec['N° SOLICITUD'] || idx + 1,
+          '<span class="badge ' + badgeClass(estado) + '">' + (estado || '') + '</span>',
           rec['ENCARGADO DE LA VENTA'] || '',
           rec['FECHA DE EMISION'] || '',
           rec['N° DE PROFORMA'] || '',
           rec['N° DE COMPROBANTE'] || '',
-          (rec['ITEMS'] && rec['ITEMS'].length ? '<span class="link-view" data-index="' + idx + '">Ver</span> <a href="#" class="link-pdf" data-index="' + idx + '">PDF</a>' : ''),
           rec['RESPONSABLE'] || '',
-          rec['AREA'] || '',
-          rec['OBSERVACIONES'] || '',
-          rec['FECHA DE CORRECCION '] || '',
-          '<span class="badge ' + badgeClass(estado) + '">' + (estado || '') + '</span>',
-          rec['SOLUCION DE COMPROBANTE'] || '',
-          rec['OBSERVACIONES_ADMIN'] || '',
           rec['MODIFICADO POR'] || '',
-          ''
+          (rec['ITEMS'] && rec['ITEMS'].length ? '<span class="link-view" data-index="' + idx + '">Ver</span> <a href="#" class="link-pdf" data-index="' + idx + '">PDF</a>' : ''),
+          '<button class="btn btn-edit" data-index="' + idx + '">Actualizar</button>'
         ];
+        
         cells.forEach((html) => {
           const td = document.createElement('td');
           td.innerHTML = html;
           tr.appendChild(td);
         });
-        // Acción editar
-        const actionTd = tr.lastChild;
-        // Sólo editable si pertenece a local (indice < local.length)
-        if (idx < local.length) {
-          const btn = document.createElement('button');
-          btn.textContent = 'Editar';
-          btn.className = 'btn btn-edit';
-          btn.dataset.index = idx;
-          btn.addEventListener('click', () => openEdit(idx));
-          actionTd.appendChild(btn);
-        } else {
-          const btn = document.createElement('button');
-          btn.textContent = 'Editar';
-          btn.className = 'btn btn-edit';
-          btn.disabled = true;
-          actionTd.appendChild(btn);
-        }
+        
         tbody.appendChild(tr);
       });
+      
       // Agregar eventos a enlaces de vista y PDF
       document.querySelectorAll('.link-view').forEach((link) => {
         link.addEventListener('click', function (e) {
@@ -736,12 +667,19 @@
           generatePDF(i);
         });
       });
+      
+      // Agregar eventos a botones de actualizar
+      document.querySelectorAll('.btn-edit').forEach((btn) => {
+        btn.addEventListener('click', function (e) {
+          e.preventDefault();
+          const i = parseInt(this.dataset.index);
+          openUpdateModal(i);
+        });
+      });
     }
     // Mostrar detalles en modal
     function showDetail(index) {
-      // Utilizar el mismo orden que la tabla: incidencias locales primero y luego las importadas
-      const all = [...loadStored(), ...initialData];
-      const rec = all[index];
+      const rec = initialData[index];
       const container = document.getElementById('detailContentAdmin');
       container.innerHTML = '';
       const fields = [
@@ -751,13 +689,9 @@
         ['N° de proforma', rec['N° DE PROFORMA']],
         ['N° de comprobante', rec['N° DE COMPROBANTE']],
         ['Responsable', rec['RESPONSABLE']],
-        ['Área', rec['AREA'] || ''],
         ['Estado', rec['ESTADO']],
-        ['Fecha corrección', rec['FECHA DE CORRECCION '] || ''],
-        ['Solución comprobante', rec['SOLUCION DE COMPROBANTE'] || ''],
         ['Tipo de incidencia', rec['OBSERVACIONES'] || ''],
         ['Observación detallada', rec['OBSERVACION_DETALLE'] || ''],
-        ['Observaciones adicionales', rec['OBSERVACIONES_ADMIN'] || ''],
         ['Modificado por', rec['MODIFICADO POR'] || '']
       ];
       fields.forEach(([label, value]) => {
@@ -779,44 +713,60 @@
     document.getElementById('closeDetailAdmin').addEventListener('click', () => {
       document.getElementById('detailModalAdmin').style.display = 'none';
     });
-    // Variables para editar
-    let currentEditIndex = null;
-    function openEdit(idx) {
-      currentEditIndex = idx;
-      const stored = loadStored();
-      const rec = stored[idx];
-      document.getElementById('editEstado').value = rec['ESTADO'] || 'PENDIENTE';
-      document.getElementById('editFecha').value = rec['FECHA DE CORRECCION '] || '';
-      document.getElementById('editSolucion').value = rec['SOLUCION DE COMPROBANTE'] || '';
-      document.getElementById('editObservaciones').value = rec['OBSERVACIONES_ADMIN'] || '';
-      document.getElementById('editModificadoPor').value = rec['MODIFICADO POR'] || '';
-      document.getElementById('editActaRealizada').value = rec['ACTA REALIZADA'] || '';
-      document.getElementById('editModal').style.display = 'flex';
+    
+    // Variables para actualizar
+    let currentUpdateIndex = null;
+    
+    // Función para abrir modal de actualización
+    function openUpdateModal(index) {
+      currentUpdateIndex = index;
+      const rec = initialData[index];
+      
+      // Llenar el modal con datos existentes
+      document.getElementById('updateSolucion').value = rec['SOLUCION DE COMPROBANTE'] || '';
+      document.getElementById('updateObsAdicionales').value = rec['OBSERVACIONES_ADMIN'] || '';
+      document.getElementById('updateModificadoPor').value = rec['MODIFICADO POR'] || '';
+      document.getElementById('updateFechaCorreccion').value = rec['FECHA DE CORRECCION '] ? rec['FECHA DE CORRECCION '].substring(0, 10) : '';
+      
+      document.getElementById('updateModal').style.display = 'flex';
     }
-    document.getElementById('closeEdit').addEventListener('click', () => {
-      document.getElementById('editModal').style.display = 'none';
+    
+    // Event listeners para el modal de actualización
+    document.getElementById('closeUpdate').addEventListener('click', () => {
+      document.getElementById('updateModal').style.display = 'none';
     });
-    document.getElementById('saveEdit').addEventListener('click', () => {
-      if (currentEditIndex === null) return;
-      const stored = loadStored();
-      const rec = stored[currentEditIndex];
-      rec['ESTADO'] = document.getElementById('editEstado').value;
-      // Combinar la fecha seleccionada con la hora actual para registrar con hora
-      const fechaCorreccion = document.getElementById('editFecha').value;
+    
+    document.getElementById('saveUpdate').addEventListener('click', () => {
+      if (currentUpdateIndex === null) return;
+      
+      const rec = initialData[currentUpdateIndex];
+      
+      // Obtener valores del modal
+      const solucion = document.getElementById('updateSolucion').value;
+      const obsAdicionales = document.getElementById('updateObsAdicionales').value;
+      const modificadoPor = document.getElementById('updateModificadoPor').value;
+      const fechaCorreccion = document.getElementById('updateFechaCorreccion').value;
+      
+      // Actualizar el registro
+      rec['SOLUCION DE COMPROBANTE'] = solucion;
+      rec['OBSERVACIONES_ADMIN'] = obsAdicionales;
+      rec['MODIFICADO POR'] = modificadoPor;
       rec['FECHA DE CORRECCION '] = fechaCorreccion ? (fechaCorreccion + ' ' + new Date().toLocaleTimeString()) : '';
-      rec['SOLUCION DE COMPROBANTE'] = document.getElementById('editSolucion').value;
-      rec['OBSERVACIONES_ADMIN'] = document.getElementById('editObservaciones').value;
-      rec['MODIFICADO POR'] = document.getElementById('editModificadoPor').value;
-      rec['ACTA REALIZADA'] = document.getElementById('editActaRealizada').value;
-      stored[currentEditIndex] = rec;
-      saveStored(stored);
-      document.getElementById('editModal').style.display = 'none';
+      
+      // Si se completó la solución, cambiar estado a COMPLETADO
+      if (solucion.trim() && fechaCorreccion) {
+        rec['ESTADO'] = 'COMPLETADO';
+      } else if (solucion.trim()) {
+        rec['ESTADO'] = 'EN PROCESO';
+      }
+      
+      // Cerrar modal y actualizar tabla
+      document.getElementById('updateModal').style.display = 'none';
       renderTable();
     });
     // Generar PDF
     function generatePDF(index) {
-      const all = [...initialData, ...loadStored()];
-      const rec = all[index];
+      const rec = initialData[index];
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
       let y = 10;
@@ -824,20 +774,16 @@
       doc.text('Detalle de Incidencia', 105, y, { align: 'center' });
       y += 10;
       doc.setFontSize(10);
-        const entries = [
+      const entries = [
         ['N° DE SOLICITUD', rec['N° SOLICITUD'] || ''],
         ['Encargado', rec['ENCARGADO DE LA VENTA']],
         ['Fecha de emisión', rec['FECHA DE EMISION']],
         ['N° de proforma', rec['N° DE PROFORMA']],
         ['N° de comprobante', rec['N° DE COMPROBANTE']],
         ['Responsable', rec['RESPONSABLE']],
-        ['Área', rec['AREA'] || ''],
         ['Estado', rec['ESTADO']],
-        ['Fecha corrección', rec['FECHA DE CORRECCION '] || ''],
-        ['Solución comprobante', rec['SOLUCION DE COMPROBANTE'] || ''],
         ['Tipo de incidencia', rec['OBSERVACIONES'] || ''],
         ['Observación detallada', rec['OBSERVACION_DETALLE'] || ''],
-        ['Observaciones adicionales', rec['OBSERVACIONES_ADMIN'] || ''],
         ['Modificado por', rec['MODIFICADO POR'] || '']
       ];
       entries.forEach(([label, value]) => {
@@ -880,29 +826,24 @@
     }
     // Exportar CSV
     document.getElementById('exportCSV').addEventListener('click', () => {
-      const all = [...initialData, ...loadStored()];
-      let csv = 'N° DE SOLICITUD,ENCARGADO DE LA VENTA,FECHA DE EMISION,N° DE PROFORMA,N° DE COMPROBANTE,DETALLE DE ERROR,DEBE SER,RESPONSABLE,AREA,TIPO DE INCIDENCIA,OBSERVACION DETALLADA,FECHA DE CORRECCION,ESTADO,SOLUCION DE COMPROBANTE,OBSERVACIONES ADICIONALES,MODIFICADO POR\n';
-      all.forEach((rec) => {
+      let csv = 'N° DE SOLICITUD,ENCARGADO DE LA VENTA,FECHA DE EMISION,N° DE PROFORMA,N° DE COMPROBANTE,DETALLE DE ERROR,DEBE SER,RESPONSABLE,TIPO DE INCIDENCIA,OBSERVACION DETALLADA,ESTADO,MODIFICADO POR\n';
+      initialData.forEach((rec) => {
         const items = rec['ITEMS'] && rec['ITEMS'].length ? rec['ITEMS'] : [{ 'DETALLE DE ERROR': '', 'DEBE SER': '' }];
         items.forEach((item) => {
-        const row = [
-          rec['N° SOLICITUD'] || '',
-          rec['ENCARGADO DE LA VENTA'] || '',
-          rec['FECHA DE EMISION'] || '',
-          rec['N° DE PROFORMA'] || '',
-          rec['N° DE COMPROBANTE'] || '',
-          item['DETALLE DE ERROR'] || '',
-          item['DEBE SER'] || '',
-          rec['RESPONSABLE'] || '',
-          rec['AREA'] || '',
-          rec['OBSERVACIONES'] || '',
-          rec['OBSERVACION_DETALLE'] || '',
-          rec['FECHA DE CORRECCION '] || '',
-          rec['ESTADO'] || '',
-          rec['SOLUCION DE COMPROBANTE'] || '',
-          rec['OBSERVACIONES_ADMIN'] || '',
-          rec['MODIFICADO POR'] || ''
-        ];
+          const row = [
+            rec['N° SOLICITUD'] || '',
+            rec['ENCARGADO DE LA VENTA'] || '',
+            rec['FECHA DE EMISION'] || '',
+            rec['N° DE PROFORMA'] || '',
+            rec['N° DE COMPROBANTE'] || '',
+            item['DETALLE DE ERROR'] || '',
+            item['DEBE SER'] || '',
+            rec['RESPONSABLE'] || '',
+            rec['OBSERVACIONES'] || '',
+            rec['OBSERVACION_DETALLE'] || '',
+            rec['ESTADO'] || '',
+            rec['MODIFICADO POR'] || ''
+          ];
           csv += row.map((x) => '"' + (x || '').replace(/"/g, '""') + '"').join(',') + '\n';
         });
       });
@@ -923,7 +864,6 @@
     document.getElementById('generateReportAdmin').addEventListener('click', generateReportAdmin);
     // Inicializar
     window.addEventListener('load', renderTable);
-    window.addEventListener('storage', () => renderTable());
   </script>
 </body>
 </html>
