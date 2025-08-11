@@ -239,6 +239,7 @@
       text-transform: uppercase;
       letter-spacing: 0.05em;
       border: none;
+      white-space: nowrap;
     }
     
     td {
@@ -250,12 +251,6 @@
     
     tr:hover td {
       background-color: #f8fafc;
-    }
-    
-    td:nth-child(3),
-    td:nth-child(9),
-    td:nth-child(10) {
-      white-space: nowrap;
     }
     
     /* Enlaces mejorados */
@@ -431,6 +426,31 @@
       min-height: 100px;
     }
     
+    /* Loading spinner */
+    .loading {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 2rem;
+      font-size: 1.1rem;
+      color: #64748b;
+    }
+    
+    .spinner {
+      border: 3px solid #f3f4f6;
+      border-top: 3px solid #2f75b5;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      animation: spin 1s linear infinite;
+      margin-right: 1rem;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
     /* Responsive design */
     @media (max-width: 768px) {
       .container {
@@ -488,8 +508,9 @@
   </header>
 
   <button class="btn-back">
-              <a href="../../administracion.html" class="bi bi-arrow-left"> Volver</a>
-            </button>
+    <a href="../../administracion.html" class="bi bi-arrow-left"> Volver</a>
+  </button>
+  
   <div class="container">
     <div class="card">
       <div class="card-header">
@@ -523,20 +544,32 @@
             <button id="generateReportAdmin" class="btn btn-secondary">Generar reporte</button>
           </div>
         </div>
+        
+        <!-- Loading indicator -->
+        <div id="loadingIndicator" class="loading" style="display: none;">
+          <div class="spinner"></div>
+          <span>Cargando datos...</span>
+        </div>
+        
         <div class="table-responsive">
           <table id="tablaAdmin">
             <thead>
               <tr>
-                <th>N° DE SOLICITUD</th>
-                <th>Estado</th>
-                <th>Encargado</th>
-                <th>Fecha emisión</th>
-                <th>N° proforma</th>
-                <th>N° comprobante</th>
-                <th>Responsable</th>
-                <th>Modificado por</th>
-                <th>Ítems</th>
-                <th>Actualizar</th>
+                <th>N° DE<br>SOLICITUD</th>
+                <th>MES</th>
+                <th>ENCARGADO</th>
+                <th>FECHA DE<br>EMISIÓN</th>
+                <th>N°<br>PROFORMA</th>
+                <th>N°<br>COMPROBANTE</th>
+                <th>RESPONSABLE</th>
+                <th>AREA</th>
+                <th>TIPO DE<br>INCIDENCIA</th>
+                <th>FECHA DE<br>CORRECCIÓN</th>
+                <th>ESTADO</th>
+                <th>SOLUCIÓN</th>
+                <th>OBS<br>ADICIONALES</th>
+                <th>MODIFICADO<br>POR</th>
+                <th>ACCIÓN</th>
               </tr>
             </thead>
             <tbody></tbody>
@@ -545,6 +578,7 @@
       </div>
     </div>
   </div>
+  
   <!-- Modal detalle -->
   <div id="detailModalAdmin" class="modal">
     <div class="modal-content">
@@ -583,22 +617,57 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script>
-    // Datos importados de Excel
-    const initialData = [
-      {
-        "MES": "",
-        "ENCARGADO DE LA VENTA": "",
-        "FECHA DE EMISION": "",
-        "N° DE PROFORMA": "",
-        "N° DE COMPROBANTE": "",
-        "RESPONSABLE": "",
-        "OBSERVACIONES": "",
-        "OBSERVACION_DETALLE": "",
-        "ESTADO": "",
-        "MODIFICADO POR": "",
-        "ITEMS": []
+    // Configuración de la API
+    const API_BASE_URL = "https://incidenciaslogisticaproformas-2946605267.us-central1.run.app";
+    
+    // Datos de la API
+    let apiData = [];
+    
+    // Función para convertir número de mes a nombre
+    function getMonthName(monthNumber) {
+      const months = [
+        'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+        'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+      ];
+      return months[monthNumber - 1] || '';
+    }
+    
+    // Función para obtener datos de la API
+    async function fetchData() {
+      const loadingIndicator = document.getElementById('loadingIndicator');
+      const tableBody = document.querySelector('#tablaAdmin tbody');
+      
+      try {
+        loadingIndicator.style.display = 'flex';
+        tableBody.innerHTML = '';
+        
+        const params = { tipo: "listado" };
+        const headers = { "Content-Type": "application/json" };
+        
+        const url = new URL(API_BASE_URL);
+        Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
+        
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: headers
+        });
+        
+        if (response.status === 200) {
+          console.log("Datos extraídos correctamente");
+          apiData = await response.json();
+          renderTable();
+        } else {
+          console.error("Error al extraer los datos");
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+      } catch (error) {
+        console.error("Error al obtener datos:", error);
+        tableBody.innerHTML = '<tr><td colspan="15" style="text-align: center; color: #dc2626; padding: 2rem;">Error al cargar los datos. Por favor, intente nuevamente.</td></tr>';
+      } finally {
+        loadingIndicator.style.display = 'none';
       }
-    ];
+    }
+    
     // Obtener clase de badge según estado
     function badgeClass(val) {
       const v = (val || '').toUpperCase();
@@ -607,39 +676,48 @@
       if (v === 'COMPLETADO') return 'badge-completado';
       return '';
     }
+    
     // Renderizar tabla
     function renderTable() {
       const tbody = document.querySelector('#tablaAdmin tbody');
       tbody.innerHTML = '';
+      
       const estadoFiltro = document.getElementById('filterEstadoAdmin').value;
       const start = document.getElementById('filterStartAdmin').value;
       const end = document.getElementById('filterEndAdmin').value;
       
-      initialData.forEach((rec, idx) => {
-        const estado = rec['ESTADO'] || '';
+      apiData.forEach((rec, idx) => {
+        const estado = rec['ESTADO_INCIDENCIA'] || '';
+        
         // Filtrar por estado
         if (estadoFiltro !== 'TODOS' && estado.toUpperCase() !== estadoFiltro) return;
+        
         // Filtrar por fecha
         if (start) {
-          const fecha = (rec['FECHA DE EMISION'] || '').substring(0, 10);
+          const fecha = (rec['FECHA_EMISION'] || '').substring(0, 10);
           if (!fecha || fecha < start) return;
         }
         if (end) {
-          const fecha = (rec['FECHA DE EMISION'] || '').substring(0, 10);
+          const fecha = (rec['FECHA_EMISION'] || '').substring(0, 10);
           if (!fecha || fecha > end) return;
         }
         
         const tr = document.createElement('tr');
         const cells = [
-          rec['N° SOLICITUD'] || idx + 1,
+          rec['ID'] || idx + 1,
+          getMonthName(rec['MONTH(FECHA_EMISION)'] || ''),
+          rec['ENCARGADO_COMPROBANTE'] || '',
+          rec['FECHA_EMISION'] || '',
+          rec['NUMERO_PROFORMA'] || '',
+          rec['NUMERO_COMPROBANTE'] || '',
+          rec['RESPONSABLE_INCIDENCIA'] || '',
+          rec['AREA'] || '',
+          rec['TIPO_INCIDENCIA'] || '',
+          rec['FECHA_CORRECION'] || '',
           '<span class="badge ' + badgeClass(estado) + '">' + (estado || '') + '</span>',
-          rec['ENCARGADO DE LA VENTA'] || '',
-          rec['FECHA DE EMISION'] || '',
-          rec['N° DE PROFORMA'] || '',
-          rec['N° DE COMPROBANTE'] || '',
-          rec['RESPONSABLE'] || '',
-          rec['MODIFICADO POR'] || '',
-          (rec['ITEMS'] && rec['ITEMS'].length ? '<span class="link-view" data-index="' + idx + '">Ver</span> <a href="#" class="link-pdf" data-index="' + idx + '">PDF</a>' : ''),
+          rec['SOLUCION'] || '',
+          rec['OBSERVACION_ADICIONAL_CORRECION'] || '',
+          rec['MODIFICADO_POR'] || '',
           '<button class="btn btn-edit" data-index="' + idx + '">Actualizar</button>'
         ];
         
@@ -652,22 +730,6 @@
         tbody.appendChild(tr);
       });
       
-      // Agregar eventos a enlaces de vista y PDF
-      document.querySelectorAll('.link-view').forEach((link) => {
-        link.addEventListener('click', function (e) {
-          e.preventDefault();
-          const i = parseInt(this.dataset.index);
-          showDetail(i);
-        });
-      });
-      document.querySelectorAll('.link-pdf').forEach((link) => {
-        link.addEventListener('click', function (e) {
-          e.preventDefault();
-          const i = parseInt(this.dataset.index);
-          generatePDF(i);
-        });
-      });
-      
       // Agregar eventos a botones de actualizar
       document.querySelectorAll('.btn-edit').forEach((btn) => {
         btn.addEventListener('click', function (e) {
@@ -677,42 +739,38 @@
         });
       });
     }
+    
     // Mostrar detalles en modal
     function showDetail(index) {
-      const rec = initialData[index];
+      const rec = apiData[index];
       const container = document.getElementById('detailContentAdmin');
       container.innerHTML = '';
+      
       const fields = [
-        ['N° DE SOLICITUD', rec['N° SOLICITUD'] || ''],
-        ['Encargado', rec['ENCARGADO DE LA VENTA']],
-        ['Fecha de emisión', rec['FECHA DE EMISION']],
-        ['N° de proforma', rec['N° DE PROFORMA']],
-        ['N° de comprobante', rec['N° DE COMPROBANTE']],
-        ['Responsable', rec['RESPONSABLE']],
-        ['Estado', rec['ESTADO']],
-        ['Tipo de incidencia', rec['OBSERVACIONES'] || ''],
-        ['Observación detallada', rec['OBSERVACION_DETALLE'] || ''],
-        ['Modificado por', rec['MODIFICADO POR'] || '']
+        ['N° DE SOLICITUD', rec['ID'] || ''],
+        ['Mes', getMonthName(rec['MONTH(FECHA_EMISION)'] || '')],
+        ['Encargado', rec['ENCARGADO_COMPROBANTE'] || ''],
+        ['Fecha de emisión', rec['FECHA_EMISION'] || ''],
+        ['N° de proforma', rec['NUMERO_PROFORMA'] || ''],
+        ['N° de comprobante', rec['NUMERO_COMPROBANTE'] || ''],
+        ['Responsable', rec['RESPONSABLE_INCIDENCIA'] || ''],
+        ['Área', rec['AREA'] || ''],
+        ['Tipo de incidencia', rec['TIPO_INCIDENCIA'] || ''],
+        ['Fecha de corrección', rec['FECHA_CORRECION'] || ''],
+        ['Estado', rec['ESTADO_INCIDENCIA'] || ''],
+        ['Solución', rec['SOLUCION'] || ''],
+        ['Observaciones adicionales', rec['OBSERVACION_ADICIONAL_CORRECION'] || ''],
+        ['Modificado por', rec['MODIFICADO_POR'] || '']
       ];
+      
       fields.forEach(([label, value]) => {
         const p = document.createElement('p');
         p.innerHTML = '<strong>' + label + ':</strong> ' + (value || '');
         container.appendChild(p);
       });
-      if (rec['ITEMS'] && rec['ITEMS'].length) {
-        const ul = document.createElement('ul');
-        rec['ITEMS'].forEach((it) => {
-          const li = document.createElement('li');
-          li.innerHTML = '<strong>Detalle:</strong> ' + (it['DETALLE DE ERROR'] || '') + '<br><strong>Debe ser:</strong> ' + (it['DEBE SER'] || '');
-          ul.appendChild(li);
-        });
-        container.appendChild(ul);
-      }
+      
       document.getElementById('detailModalAdmin').style.display = 'flex';
     }
-    document.getElementById('closeDetailAdmin').addEventListener('click', () => {
-      document.getElementById('detailModalAdmin').style.display = 'none';
-    });
     
     // Variables para actualizar
     let currentUpdateIndex = null;
@@ -720,94 +778,59 @@
     // Función para abrir modal de actualización
     function openUpdateModal(index) {
       currentUpdateIndex = index;
-      const rec = initialData[index];
+      const rec = apiData[index];
       
       // Llenar el modal con datos existentes
-      document.getElementById('updateSolucion').value = rec['SOLUCION DE COMPROBANTE'] || '';
-      document.getElementById('updateObsAdicionales').value = rec['OBSERVACIONES_ADMIN'] || '';
-      document.getElementById('updateModificadoPor').value = rec['MODIFICADO POR'] || '';
-      document.getElementById('updateFechaCorreccion').value = rec['FECHA DE CORRECCION '] ? rec['FECHA DE CORRECCION '].substring(0, 10) : '';
+      document.getElementById('updateSolucion').value = rec['SOLUCION'] || '';
+      document.getElementById('updateObsAdicionales').value = rec['OBSERVACION_ADICIONAL_CORRECION'] || '';
+      document.getElementById('updateModificadoPor').value = rec['MODIFICADO_POR'] || '';
+      document.getElementById('updateFechaCorreccion').value = rec['FECHA_CORRECION'] ? rec['FECHA_CORRECION'].substring(0, 10) : '';
       
       document.getElementById('updateModal').style.display = 'flex';
     }
     
-    // Event listeners para el modal de actualización
-    document.getElementById('closeUpdate').addEventListener('click', () => {
-      document.getElementById('updateModal').style.display = 'none';
-    });
-    
-    document.getElementById('saveUpdate').addEventListener('click', () => {
-      if (currentUpdateIndex === null) return;
-      
-      const rec = initialData[currentUpdateIndex];
-      
-      // Obtener valores del modal
-      const solucion = document.getElementById('updateSolucion').value;
-      const obsAdicionales = document.getElementById('updateObsAdicionales').value;
-      const modificadoPor = document.getElementById('updateModificadoPor').value;
-      const fechaCorreccion = document.getElementById('updateFechaCorreccion').value;
-      
-      // Actualizar el registro
-      rec['SOLUCION DE COMPROBANTE'] = solucion;
-      rec['OBSERVACIONES_ADMIN'] = obsAdicionales;
-      rec['MODIFICADO POR'] = modificadoPor;
-      rec['FECHA DE CORRECCION '] = fechaCorreccion ? (fechaCorreccion + ' ' + new Date().toLocaleTimeString()) : '';
-      
-      // Si se completó la solución, cambiar estado a COMPLETADO
-      if (solucion.trim() && fechaCorreccion) {
-        rec['ESTADO'] = 'COMPLETADO';
-      } else if (solucion.trim()) {
-        rec['ESTADO'] = 'EN PROCESO';
-      }
-      
-      // Cerrar modal y actualizar tabla
-      document.getElementById('updateModal').style.display = 'none';
-      renderTable();
-    });
     // Generar PDF
     function generatePDF(index) {
-      const rec = initialData[index];
+      const rec = apiData[index];
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
       let y = 10;
+      
       doc.setFontSize(14);
       doc.text('Detalle de Incidencia', 105, y, { align: 'center' });
       y += 10;
       doc.setFontSize(10);
+      
       const entries = [
-        ['N° DE SOLICITUD', rec['N° SOLICITUD'] || ''],
-        ['Encargado', rec['ENCARGADO DE LA VENTA']],
-        ['Fecha de emisión', rec['FECHA DE EMISION']],
-        ['N° de proforma', rec['N° DE PROFORMA']],
-        ['N° de comprobante', rec['N° DE COMPROBANTE']],
-        ['Responsable', rec['RESPONSABLE']],
-        ['Estado', rec['ESTADO']],
-        ['Tipo de incidencia', rec['OBSERVACIONES'] || ''],
-        ['Observación detallada', rec['OBSERVACION_DETALLE'] || ''],
-        ['Modificado por', rec['MODIFICADO POR'] || '']
+        ['N° DE SOLICITUD', rec['ID'] || ''],
+        ['Mes', getMonthName(rec['MONTH(FECHA_EMISION)'] || '')],
+        ['Encargado', rec['ENCARGADO_COMPROBANTE'] || ''],
+        ['Fecha de emisión', rec['FECHA_EMISION'] || ''],
+        ['N° de proforma', rec['NUMERO_PROFORMA'] || ''],
+        ['N° de comprobante', rec['NUMERO_COMPROBANTE'] || ''],
+        ['Responsable', rec['RESPONSABLE_INCIDENCIA'] || ''],
+        ['Área', rec['AREA'] || ''],
+        ['Tipo de incidencia', rec['TIPO_INCIDENCIA'] || ''],
+        ['Fecha de corrección', rec['FECHA_CORRECION'] || ''],
+        ['Estado', rec['ESTADO_INCIDENCIA'] || ''],
+        ['Solución', rec['SOLUCION'] || ''],
+        ['Observaciones adicionales', rec['OBSERVACION_ADICIONAL_CORRECION'] || ''],
+        ['Modificado por', rec['MODIFICADO_POR'] || '']
       ];
+      
       entries.forEach(([label, value]) => {
         doc.text(`${label}: ${value || ''}`, 10, y);
         y += 6;
       });
-      if (rec['ITEMS'] && rec['ITEMS'].length) {
-        y += 4;
-        doc.text('Ítems:', 10, y);
-        y += 6;
-        rec['ITEMS'].forEach((item, indexItem) => {
-          doc.text(`Detalle ${indexItem + 1}: ${item['DETALLE DE ERROR'] || ''}`, 10, y);
-          y += 6;
-          doc.text(`Debe ser ${indexItem + 1}: ${item['DEBE SER'] || ''}`, 10, y);
-          y += 6;
-        });
-      }
-      doc.save(`incidencia_${rec['N° DE PROFORMA'] || 'detalle'}.pdf`);
+      
+      doc.save(`incidencia_${rec['NUMERO_PROFORMA'] || 'detalle'}.pdf`);
     }
-
-    // Genera un informe PDF de todas las incidencias registradas según el filtro actual, capturando la tabla como imagen
+    
+    // Genera un informe PDF de todas las incidencias registradas según el filtro actual
     function generateReportAdmin() {
       const table = document.querySelector('#tablaAdmin');
       if (!table) return;
+      
       html2canvas(table).then((canvas) => {
         const imgData = canvas.toDataURL('image/png');
         const { jsPDF } = window.jspdf;
@@ -820,33 +843,36 @@
         const finalWidth = imgHeight > pageHeight - 20 ? (canvas.width * finalHeight / canvas.height) : imgWidth;
         const x = (pageWidth - finalWidth) / 2;
         const y = 10;
+        
         doc.addImage(imgData, 'PNG', x, y, finalWidth, finalHeight);
         doc.save('reporte_incidencias_admin.pdf');
       });
     }
+    
     // Exportar CSV
-    document.getElementById('exportCSV').addEventListener('click', () => {
-      let csv = 'N° DE SOLICITUD,ENCARGADO DE LA VENTA,FECHA DE EMISION,N° DE PROFORMA,N° DE COMPROBANTE,DETALLE DE ERROR,DEBE SER,RESPONSABLE,TIPO DE INCIDENCIA,OBSERVACION DETALLADA,ESTADO,MODIFICADO POR\n';
-      initialData.forEach((rec) => {
-        const items = rec['ITEMS'] && rec['ITEMS'].length ? rec['ITEMS'] : [{ 'DETALLE DE ERROR': '', 'DEBE SER': '' }];
-        items.forEach((item) => {
-          const row = [
-            rec['N° SOLICITUD'] || '',
-            rec['ENCARGADO DE LA VENTA'] || '',
-            rec['FECHA DE EMISION'] || '',
-            rec['N° DE PROFORMA'] || '',
-            rec['N° DE COMPROBANTE'] || '',
-            item['DETALLE DE ERROR'] || '',
-            item['DEBE SER'] || '',
-            rec['RESPONSABLE'] || '',
-            rec['OBSERVACIONES'] || '',
-            rec['OBSERVACION_DETALLE'] || '',
-            rec['ESTADO'] || '',
-            rec['MODIFICADO POR'] || ''
-          ];
-          csv += row.map((x) => '"' + (x || '').replace(/"/g, '""') + '"').join(',') + '\n';
-        });
+    function exportCSV() {
+      let csv = 'N° DE SOLICITUD,MES,ENCARGADO,FECHA DE EMISIÓN,N° PROFORMA,N° COMPROBANTE,RESPONSABLE,AREA,TIPO DE INCIDENCIA,FECHA DE CORRECCIÓN,ESTADO,SOLUCIÓN,OBS ADICIONALES,MODIFICADO POR\n';
+      
+      apiData.forEach((rec) => {
+        const row = [
+          rec['ID'] || '',
+          getMonthName(rec['MONTH(FECHA_EMISION)'] || ''),
+          rec['ENCARGADO_COMPROBANTE'] || '',
+          rec['FECHA_EMISION'] || '',
+          rec['NUMERO_PROFORMA'] || '',
+          rec['NUMERO_COMPROBANTE'] || '',
+          rec['RESPONSABLE_INCIDENCIA'] || '',
+          rec['AREA'] || '',
+          rec['TIPO_INCIDENCIA'] || '',
+          rec['FECHA_CORRECION'] || '',
+          rec['ESTADO_INCIDENCIA'] || '',
+          rec['SOLUCION'] || '',
+          rec['OBSERVACION_ADICIONAL_CORRECION'] || '',
+          rec['MODIFICADO_POR'] || ''
+        ];
+        csv += row.map((x) => '"' + (x || '').replace(/"/g, '""') + '"').join(',') + '\n';
       });
+      
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -854,16 +880,56 @@
       a.download = 'incidencias_admin.csv';
       a.click();
       URL.revokeObjectURL(url);
+    }
+    
+    // Event listeners
+    document.getElementById('closeDetailAdmin').addEventListener('click', () => {
+      document.getElementById('detailModalAdmin').style.display = 'none';
     });
-    // Aplicar filtros en administración
+    
+    document.getElementById('closeUpdate').addEventListener('click', () => {
+      document.getElementById('updateModal').style.display = 'none';
+    });
+    
+    document.getElementById('saveUpdate').addEventListener('click', () => {
+      if (currentUpdateIndex === null) return;
+      
+      const rec = apiData[currentUpdateIndex];
+      
+      // Obtener valores del modal
+      const solucion = document.getElementById('updateSolucion').value;
+      const obsAdicionales = document.getElementById('updateObsAdicionales').value;
+      const modificadoPor = document.getElementById('updateModificadoPor').value;
+      const fechaCorreccion = document.getElementById('updateFechaCorreccion').value;
+      
+      // Actualizar el registro local (en una implementación real, aquí se enviaría a la API)
+      rec['SOLUCION'] = solucion;
+      rec['OBSERVACION_ADICIONAL_CORRECION'] = obsAdicionales;
+      rec['MODIFICADO_POR'] = modificadoPor;
+      rec['FECHA_CORRECION'] = fechaCorreccion ? (fechaCorreccion + ' ' + new Date().toLocaleTimeString()) : '';
+      
+      // Si se completó la solución, cambiar estado a COMPLETADO
+      if (solucion.trim() && fechaCorreccion) {
+        rec['ESTADO_INCIDENCIA'] = 'COMPLETADO';
+      } else if (solucion.trim()) {
+        rec['ESTADO_INCIDENCIA'] = 'EN PROCESO';
+      }
+      
+      // Cerrar modal y actualizar tabla
+      document.getElementById('updateModal').style.display = 'none';
+      renderTable();
+    });
+    
+    document.getElementById('exportCSV').addEventListener('click', exportCSV);
+    
     document.getElementById('applyFilterAdmin').addEventListener('click', () => {
       renderTable();
     });
-
-    // Generar reporte PDF de todas las incidencias en administración
+    
     document.getElementById('generateReportAdmin').addEventListener('click', generateReportAdmin);
+    
     // Inicializar
-    window.addEventListener('load', renderTable);
+    window.addEventListener('load', fetchData);
   </script>
 </body>
 </html>
