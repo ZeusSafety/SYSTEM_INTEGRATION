@@ -1037,12 +1037,12 @@
           }
         };
 
-        const mappedItem = {
-          'N° SOLICITUD': item.ID || '',
-          'REGISTRADO POR': item.REGISTRADO_POR || '',
-          'MES': mesConvertido,
-          'FECHA DE EMISION': formatearFecha(item.FECHA_EMISION),
-          'N° DE PROFORMA': item.NUMERO_PROFORMA || '',
+                   const mappedItem = {
+             'N° SOLICITUD': item.ID || '',
+             'REGISTRADO POR': item.REGISTRADO_POR || '',
+             'MES': mesConvertido,
+             'FECHA DE EMISION': formatearFecha(item['DATE(FECHA_EMISION)']),
+             'N° DE PROFORMA': item.NUMERO_PROFORMA || '',
           'N° DE COMPROBANTE': item.NUMERO_COMPROBANTE || '',
           'ENCARGADO COMPROBANTE': item.ENCARGADO_COMPROBANTE || '',
           'RESPONSABLE': item.RESPONSABLE_INCIDENCIA || '',
