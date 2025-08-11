@@ -336,6 +336,14 @@
       font-size: 0.75rem;
     }
     
+    /* Estilo para la columna Registrado por */
+    #tablaIncidencias th:nth-child(2),
+    #tablaIncidencias td:nth-child(2) {
+      min-width: 80px;
+      max-width: 80px;
+      font-size: 0.75rem;
+    }
+    
     #tablaIncidencias th:last-child,
     #tablaIncidencias td:last-child {
       min-width: 100px;
@@ -720,6 +728,22 @@
               </select>
             </div>
             <div class="form-group">
+              <label for="registradoPor">Registrado por *</label>
+              <!-- Lista desplegable con nombres de los asesores de venta -->
+              <select id="registradoPor" required>
+                <option value="">Seleccione...</option>
+                <option value="HERVIN">Hervin</option>
+                <option value="KIMBERLY">Kimberly</option>
+                <option value="JOSE">Jose</option>
+                <option value="ALVARO">Alvaro</option>
+                <option value="EVELYN">Evelyn</option>
+                <option value="LIZETH">Lizeth</option>
+                <option value="JOSEPH">Joseph</option>
+                <option value="MANUEL">Manuel</option>
+                <option value="JOSSELYN">Joselyn</option>
+              </select>
+            </div>
+            <div class="form-group">
               <label for="fechaEmision">Fecha de emisión *</label>
               <input type="date" id="fechaEmision" required />
             </div>
@@ -802,12 +826,7 @@
               <option value="COMPLETADO">Completado</option>
             </select>
           </div>
-          <div class="filter-group">
-            <label>Estadísticas</label>
-            <div id="statsInfo" style="padding: 0.5rem; background: rgba(47, 117, 181, 0.1); border-radius: 8px; font-size: 0.8rem; color: #17375d;">
-              <span id="apiCount">0</span> registros de API
-            </div>
-          </div>
+
           <div class="filter-group">
             <label for="filterStart">Desde</label>
             <input type="date" id="filterStart" />
@@ -821,7 +840,6 @@
           </div>
                      <div style="margin-left:auto; display:flex; gap:0.5rem; align-items:center;">
              <button id="refreshAPI" class="btn btn-secondary">🔄 Refrescar Datos</button>
-             <button id="exportCSV" class="btn btn-secondary">Exportar CSV</button>
              <!-- Generador de reportes (reemplaza limpiar registros) -->
              <button id="generateReport" class="btn btn-secondary">Generar reporte</button>
            </div>
@@ -831,6 +849,7 @@
             <thead>
               <tr>
                 <th>N°<br>Solicitud</th>
+                <th>Registrado<br>por</th>
                 <th>Mes</th>
                 <th>Fecha<br>emisión</th>
                 <th>N°<br>proforma</th>
@@ -1002,10 +1021,27 @@
         console.log("Mes convertido:", mesConvertido);
         console.log("Tipo de mes convertido:", typeof mesConvertido);
         
+        // Formatear fecha de emisión a dd/mm/yyyy
+        const formatearFecha = (fechaString) => {
+          if (!fechaString) return '';
+          try {
+            const fecha = new Date(fechaString);
+            if (isNaN(fecha.getTime())) return fechaString;
+            return fecha.toLocaleDateString('es-ES', {
+              day: '2-digit',
+              month: '2-digit',
+              year: 'numeric'
+            });
+          } catch (error) {
+            return fechaString;
+          }
+        };
+
         const mappedItem = {
           'N° SOLICITUD': item.ID || '',
+          'REGISTRADO POR': item.REGISTRADO_POR || '',
           'MES': mesConvertido,
-          'FECHA DE EMISION': item.FECHA_EMISION || '',
+          'FECHA DE EMISION': formatearFecha(item.FECHA_EMISION),
           'N° DE PROFORMA': item.NUMERO_PROFORMA || '',
           'N° DE COMPROBANTE': item.NUMERO_COMPROBANTE || '',
           'ENCARGADO COMPROBANTE': item.ENCARGADO_COMPROBANTE || '',
@@ -1095,6 +1131,7 @@
         const tr = document.createElement('tr');
         const cells = [
           rec['N° SOLICITUD'] || idx + 1,
+          rec['REGISTRADO POR'] || '',
           rec['MES'] || '',
           rec['FECHA DE EMISION'] || '',
           rec['N° DE PROFORMA'] || '',
@@ -1127,9 +1164,6 @@
           showDetail(i);
         });
       });
-      
-      // Actualizar estadísticas
-      updateStats();
     }
     // Mostrar detalles de una incidencia en modal
     function showDetail(index) {
@@ -1153,6 +1187,12 @@
             <label>N° Solicitud</label>
             <input type="text" value="${rec['N° SOLICITUD'] || ''}" readonly>
           </div>
+          <div class="modal-form-group">
+            <label>Registrado por</label>
+            <input type="text" value="${rec['REGISTRADO POR'] || ''}" readonly>
+          </div>
+        </div>
+        <div class="modal-form-row">
           <div class="modal-form-group">
             <label>Mes</label>
             <input type="text" value="${rec['MES'] || ''}" readonly>
@@ -1387,6 +1427,7 @@
       
       // Obtener datos del formulario
       const encargado = document.getElementById('encargado').value;
+      const registradoPor = document.getElementById('registradoPor').value;
       const fechaEmision = document.getElementById('fechaEmision').value;
       const proforma = document.getElementById('proforma').value;
       const comprobante = document.getElementById('comprobante').value;
@@ -1397,6 +1438,7 @@
       
       console.log("Datos del formulario obtenidos:");
       console.log("- encargado:", encargado);
+      console.log("- registradoPor:", registradoPor);
       console.log("- fechaEmision:", fechaEmision);
       console.log("- proforma:", proforma);
       console.log("- comprobante:", comprobante);
@@ -1432,6 +1474,7 @@
       const apiData = {
         "fecha_emision": fechaCompleta,
         "encargado_comprobante": encargado,
+        "registrado_por": registradoPor,
         "responsable_incidencia": responsable,
         "area": area,
         "numero_proforma": proforma,
@@ -1513,38 +1556,7 @@
       // Ahora siempre está habilitado
       detField.disabled = false;
     });
-    // Exportar CSV
-    document.getElementById('exportCSV').addEventListener('click', function () {
-      let csv = 'N° SOLICITUD,MES,FECHA DE EMISION,N° DE PROFORMA,N° DE COMPROBANTE,ENCARGADO COMPROBANTE,RESPONSABLE,AREA,TIPO DE INCIDENCIA,FECHA DE CORRECCION,ESTADO,SOLUCION,OBSERVACIONES ADICIONALES,MODIFICADO POR,ACTA,COMPRA VENTA\n';
-      apiData.forEach((rec) => {
-        const row = [
-            rec['N° SOLICITUD'] || '',
-            rec['MES'] || '',
-            rec['FECHA DE EMISION'] || '',
-            rec['N° DE PROFORMA'] || '',
-            rec['N° DE COMPROBANTE'] || '',
-            rec['ENCARGADO COMPROBANTE'] || '',
-            rec['RESPONSABLE'] || '',
-            rec['AREA'] || '',
-            rec['TIPO DE INCIDENCIA'] || '',
-            rec['FECHA DE CORRECCION'] || '',
-            rec['ESTADO'] || '',
-            rec['SOLUCION'] || '',
-            rec['OBSERVACIONES_ADMIN'] || '',
-            rec['MODIFICADO POR'] || '',
-            rec['ACTA'] || '',
-            rec['COMPRA VENTA'] || ''
-          ];
-          csv += row.map((x) => '"' + (x || '').replace(/"/g, '""') + '"').join(',') + '\n';
-      });
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'incidencias_logistica.csv';
-      a.click();
-      URL.revokeObjectURL(url);
-    });
+
     // Generar reporte en PDF de todas las incidencias
     document.getElementById('generateReport').addEventListener('click', async () => {
       // Captura la tabla filtrada y genera un PDF como imagen
@@ -1567,11 +1579,7 @@
       doc.addImage(imgData, 'PNG', x, y, finalWidth, finalHeight);
       doc.save('reporte_incidencias_logistica.pdf');
     });
-    // Función para actualizar estadísticas
-    function updateStats() {
-      const apiCount = apiData.length;
-      document.getElementById('apiCount').textContent = apiCount;
-    }
+
     
     // Función para cargar datos de la API al inicio
     async function loadAPIData() {
@@ -1593,7 +1601,6 @@
           console.log("Primer registro mapeado:", apiData[0]);
           console.log("MES del primer registro:", apiData[0]['MES']);
           
-          updateStats();
           renderList();
           console.log("✅ loadAPIData completado exitosamente");
           return true; // Indicar éxito
@@ -1604,11 +1611,7 @@
           console.log("¿Es array?:", Array.isArray(data));
           console.log("Longitud:", data ? data.length : 'null/undefined');
           
-          // Mostrar mensaje visual al usuario
-          const statsInfo = document.getElementById('statsInfo');
-          if (statsInfo) {
-            statsInfo.innerHTML = '<span style="color: #dc2626;">⚠️ No hay datos disponibles. Verifique la conexión.</span>';
-          }
+
           
           return false; // Indicar fallo
         }
@@ -1618,11 +1621,7 @@
         console.error("- Error Message:", error.message);
         console.error("- Error Stack:", error.stack);
         
-        // Mostrar mensaje visual al usuario
-        const statsInfo = document.getElementById('statsInfo');
-        if (statsInfo) {
-          statsInfo.innerHTML = '<span style="color: #dc2626;">❌ Error al cargar datos: ' + error.message + '</span>';
-        }
+
         
         return false; // Indicar fallo
       } finally {
@@ -1680,25 +1679,16 @@
           console.log("⚠️ No se pudieron cargar los datos al abrir la página");
           console.log("Estado final de apiData:", apiData.length);
           
-          // Mostrar mensaje al usuario
-          const statsInfo = document.getElementById('statsInfo');
-          if (statsInfo) {
-            statsInfo.innerHTML = '<span style="color: #dc2626;">❌ Error al cargar datos. Use "Refrescar Datos"</span>';
-          }
+
         }
       } catch (error) {
         console.error("❌ Error durante la carga inicial:", error);
-        const statsInfo = document.getElementById('statsInfo');
-        if (statsInfo) {
-          statsInfo.innerHTML = '<span style="color: #dc2626;">❌ Error crítico: ' + error.message + '</span>';
-        }
       }
       
-      // Siempre renderizar la tabla (aunque esté vacía)
-      console.log("🔄 Renderizando tabla...");
-      renderList();
-      updateStats();
-      console.log("✅ Carga inicial completada");
+              // Siempre renderizar la tabla (aunque esté vacía)
+        console.log("🔄 Renderizando tabla...");
+        renderList();
+        console.log("✅ Carga inicial completada");
     });
     
     // Evento adicional para cuando el DOM esté completamente listo
