@@ -16,44 +16,94 @@
             <p>Gestión de Incidencias Logísticas</p>
         </div>
 
-        <div class="menu-grid">
-            <div class="menu-card">
-                <i class="fas fa-exclamation-triangle icon incidente-icon"></i>
-                <h2>Incidencia Importación</h2>
-                <p>Registrar nueva incidencia - Importación</p>
-                <a href="#" class="btn" data-apps-script-page="incidencia_logistica_formulario">
-                    <i class="fas fa-plus"></i> Crear Incidencia
-                </a>
+        <!-- Secciones Primarias -->
+        <div class="primary-sections">
+            <!-- Sección Incidencias -->
+            <div class="primary-section" id="incidencias-section">
+                <div class="section-header" onclick="toggleSection('incidencias')">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h2>Incidencias</h2>
+                    <i class="fas fa-chevron-down toggle-icon"></i>
+                </div>
+                <div class="section-content" id="incidencias-content">
+                    <div class="menu-grid">
+                        <div class="menu-card">
+                            <i class="fas fa-file-invoice-dollar icon"></i>
+                            <h3>Proformas</h3>
+                            <p>Registrar nueva incidencia - Proformas</p>
+                            <a href="public/logistica/reg_incidencias_logis.html" class="btn">
+                                <i class="fas fa-plus"></i> Registrar Incidencia
+                            </a>
+                        </div>
+
+                        <div class="menu-card">
+                            <i class="fas fa-ship icon"></i>
+                            <h3>Importaciones</h3>
+                            <p>Registrar nueva incidencia - Importación</p>
+                            <a href="#" class="btn" data-apps-script-page="incidencia_logistica_formulario">
+                                <i class="fas fa-plus"></i> Crear Incidencia
+                            </a>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <div class="menu-card">
-                <i class="fas fa-exclamation-triangle icon incidente-icon"></i>
-                <h2>Incidencia - Proformas</h2>
-                <p>Registrar nueva incidencia - Proformas</p>
-                <a href="public/logistica/reg_incidencias_logis.html" class="btn" >
-                    <i class="fas fa-plus"></i> Registrar Incidencia
-                </a>
-            </div>
+            <!-- Sección Listados -->
+            <div class="primary-section" id="listados-section">
+                <div class="section-header" onclick="toggleSection('listados')">
+                    <i class="fas fa-clipboard-list"></i>
+                    <h2>Listados</h2>
+                    <i class="fas fa-chevron-down toggle-icon"></i>
+                </div>
+                <div class="section-content" id="listados-content">
+                    <div class="menu-grid">
+                        <div class="menu-card">
+                            <i class="fas fa-exclamation-triangle icon"></i>
+                            <h3>Incidencias</h3>
+                            <p>Ver y gestionar todas las incidencias</p>
+                            <a href="public/logistica/incidencia_listado_logistica.html" class="btn">
+                                <i class="fas fa-eye"></i> Ver Listado
+                            </a>
+                        </div>
 
-            <div class="menu-card">
-                <i class="fas fa-clipboard-list icon listado-icon"></i>
-                <h2>Listado de Incidencias</h2>
-                <p>Ver y gestionar todas las incidencias - Importación</p>
-                <a href="public/logistica/incidencia_listado_logistica.html" class="btn">
-                    <i class="fas fa-eye"></i> Ver Listado
-                </a>
-            </div>
-
-            <div class="menu-card">
-                <i class="fas fa-clipboard-list icon listado-icon"></i>
-                <h2>Listado de Importaciones</h2>
-                <p>Ver las importaciones</p>
-                <a href="public/importaciones/listado_import.html" class="btn">
-                    <i class="fas fa-eye"></i> Ver Listado
-                </a>
+                        <div class="menu-card">
+                            <i class="fas fa-ship icon"></i>
+                            <h3>Importaciones</h3>
+                            <p>Ver las importaciones</p>
+                            <a href="public/importaciones/listado_import.html" class="btn">
+                                <i class="fas fa-eye"></i> Ver Listado
+                            </a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
+
     <script src="js/config.js"></script>
+    <script>
+        function toggleSection(sectionName) {
+            const section = document.getElementById(sectionName + '-section');
+            const content = document.getElementById(sectionName + '-content');
+            const toggleIcon = section.querySelector('.toggle-icon');
+            
+            // Toggle la clase active
+            section.classList.toggle('active');
+            
+            // Toggle la visibilidad del contenido
+            if (content.style.maxHeight) {
+                content.style.maxHeight = null;
+                toggleIcon.style.transform = 'rotate(0deg)';
+            } else {
+                content.style.maxHeight = content.scrollHeight + "px";
+                toggleIcon.style.transform = 'rotate(180deg)';
+            }
+        }
+
+        // Abrir la primera sección por defecto
+        document.addEventListener('DOMContentLoaded', function() {
+            toggleSection('incidencias');
+        });
+    </script>
 </body>
 </html>
