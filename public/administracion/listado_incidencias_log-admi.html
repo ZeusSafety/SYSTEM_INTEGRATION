@@ -641,7 +641,7 @@
         <select id="updateEstado">
           <option value="">Seleccione...</option>
           <option value="PENDIENTE">PENDIENTE</option>
-          <option value="REVISION">REVISION</option>
+          <option value="EN PROCESO">EN PROCESO</option>
           <option value="NOTIFICADO">NOTIFICADO</option>
           <option value="COMPLETADO">COMPLETADO</option>
           <option value="OBSERVADO">OBSERVADO</option>
@@ -751,7 +751,7 @@
     function badgeClass(val) {
       const v = (val || '').toUpperCase();
       if (v === 'PENDIENTE') return 'badge-pendiente';
-      if (v === 'REVISION') return 'badge-enproceso';
+      if (v === 'EN PROCESO') return 'badge-enproceso';
       if (v === 'NOTIFICADO') return 'badge-notificado';
       if (v === 'COMPLETADO') return 'badge-completado';
       if (v === 'OBSERVADO') return 'badge-observado';

@@ -421,7 +421,12 @@
     .badge-completado {
       background: linear-gradient(135deg, #10b981 0%, #059669 100%);
     }
-    
+    .badge-notificado {
+      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    }
+    .badge-observado {
+      background: linear-gradient(135deg, red 0%, red 100%);
+    }
     /* Filtros mejorados */
     .filter-row {
       display: flex;
@@ -1095,7 +1100,9 @@
       const v = (val || '').toUpperCase();
       if (v === 'PENDIENTE') return 'badge-pendiente';
       if (v === 'EN PROCESO') return 'badge-enproceso';
+      if (v === 'NOTIFICADO') return 'badge-notificado';
       if (v === 'COMPLETADO') return 'badge-completado';
+      if (v === 'OBSERVADO') return 'badge-observado';
       return '';
     }  
 
