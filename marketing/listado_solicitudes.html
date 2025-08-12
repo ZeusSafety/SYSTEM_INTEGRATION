@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Respuestas</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+  <style>
+    :root {
+      --azul-oscuro: #14213d;
+      --amarillo: #fca311;
+      --verde: #43aa8b;
+      --gris-fondo: #f4f6fa;
+    }
+    body { background: var(--gris-fondo); }
+    .card { background: #fff; border: none; box-shadow: none; }
+    .table thead { background: var(--azul-oscuro); color: #fff; }
+    .estado-pendiente { background: var(--amarillo)!important; color: #000!important; font-weight: bold; border-radius: 8px; padding: 4px 12px; display: inline-block; }
+    .estado-completado { background: var(--verde)!important; color: #fff!important; font-weight: bold; border-radius: 8px; padding: 4px 12px; display: inline-block; }
+    .btn-pdf { background: var(--azul-oscuro); color: #fff; border-radius: 6px; padding: 4px 16px; font-weight: 600; border: none; transition: background 0.2s; }
+    .btn-pdf:hover { background: #000; color: var(--amarillo); }
+  </style>
+</head>
+<body>
+  <button onclick="window.top.location.href='<?= ScriptApp.getService().getUrl() ?>?page=importacion'" class="btn btn-outline-secondary">
+              <i class="bi bi-arrow-left"></i> Volver
+            </button>
+  <div class="container py-5">
+    <div class="row justify-content-center">
+      <div class="col-12">
+        <div class="card p-4">
+          <h2 class="mb-4 text-center" style="color:var(--azul-oscuro);font-weight:700;letter-spacing:1px;">Listado de Respuestas</h2>
+          <div class="table-responsive" style="max-height:60vh;">
+            <table class="table table-striped table-hover align-middle" id="tablaRespuestas">
+              <thead class="table-dark sticky-top">
+                <tr>
+                  <th>Fecha Consulta</th>
+                  <th>Responsable MK</th>
+                  <th>Requerimientos</th>
+                  <th>Informe</th>
+                  <th>Responsable IM</th>
+                  <th>Fecha Respuesta</th>
+                  <th>Observaciones</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td colspan="5" class="text-center">Cargando...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de actualización -->
+  <div class="modal fade" id="modalActualizar" tabindex="-1" aria-labelledby="modalActualizarLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalActualizarLabel">Actualizar Respuesta</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <form id="formActualizar">
+            <div class="mb-2">
+              <label class="form-label">Fecha Consulta</label>
+              <input type="text" class="form-control" id="modal_fecha_consulta" readonly>
+            </div>
+            <div class="mb-2">
+              <label class="form-label">Responsable MK</label>
+              <input type="text" class="form-control" id="modal_responsable_mk" readonly>
+            </div>
+            <div class="mb-2">
+              <label class="form-label">Requerimientos</label>
+              <textarea class="form-control" id="modal_requerimientos" rows="2" readonly></textarea>
+            </div>
+            <div class="mb-2">
+              <label class="form-label">Responsable IM</label>
+              <select class="form-select" id="modal_responsable_im">
+                <option value="SANDRA">SANDRA</option>
+              </select>
+            </div>
+            <div class="mb-2">
+              <label class="form-label">Fecha Respuesta</label>
+              <input type="date" class="form-control" id="modal_fecha_respuesta">
+            </div>
+            <div class="mb-2">
+              <label class="form-label">Observaciones</label>
+              <textarea class="form-control" id="modal_observaciones" rows="2"></textarea>
+            </div>
+            <div class="mb-2">
+              <label class="form-label">Estado</label>
+              <select class="form-select" id="modal_estado">
+                <option value="PENDIENTE">PENDIENTE</option>
+                <option value="COMPLETADO">COMPLETADO</option>
+              </select>
+            </div>
+            <input type="hidden" id="modal_row_index">
+            <input type="hidden" id="modal_id_respuesta">
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-primary" id="btnGuardar">Guardar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function cargarTablaRespuestas() {
+      const tbody = document.querySelector('#tablaRespuestas tbody');
+      tbody.innerHTML = '<tr><td colspan="5" class="text-center">Cargando...</td></tr>';
+      google.script.run.withSuccessHandler(function (datos) {
+        let registros = datos;
+        if (typeof datos === 'string') {
+          try {
+            registros = JSON.parse(datos);
+          } catch (e) {
+            registros = [];
+          }
+        }
+        if (!Array.isArray(registros) || registros.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5" class="text-center">Sin registros</td></tr>';
+          return;
+        }
+        tbody.innerHTML = '';
+        registros.forEach(function (row, idx) {
+          // row: [A:ID_RESPUESTA, B:ID_MARKETING, C:FECHA_CONSULTA_MK, D:RESPONSABLE_MK, E:REQUERIMIENTOS, F:INFORME, G:RESPONSABLE_IM, H:FECHA_RESPUESTA, I:OBSERVACIONES, J:ESTADO]
+          const tr = document.createElement('tr');
+          [2,3,4,5,6,7,8,9].forEach(function(colIdx) {
+            const td = document.createElement('td');
+            if (colIdx === 5) {
+              // Informe PDF: mostrar botón si hay link
+              if (row[colIdx] && typeof row[colIdx] === 'string' && row[colIdx].startsWith('http')) {
+                td.innerHTML = `<button class=\"btn-pdf\" onclick=\"window.open('${row[colIdx]}','_blank')\"><i class='bi bi-file-earmark-pdf'></i> PDF</button>`;
+              } else {
+                td.textContent = row[colIdx] || '';
+              }
+            } else if (colIdx === 9) {
+              // Estado: color
+              let estado = String(row[colIdx]||'').toUpperCase();
+              if (estado === 'PENDIENTE') {
+                td.innerHTML = `<span class='estado-pendiente'>${row[colIdx]}</span>`;
+              } else if (estado === 'COMPLETADO') {
+                td.innerHTML = `<span class='estado-completado'>${row[colIdx]}</span>`;
+              } else {
+                td.textContent = row[colIdx] || '';
+              }
+            } else {
+              td.textContent = row[colIdx] || '';
+            }
+            tr.appendChild(td);
+          });
+          // Acciones
+          const tdAcc = document.createElement('td');
+          tdAcc.innerHTML = `<button class='btn btn-warning btn-sm' onclick='abrirModalActualizar(${idx})'><i class='bi bi-pencil-square'></i> Actualizar</button>`;
+          tr.appendChild(tdAcc);
+          tbody.appendChild(tr);
+        });
+        window.registrosRespuestas = registros;
+      }).withFailureHandler(function (err) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-danger">Error al cargar datos</td></tr>';
+      }).obtenerRespuestas();
+    }
+
+    window.onload = cargarTablaRespuestas;
+
+    // Modal lógica
+    window.abrirModalActualizar = function(idx) {
+      const registro = window.registrosRespuestas[idx];
+      document.getElementById('modal_fecha_consulta').value = registro[2] || '';
+      document.getElementById('modal_responsable_mk').value = registro[3] || '';
+      document.getElementById('modal_requerimientos').value = registro[4] || '';
+      document.getElementById('modal_responsable_im').value = registro[6] || 'SANDRA';
+      // FECHA_RESPUESTA editable tipo datetime-local
+      if (registro[7]) {
+        // Convertir "dd/MM/yyyy HH:mm:ss" a "yyyy-MM-ddTHH:mm"
+        let partes = registro[7].split(' ');
+        if (partes.length === 2) {
+          let fecha = partes[0].split('/').reverse().join('-');
+          let hora = partes[1].substring(0,5);
+          document.getElementById('modal_fecha_respuesta').value = fecha + 'T' + hora;
+        } else {
+          document.getElementById('modal_fecha_respuesta').value = '';
+        }
+      } else {
+        document.getElementById('modal_fecha_respuesta').value = '';
+      }
+      document.getElementById('modal_observaciones').value = registro[8] || '';
+      document.getElementById('modal_estado').value = registro[9] || 'PENDIENTE';
+      document.getElementById('modal_row_index').value = idx;
+      document.getElementById('modal_id_respuesta').value = registro[0] || '';
+      var modal = new bootstrap.Modal(document.getElementById('modalActualizar'));
+      modal.show();
+    }
+
+    document.getElementById('btnGuardar').onclick = function() {
+      const idx = document.getElementById('modal_row_index').value;
+      const registro = window.registrosRespuestas[idx];
+      const datosActualizar = {
+        id_respuesta: document.getElementById('modal_id_respuesta').value,
+        id_marketing: registro[1],
+        fecha_consulta_mk: registro[2],
+        responsable_mk: registro[3],
+        requerimientos: registro[4],
+        responsable_im: document.getElementById('modal_responsable_im').value,
+        fecha_respuesta: (function(){
+          let val = document.getElementById('modal_fecha_respuesta').value;
+          if(val) {
+            // yyyy-MM-dd a dd/MM/yyyy, la hora la pondrá el backend
+            let partes = val.split('-');
+            if(partes.length === 3) return partes.reverse().join('/');
+          }
+          return '';
+        })(),
+        observaciones: document.getElementById('modal_observaciones').value,
+        estado: document.getElementById('modal_estado').value
+      };
+      google.script.run.withSuccessHandler(function(msg) {
+        cargarTablaRespuestas();
+        var modal = bootstrap.Modal.getInstance(document.getElementById('modalActualizar'));
+        modal.hide();
+        alert(msg);
+      }).withFailureHandler(function(err) {
+        alert('Error al actualizar: ' + err);
+      }).actualizarRespuesta(datosActualizar);
+    }
+  </script>
+</body>
+</html>
