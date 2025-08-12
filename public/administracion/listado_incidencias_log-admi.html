@@ -296,6 +296,13 @@
     .badge-completado {
       background: linear-gradient(135deg, #10b981 0%, #059669 100%);
     }
+    .badge-notificado {
+      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    }
+    
+    .badge-observado {
+      background: linear-gradient(135deg, red 0%, red 100%);
+    }
     
     /* Filtros mejorados */
     .filter-row {
@@ -571,6 +578,7 @@
                 <th>OBS<br>ADICIONALES</th>
                 <th>MODIFICADO<br>POR</th>
                 <th>COMPRA/<br>VENTA</th>
+                <th>N°<br>ACTA</th>
                 <th>ACCIÓN</th>
               </tr>
             </thead>
@@ -596,7 +604,12 @@
       <h3 style="color: #17375d; font-size: 1.5rem; font-weight: 700; margin-bottom: 2rem; border-bottom: 3px solid #17375d; padding-bottom: 1rem;">Incidencia Resuelta</h3>
       <div class="form-group">
         <label for="updateSolucion">Solución</label>
-        <textarea id="updateSolucion" placeholder="Describa la solución"></textarea>
+        <select id="updateSolucion">
+          <option value="">Seleccione...</option>
+          <option value="ANULADO">ANULADO</option>
+          <option value="EDITADO">EDITADO</option>
+          <option value="ERROR PROFORMA">ERROR PROFORMA</option>
+        </select>
       </div>
       <div class="form-group">
         <label for="updateObsAdicionales">Obs. Adicionales</label>
@@ -620,7 +633,23 @@
           <option value="">Seleccione...</option>
           <option value="COMPRA">COMPRA</option>
           <option value="VENTA">VENTA</option>
+          <option value="SIN INCIDENCIA">SIN INCIDENCIA</option>
         </select>
+      </div>
+      <div class="form-group">
+        <label for="updateEstado">Estado</label>
+        <select id="updateEstado">
+          <option value="">Seleccione...</option>
+          <option value="PENDIENTE">PENDIENTE</option>
+          <option value="REVISION">REVISION</option>
+          <option value="NOTIFICADO">NOTIFICADO</option>
+          <option value="COMPLETADO">COMPLETADO</option>
+          <option value="OBSERVADO">OBSERVADO</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="updateNumeroActa">N° Acta</label>
+        <input type="text" id="updateNumeroActa" placeholder="Número de acta">
       </div>
       <div style="text-align: right; margin-top: 2rem;">
         <button id="saveUpdate" class="btn btn-primary">Guardar cambios</button>
@@ -722,8 +751,10 @@
     function badgeClass(val) {
       const v = (val || '').toUpperCase();
       if (v === 'PENDIENTE') return 'badge-pendiente';
-      if (v === 'EN PROCESO') return 'badge-enproceso';
+      if (v === 'REVISION') return 'badge-enproceso';
+      if (v === 'NOTIFICADO') return 'badge-notificado';
       if (v === 'COMPLETADO') return 'badge-completado';
+      if (v === 'OBSERVADO') return 'badge-observado';
       return '';
     }
     
@@ -770,6 +801,7 @@
           rec['OBSERVACION_ADICIONAL_CORRECION'] || '',
           rec['MODIFICADO_POR'] || '',
           rec['COMPRA_VENTA'] || '',
+          rec['NUMERO_ACTA'] || '',
           '<button class="btn btn-edit" data-index="' + idx + '">Actualizar</button>'
         ];
         
@@ -814,7 +846,8 @@
         ['Solución', rec['SOLUCION'] || ''],
         ['Observaciones adicionales', rec['OBSERVACION_ADICIONAL_CORRECION'] || ''],
         ['Modificado por', rec['MODIFICADO_POR'] || ''],
-        ['Compra/Venta', rec['COMPRA_VENTA'] || '']
+        ['Compra/Venta', rec['COMPRA_VENTA'] || ''],
+        ['N° Acta', rec['NUMERO_ACTA'] || '']
       ];
       
       fields.forEach(([label, value]) => {
@@ -840,6 +873,8 @@
       document.getElementById('updateModificadoPor').value = rec['MODIFICADO_POR'] || '';
       document.getElementById('updateFechaCorreccion').value = rec['FECHA_CORRECION'] ? rec['FECHA_CORRECION'].substring(0, 10) : '';
       document.getElementById('updateCompraVenta').value = rec['COMPRA_VENTA'] || '';
+      document.getElementById('updateEstado').value = rec['ESTADO_INCIDENCIA'] || '';
+      document.getElementById('updateNumeroActa').value = rec['NUMERO_ACTA'] || '';
       
       document.getElementById('updateModal').style.display = 'flex';
     }
@@ -872,7 +907,8 @@
         ['Solución', rec['SOLUCION'] || ''],
         ['Observaciones adicionales', rec['OBSERVACION_ADICIONAL_CORRECION'] || ''],
         ['Modificado por', rec['MODIFICADO_POR'] || ''],
-        ['Compra/Venta', rec['COMPRA_VENTA'] || '']
+        ['Compra/Venta', rec['COMPRA_VENTA'] || ''],
+        ['N° Acta', rec['NUMERO_ACTA'] || '']
       ];
       
       entries.forEach(([label, value]) => {
@@ -908,7 +944,7 @@
     
     // Exportar CSV
     function exportCSV() {
-      let csv = 'N° DE SOLICITUD,REGISTRADO POR,MES,ENCARGADO,FECHA DE EMISIÓN,N° PROFORMA,N° COMPROBANTE,RESPONSABLE,AREA,TIPO DE INCIDENCIA,FECHA DE CORRECCIÓN,ESTADO,SOLUCIÓN,OBS ADICIONALES,MODIFICADO POR,COMPRA/VENTA\n';
+      let csv = 'N° DE SOLICITUD,REGISTRADO POR,MES,ENCARGADO,FECHA DE EMISIÓN,N° PROFORMA,N° COMPROBANTE,RESPONSABLE,AREA,TIPO DE INCIDENCIA,FECHA DE CORRECCIÓN,ESTADO,SOLUCIÓN,OBS ADICIONALES,MODIFICADO POR,COMPRA/VENTA,N° ACTA\n';
       
       apiData.forEach((rec) => {
         const row = [
@@ -927,7 +963,8 @@
           rec['SOLUCION'] || '',
           rec['OBSERVACION_ADICIONAL_CORRECION'] || '',
           rec['MODIFICADO_POR'] || '',
-          rec['COMPRA_VENTA'] || ''
+          rec['COMPRA_VENTA'] || '',
+          rec['NUMERO_ACTA'] || ''
         ];
         csv += row.map((x) => '"' + (x || '').replace(/"/g, '""') + '"').join(',') + '\n';
       });
@@ -961,10 +998,12 @@
       const modificadoPor = document.getElementById('updateModificadoPor').value;
       const fechaCorreccion = document.getElementById('updateFechaCorreccion').value;
       const compraVenta = document.getElementById('updateCompraVenta').value;
+      const estado = document.getElementById('updateEstado').value;
+      const numeroActa = document.getElementById('updateNumeroActa').value;
       
       // Validar campos obligatorios
-      if (!solucion.trim() || !modificadoPor.trim() || !fechaCorreccion || !compraVenta) {
-        alert('Por favor, complete todos los campos obligatorios: Solución, Modificado por, Fecha de corrección y Compra/Venta');
+      if (!solucion.trim() || !modificadoPor.trim() || !fechaCorreccion || !compraVenta || !estado) {
+        alert('Por favor, complete todos los campos obligatorios: Solución, Modificado por, Fecha de corrección, Compra/Venta y Estado');
         return;
       }
       
@@ -985,7 +1024,9 @@
           solucion: solucion,
           modificado_por: modificadoPor,
           fecha_correcion: fechaHoraActual,
-          compra_venta: compraVenta
+          compra_venta: compraVenta,
+          estado_incidencia: estado,
+          numero_acta: numeroActa
         };
         
         const headers = { "Content-Type": "application/json" };
@@ -1006,6 +1047,8 @@
           rec['MODIFICADO_POR'] = modificadoPor;
           rec['FECHA_CORRECION'] = payload.fecha_correcion;
           rec['COMPRA_VENTA'] = compraVenta;
+          rec['ESTADO_INCIDENCIA'] = estado;
+          rec['NUMERO_ACTA'] = numeroActa;
           
           // Si se completó la solución, cambiar estado a COMPLETADO
           if (solucion.trim() && fechaCorreccion) {
