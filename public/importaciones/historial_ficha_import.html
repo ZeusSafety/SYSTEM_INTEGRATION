@@ -166,6 +166,22 @@ tbody tr:hover {
     color: #c82333;
 }
 
+.loading {
+    text-align: center;
+    padding: 2rem;
+    color: var(--secondary-color);
+}
+
+.error {
+    text-align: center;
+    padding: 2rem;
+    color: #dc3545;
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    border-radius: 0.25rem;
+    margin: 1rem 0;
+}
+
 /* -------------------- */
 /* RESPONSIVE      */
 /* -------------------- */
@@ -249,11 +265,11 @@ tbody tr:hover {
         </div>
         
     </header>
-    <button class="add-btn" onclick="window.top.location.href='<?= ScriptApp.getService().getUrl() ?>?page=importacion'" ><i class="fas fa-plus"></i> Volver</button>
+    <a href="../../importacion.html" class="add-btn"><i class="fas fa-arrow-left"></i> Volver</a>
     <div class="container">
         <div class="header-section">
             <div class="actions" style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: center;">
-                <button class="add-btn" onclick="window.top.location.href='<?= ScriptApp.getService().getUrl() ?>?page=ficha_importacion'" ><i class="fas fa-plus"></i> Nuevo Despacho</button>
+                <a href="#" class="add-btn" data-apps-script-page="ficha_importacion"><i class="fas fa-plus"></i> Nuevo</a>
                 <input type="date" id="filtro-fecha" style="padding: 0.5rem; border-radius: 0.25rem; border: 1px solid #dee2e6;" placeholder="Filtrar por fecha">
                 <input type="text" id="filtro-despacho" style="padding: 0.5rem; border-radius: 0.25rem; border: 1px solid #dee2e6;" placeholder="Filtrar por N° Despacho">
                 <input type="text" id="filtro-redactado" style="padding: 0.5rem; border-radius: 0.25rem; border: 1px solid #dee2e6;" placeholder="Filtrar por Redactado por">
@@ -271,73 +287,109 @@ tbody tr:hover {
                         <th>Archivo PDF</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="tabla-datos">
+                    <tr>
+                        <td colspan="5" class="loading">
+                            <i class="fas fa-spinner fa-spin"></i> Cargando datos...
+                        </td>
+                    </tr>
                 </tbody>
             </table>
         </div>
     </div>
     
     <script>
+        // Configuración de la API
+        const API_BASE_URL = 'https://importacionesvr01crud-2946605267.us-central1.run.app';
+        
         let historialRegistros = [];
+        
         document.addEventListener('DOMContentLoaded', () => {
-            google.script.run.withSuccessHandler(data => {
-                try {
-                    historialRegistros = typeof data === 'string' ? JSON.parse(data) : data;
-                } catch (e) {
-                    historialRegistros = [];
-                }
-                renderHistorialFichaImportacion(historialRegistros);
-            }).obtenerHistorialFichaImportaciones();
-
+            cargarDatos();
+            
+            // Event listeners para filtros
             document.getElementById('filtro-fecha').addEventListener('input', filtrarHistorial);
             document.getElementById('filtro-despacho').addEventListener('input', filtrarHistorial);
             document.getElementById('filtro-redactado').addEventListener('input', filtrarHistorial);
         });
+
+        async function cargarDatos() {
+            try {
+                const response = await fetch(`${API_BASE_URL}?ficha=ficha`);
+                
+                if (response.status === 200) {
+                    const data = await response.json();
+                    historialRegistros = data;
+                    renderHistorialFichaImportacion(historialRegistros);
+                } else {
+                    mostrarError('Error al cargar los datos. Código de estado: ' + response.status);
+                }
+            } catch (error) {
+                console.error('Error al cargar datos:', error);
+                mostrarError('Error de conexión. Verifique su conexión a internet.');
+            }
+        }
+
+        function mostrarError(mensaje) {
+            const tbody = document.getElementById('tabla-datos');
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="5" class="error">
+                        <i class="fas fa-exclamation-triangle"></i> ${mensaje}
+                    </td>
+                </tr>
+            `;
+        }
 
         function filtrarHistorial() {
             const fechaFiltro = document.getElementById('filtro-fecha').value;
             const despachoFiltro = document.getElementById('filtro-despacho').value.trim().toLowerCase();
             const redactadoFiltro = document.getElementById('filtro-redactado').value.trim().toLowerCase();
 
-            let filtrados = historialRegistros.filter(fila => {
-                const [numDespacho, fecha, tipoCarga, generadoPor, archivoPDF] = fila;
+            let filtrados = historialRegistros.filter(registro => {
                 let coincide = true;
-                // Filtro por fecha (solo comparar la parte de la fecha)
+                
+                // Filtro por fecha
                 if (fechaFiltro) {
-                    const fechaSolo = fecha ? fecha.split(' ')[0] : '';
+                    const fechaRegistro = registro.FECHA ? registro.FECHA.split(' ')[0] : '';
                     const fechaFiltroFormateada = fechaFiltro.split('-').reverse().join('/');
-                    coincide = coincide && fechaSolo === fechaFiltroFormateada;
+                    coincide = coincide && fechaRegistro === fechaFiltroFormateada;
                 }
+                
                 // Filtro por número de despacho
                 if (despachoFiltro) {
-                    coincide = coincide && String(numDespacho || '').toLowerCase().includes(despachoFiltro);
+                    coincide = coincide && String(registro.NUMERO_DESPACHO || '').toLowerCase().includes(despachoFiltro);
                 }
-                // Filtro por redactado por
+                
+                // Filtro por generado por
                 if (redactadoFiltro) {
-                    coincide = coincide && String(generadoPor || '').toLowerCase().includes(redactadoFiltro);
+                    coincide = coincide && String(registro.GENERADO_POR || '').toLowerCase().includes(redactadoFiltro);
                 }
+                
                 return coincide;
             });
+            
             renderHistorialFichaImportacion(filtrados);
         }
 
         function renderHistorialFichaImportacion(registros) {
-            const tbody = document.querySelector('.table-container table tbody');
+            const tbody = document.getElementById('tabla-datos');
             tbody.innerHTML = '';
-            if (!registros.length) {
+            
+            if (!registros || !registros.length) {
                 tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No hay registros disponibles.</td></tr>';
                 return;
             }
-            registros.forEach(fila => {
-                const [numDespacho, fecha, tipoCarga, generadoPor, archivoPDF] = fila;
+            
+            registros.forEach(registro => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td data-label="N° Despacho">${numDespacho || ''}</td>
-                    <td data-label="Fecha">${fecha || ''}</td>
-                    <td data-label="Tipo de Carga">${tipoCarga || ''}</td>
-                    <td data-label="Generado Por">${generadoPor || ''}</td>
+                    <td data-label="N° Despacho">${registro.NUMERO_DESPACHO || ''}</td>
+                    <td data-label="Fecha">${registro.FECHA || ''}</td>
+                    <td data-label="Tipo de Carga">${registro.TIPO_CARGA || ''}</td>
+                    <td data-label="Generado Por">${registro.GENERADO_POR || ''}</td>
                     <td data-label="Archivo PDF">
-                        ${archivoPDF ? `<a href="${archivoPDF}" target="_blank" class="pdf-link"><i class="fas fa-file-pdf"></i> PDF</a>` : ''}
+                        ${registro.ARCHIVO_PDF ? `<a href="${registro.ARCHIVO_PDF}" target="_blank" class="pdf-link"><i class="fas fa-file-pdf"></i> PDF</a>` : ''}
                     </td>
                 `;
                 tbody.appendChild(tr);
