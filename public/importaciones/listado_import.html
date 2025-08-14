@@ -217,6 +217,25 @@
       box-shadow: 0 15px 35px rgba(0,0,0,0.1);
       border: 2px solid transparent;
       border-left: 6px solid var(--maiz-oscuro);
+      position: relative;
+    }
+
+    .table-container::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: 20px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8));
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .table-container.has-scroll::after {
+      opacity: 1;
     }
 
     .table-container::before {
@@ -256,6 +275,30 @@
       vertical-align: middle;
       padding: 12px 8px;
       border-color: #e9ecef;
+      white-space: nowrap;
+      min-width: 100px;
+    }
+
+    .table td:nth-child(4) { /* Productos */
+      white-space: pre-line;
+      min-width: 180px;
+      max-width: 320px;
+    }
+
+    .table td:nth-child(9) { /* Canal */
+      min-width: 120px;
+    }
+
+    .table td:nth-child(10) { /* Fecha Recepción */
+      min-width: 130px;
+    }
+
+    .table td:nth-child(11) { /* Incidencias */
+      min-width: 120px;
+    }
+
+    .table td:nth-child(12) { /* Acciones */
+      min-width: 120px;
     }
 
     .table-striped > tbody > tr:nth-of-type(odd) {
@@ -309,6 +352,75 @@
       box-shadow: 0 2px 8px rgba(67, 170, 139, 0.3);
     }
 
+    .estado-incidencia-si {
+      background: var(--rojo-alerta) !important;
+      color: var(--blanco) !important;
+      font-weight: bold;
+      border-radius: 8px;
+      padding: 6px 14px;
+      display: inline-block;
+      box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+    }
+
+    .estado-incidencia-no {
+      background: var(--verde-exito) !important;
+      color: var(--blanco) !important;
+      font-weight: bold;
+      border-radius: 8px;
+      padding: 6px 14px;
+      display: inline-block;
+      box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+    }
+
+    .canal-verde {
+      background: rgba(40, 167, 69, 0.2) !important;
+      color: var(--verde-exito) !important;
+      font-weight: bold;
+      border-radius: 8px;
+      padding: 6px 14px;
+      display: inline-block;
+      border: 2px solid var(--verde-exito);
+    }
+
+    .canal-rojo {
+      background: rgba(220, 53, 69, 0.2) !important;
+      color: var(--rojo-alerta) !important;
+      font-weight: bold;
+      border-radius: 8px;
+      padding: 6px 14px;
+      display: inline-block;
+      border: 2px solid var(--rojo-alerta);
+    }
+
+    .canal-naranja {
+      background: rgba(255, 193, 7, 0.2) !important;
+      color: #fd7e14 !important;
+      font-weight: bold;
+      border-radius: 8px;
+      padding: 6px 14px;
+      display: inline-block;
+      border: 2px solid #fd7e14;
+    }
+
+    .btn-actualizar {
+      background: var(--azul-oscuro);
+      color: var(--blanco);
+      border-radius: 6px;
+      padding: 6px 16px;
+      font-weight: 600;
+      border: none;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(0, 38, 77, 0.2);
+      cursor: pointer;
+    }
+
+    .btn-actualizar:hover {
+      background: var(--negro);
+      color: var(--maiz-oscuro);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0, 38, 77, 0.3);
+    }
+
     .btn-pdf {
       background: var(--azul-oscuro);
       color: var(--blanco);
@@ -327,10 +439,106 @@
       box-shadow: 0 6px 16px rgba(0, 38, 77, 0.3);
     }
 
+    /* Modal styles */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 2000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0,0,0,0.5);
+      backdrop-filter: blur(5px);
+    }
+
+    .modal-content {
+      background: var(--blanco);
+      margin: 5% auto;
+      padding: 30px;
+      border-radius: 20px;
+      width: 90%;
+      max-width: 500px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+      position: relative;
+      border: 2px solid var(--maiz-oscuro);
+    }
+
+    .modal-header {
+      text-align: center;
+      margin-bottom: 25px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid var(--gris-suave);
+    }
+
+    .modal-header h3 {
+      color: var(--azul-oscuro);
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+
+    .modal-body {
+      margin-bottom: 25px;
+    }
+
+    .modal-footer {
+      text-align: center;
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+    }
+
+    .close {
+      position: absolute;
+      right: 20px;
+      top: 20px;
+      font-size: 28px;
+      font-weight: bold;
+      color: var(--gris-medio);
+      cursor: pointer;
+      transition: color 0.3s ease;
+    }
+
+    .close:hover {
+      color: var(--rojo-alerta);
+    }
+
     .table-responsive {
       max-height: 60vh;
       border-radius: 16px;
       box-shadow: 0 2px 12px rgba(0, 38, 77, 0.1);
+      overflow-x: auto;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--maiz-oscuro) var(--gris-suave);
+    }
+
+    /* Estilos para scrollbar en WebKit (Chrome, Safari, Edge) */
+    .table-responsive::-webkit-scrollbar {
+      height: 8px;
+      width: 8px;
+    }
+
+    .table-responsive::-webkit-scrollbar-track {
+      background: var(--gris-suave);
+      border-radius: 4px;
+    }
+
+    .table-responsive::-webkit-scrollbar-thumb {
+      background: var(--maiz-oscuro);
+      border-radius: 4px;
+    }
+
+    .table-responsive::-webkit-scrollbar-thumb:hover {
+      background: var(--maiz-claro);
+    }
+
+    .table {
+      margin: 0;
+      border-radius: 16px;
+      overflow: hidden;
+      min-width: 1200px; /* Ancho mínimo para asegurar que todas las columnas sean visibles */
     }
 
     /* Responsive design */
@@ -436,14 +644,52 @@
               <th>Tipo de Carga</th>
               <th>Estado</th>
               <th>Canal</th>
+              <th>Fecha Recepción</th>
+              <th>Incidencias</th>
+              <th>Acciones</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td colspan="9" class="text-center">Cargando...</td>
+              <td colspan="12" class="text-center">Cargando...</td>
             </tr>
           </tbody>
         </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para actualizar -->
+  <div id="modalActualizar" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <span class="close">&times;</span>
+        <h3><i class="fas fa-edit"></i> Actualizar Registro</h3>
+      </div>
+      <div class="modal-body">
+        <form id="formActualizar">
+          <input type="hidden" id="idImportacion" name="idImportacion">
+          <div class="form-group">
+            <label class="form-label">Fecha de Recepción</label>
+            <input type="date" class="form-control" id="fechaRecepcion" name="fechaRecepcion">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Incidencias</label>
+            <select class="form-control" id="incidencias" name="incidencias">
+              <option value="">Seleccionar...</option>
+              <option value="SI">SI</option>
+              <option value="NO">NO</option>
+            </select>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn" id="btnGuardar">
+          <i class="fas fa-save"></i> Guardar
+        </button>
+        <button type="button" class="btn" id="btnCancelar" style="background: var(--gris-medio);">
+          <i class="fas fa-times"></i> Cancelar
+        </button>
       </div>
     </div>
   </div>
@@ -474,12 +720,12 @@
 
     function cargarTablaImportaciones(filtrados = null) {
       const tbody = document.querySelector('#tablaImportaciones tbody');
-      tbody.innerHTML = '<tr><td colspan="9" class="text-center">Cargando...</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="12" class="text-center">Cargando...</td></tr>';
       let ultimoId = localStorage.getItem('ultimoIdImportacion');
       
       const render = function(registros) {
         if (!Array.isArray(registros) || registros.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="9" class="text-center">Sin registros</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="12" class="text-center">Sin registros</td></tr>';
           return;
         }
         
@@ -501,7 +747,7 @@
             tr.classList.add('fila-nueva');
           }
           
-          // Crear las celdas en el orden correcto (excluyendo ID_IMPORTACIONES y ESTADO)
+          // Crear las celdas en el orden correcto
           const celdas = [
             row.FECHA_REGISTRO,
             row.NUMERO_DESPACHO,
@@ -511,7 +757,9 @@
             row.FECHA_LLEGADA_PRODUCTOS,
             row.TIPO_CARGA,
             row.ESTADO_IMPORTACION,
-            row.CANAL
+            row.CANAL,
+            row.FECHA_RECEPCION,
+            row.INCIDENCIAS
           ];
           
           celdas.forEach(function (cell, idx) {
@@ -552,11 +800,51 @@
               } else {
                 td.textContent = cell;
               }
+            } else if (idx === 8) { // Canal
+              let canal = String(cell).toUpperCase();
+              if (canal === 'VERDE') {
+                td.innerHTML = `<span class='canal-verde'>${cell}</span>`;
+              } else if (canal === 'ROJO') {
+                td.innerHTML = `<span class='canal-rojo'>${cell}</span>`;
+              } else if (canal === 'NARANJA') {
+                td.innerHTML = `<span class='canal-naranja'>${cell}</span>`;
+              } else {
+                td.textContent = cell;
+              }
+            } else if (idx === 9) { // Fecha Recepción
+              if (cell && cell !== 'null' && cell !== '') {
+                // Convertir formato de fecha si es necesario
+                let fecha = cell;
+                if (cell.includes('/')) {
+                  const partes = cell.split('/');
+                  if (partes.length === 3) {
+                    fecha = `${partes[2]}-${partes[1].padStart(2, '0')}-${partes[0].padStart(2, '0')}`;
+                  }
+                }
+                td.textContent = fecha;
+              } else {
+                td.textContent = '';
+              }
+            } else if (idx === 10) { // Incidencias
+              let incidencia = String(cell).toUpperCase();
+              if (incidencia === 'SI') {
+                td.innerHTML = `<span class='estado-incidencia-si'>${cell}</span>`;
+              } else if (incidencia === 'NO') {
+                td.innerHTML = `<span class='estado-incidencia-no'>${cell}</span>`;
+              } else {
+                td.textContent = cell || '';
+              }
             } else {
               td.textContent = cell;
             }
             tr.appendChild(td);
           });
+          
+          // Agregar celda de acciones
+          const tdAcciones = document.createElement('td');
+          tdAcciones.innerHTML = `<button class="btn-actualizar" onclick="abrirModalActualizar('${row.ID_IMPORTACIONES}', '${row.FECHA_RECEPCION || ''}', '${row.INCIDENCIAS || ''}')"><i class="fas fa-edit"></i> Actualizar</button>`;
+          tr.appendChild(tdAcciones);
+          
           tbody.appendChild(tr);
         });
       };
@@ -592,10 +880,12 @@
         .catch(function(err) {
           tbody.innerHTML = '<tr><td colspan="9" class="text-danger">Error al cargar datos: ' + err.message + '</td></tr>';
         })
-        .finally(function() {
-          // Habilitar el botón de filtro cuando los datos estén listos
-          document.getElementById('btnFiltrar').disabled = false;
-        });
+                 .finally(function() {
+           // Habilitar el botón de filtro cuando los datos estén listos
+           document.getElementById('btnFiltrar').disabled = false;
+           // Detectar scroll después de cargar los datos
+           setTimeout(detectarScrollHorizontal, 100);
+         });
     }
 
     document.getElementById('btnFiltrar').onclick = function() {
@@ -635,6 +925,95 @@
       cargarTablaImportaciones(filtrados);
     };
 
+    // Funciones para el modal
+    function abrirModalActualizar(id, fechaRecepcion, incidencias) {
+      document.getElementById('idImportacion').value = id;
+      
+      // Convertir fecha si es necesario
+      if (fechaRecepcion && fechaRecepcion !== 'null' && fechaRecepcion !== '') {
+        let fecha = fechaRecepcion;
+        if (fechaRecepcion.includes('/')) {
+          const partes = fechaRecepcion.split('/');
+          if (partes.length === 3) {
+            fecha = `${partes[2]}-${partes[1].padStart(2, '0')}-${partes[0].padStart(2, '0')}`;
+          }
+        }
+        document.getElementById('fechaRecepcion').value = fecha;
+      } else {
+        document.getElementById('fechaRecepcion').value = '';
+      }
+      
+      document.getElementById('incidencias').value = incidencias || '';
+      document.getElementById('modalActualizar').style.display = 'block';
+    }
+
+    function cerrarModal() {
+      document.getElementById('modalActualizar').style.display = 'none';
+      document.getElementById('formActualizar').reset();
+    }
+
+    async function actualizarRegistro() {
+      const id = document.getElementById('idImportacion').value;
+      const fechaRecepcion = document.getElementById('fechaRecepcion').value;
+      const incidencias = document.getElementById('incidencias').value;
+      
+      if (!id) {
+        alert('Error: No se pudo identificar el registro');
+        return;
+      }
+      
+      try {
+        const api = "https://importacionesvr01crud-2946605267.us-central1.run.app";
+        const response = await fetch(api, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            ID_IMPORTACIONES: id,
+            FECHA_RECEPCION: fechaRecepcion || null,
+            INCIDENCIAS: incidencias || null
+          })
+        });
+        
+        if (response.ok) {
+          alert('Registro actualizado exitosamente');
+          cerrarModal();
+          cargarTablaImportaciones(); // Recargar la tabla
+        } else {
+          const errorData = await response.text();
+          alert('Error al actualizar: ' + errorData);
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Error al actualizar el registro: ' + error.message);
+      }
+    }
+
+    // Event listeners para el modal
+    document.addEventListener('DOMContentLoaded', function() {
+      const modal = document.getElementById('modalActualizar');
+      const closeBtn = document.querySelector('.close');
+      const btnCancelar = document.getElementById('btnCancelar');
+      const btnGuardar = document.getElementById('btnGuardar');
+      
+      // Cerrar modal con X
+      closeBtn.onclick = cerrarModal;
+      
+      // Cerrar modal con botón cancelar
+      btnCancelar.onclick = cerrarModal;
+      
+      // Guardar cambios
+      btnGuardar.onclick = actualizarRegistro;
+      
+      // Cerrar modal haciendo clic fuera
+      window.onclick = function(event) {
+        if (event.target === modal) {
+          cerrarModal();
+        }
+      }
+    });
+
     // Escuchar evento de registro exitoso para guardar el último ID
     window.addEventListener('storage', function(e) {
       if (e.key === 'ultimoIdImportacion') {
@@ -642,8 +1021,26 @@
       }
     });
     
+    // Función para detectar scroll horizontal
+    function detectarScrollHorizontal() {
+      const tableContainer = document.querySelector('.table-container');
+      const tableResponsive = document.querySelector('.table-responsive');
+      
+      if (tableResponsive.scrollWidth > tableResponsive.clientWidth) {
+        tableContainer.classList.add('has-scroll');
+      } else {
+        tableContainer.classList.remove('has-scroll');
+      }
+    }
+
     window.onload = function() {
       cargarTablaImportaciones();
+      
+      // Detectar scroll después de cargar la tabla
+      setTimeout(detectarScrollHorizontal, 1000);
+      
+      // Detectar scroll cuando cambie el tamaño de la ventana
+      window.addEventListener('resize', detectarScrollHorizontal);
     };
   </script>
 </body>
