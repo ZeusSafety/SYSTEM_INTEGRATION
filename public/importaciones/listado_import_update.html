@@ -283,7 +283,15 @@
       font-weight: bold;
     }
     
-    .table td:nth-child(10) { /* Acciones */
+    .table td:nth-child(10) { /* Fecha Recepción */
+      min-width: 130px;
+    }
+
+    .table td:nth-child(11) { /* Incidencias */
+      min-width: 120px;
+    }
+
+    .table td:nth-child(12) { /* Acciones */
       min-width: 100px;
     }
 
@@ -336,6 +344,26 @@
       padding: 6px 14px;
       display: inline-block;
       box-shadow: 0 2px 8px rgba(67, 170, 139, 0.3);
+    }
+
+    .estado-incidencia-si {
+      background: var(--rojo-alerta) !important;
+      color: var(--blanco) !important;
+      font-weight: bold;
+      border-radius: 8px;
+      padding: 6px 14px;
+      display: inline-block;
+      box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+    }
+
+    .estado-incidencia-no {
+      background: var(--verde-exito) !important;
+      color: var(--blanco) !important;
+      font-weight: bold;
+      border-radius: 8px;
+      padding: 6px 14px;
+      display: inline-block;
+      box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
     }
     
     /* Estilos para los canales */
@@ -526,7 +554,7 @@
     
     /* Asegurar que todas las columnas sean visibles */
     .table {
-      min-width: 1200px;
+      min-width: 1400px;
     }
     
     /* Hacer que las columnas Canal y Acciones sean más visibles */
@@ -536,8 +564,8 @@
       white-space: nowrap;
     }
     
-    .table th:nth-child(10),
-    .table td:nth-child(10) {
+    .table th:nth-child(12),
+    .table td:nth-child(12) {
       min-width: 120px;
       white-space: nowrap;
     }
@@ -657,12 +685,14 @@
               <th>Tipo de Carga</th>
               <th>Estado</th>
               <th>Canal</th>
+              <th>Fecha Recepción</th>
+              <th>Incidencias</th>
               <th>Acciones</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td colspan="10" class="text-center">Cargando...</td>
+              <td colspan="12" class="text-center">Cargando...</td>
             </tr>
           </tbody>
         </table>
@@ -818,13 +848,13 @@
 
     function cargarTablaImportaciones(filtrados = null) {
       const tbody = document.querySelector('#tablaImportaciones tbody');
-      tbody.innerHTML = '<tr><td colspan="10" class="text-center">Cargando...</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="12" class="text-center">Cargando...</td></tr>';
       // Guardar el último ID registrado en localStorage
       let ultimoId = localStorage.getItem('ultimoIdImportacion');
       
       const render = function(registros) {
         if (!Array.isArray(registros) || registros.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="10" class="text-center">Sin registros</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="12" class="text-center">Sin registros</td></tr>';
           return;
         }
         
@@ -847,7 +877,7 @@
             tr.classList.add('fila-nueva');
           }
           
-          // Crear las celdas en el orden correcto (excluyendo ID_IMPORTACIONES y ESTADO)
+          // Crear las celdas en el orden correcto
           const celdas = [
             row.FECHA_REGISTRO,
             row.NUMERO_DESPACHO,
@@ -857,7 +887,9 @@
             row.FECHA_LLEGADA_PRODUCTOS,
             row.TIPO_CARGA,
             row.ESTADO_IMPORTACION,
-            row.CANAL
+            row.CANAL,
+            row.FECHA_RECEPCION,
+            row.INCIDENCIAS
           ];
           
           celdas.forEach(function (cell, idx) {
@@ -908,6 +940,29 @@
                  td.innerHTML = `<span class='canal-amarillo'>${cell}</span>`;
                } else {
                  td.textContent = cell;
+               }
+             } else if (idx === 9) { // Fecha Recepción
+               if (cell && cell !== 'null' && cell !== '') {
+                 // Convertir formato de fecha si es necesario
+                 let fecha = cell;
+                 if (cell.includes('/')) {
+                   const partes = cell.split('/');
+                   if (partes.length === 3) {
+                     fecha = `${partes[2]}-${partes[1].padStart(2, '0')}-${partes[0].padStart(2, '0')}`;
+                   }
+                 }
+                 td.textContent = fecha;
+               } else {
+                 td.textContent = '';
+               }
+             } else if (idx === 10) { // Incidencias
+               let incidencia = String(cell).toUpperCase();
+               if (incidencia === 'SI') {
+                 td.innerHTML = `<span class='estado-incidencia-si'>${cell}</span>`;
+               } else if (incidencia === 'NO') {
+                 td.innerHTML = `<span class='estado-incidencia-no'>${cell}</span>`;
+               } else {
+                 td.textContent = cell || '';
                }
              } else {
                td.textContent = cell;
@@ -961,7 +1016,7 @@
           render(registrosGlobal);
         })
         .catch(function(err) {
-          tbody.innerHTML = '<tr><td colspan="10" class="text-danger">Error al cargar datos: ' + err.message + '</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="12" class="text-danger">Error al cargar datos: ' + err.message + '</td></tr>';
         });
     }
 
