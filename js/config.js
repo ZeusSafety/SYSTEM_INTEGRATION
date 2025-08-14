@@ -1,7 +1,7 @@
 // Configuración centralizada para URLs de Apps Script
 const APP_CONFIG = {
     // URL base de tu Apps Script - CAMBIA SOLO ESTA URL CUANDO DESPLIEGUES
-    APPS_SCRIPT_BASE_URL: 'https://script.google.com/macros/s/AKfycbzpzR9abu55rMavuXRPL89UaGtksOFYWx7D870os0-peIvNQOIW8gWhEB3gTLhG0FgI/exec',
+    APPS_SCRIPT_BASE_URL: 'https://script.google.com/macros/s/AKfycbxgmsaJciHQzLT9cmgKQ1PMcz1sp_89Zh3RkctXIM-us56jXByXFateuK0NoqzlZ57y/exec',
     
     // Páginas específicas - NO CAMBIAR ESTOS VALORES
     PAGES: {
