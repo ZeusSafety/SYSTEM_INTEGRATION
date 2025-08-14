@@ -964,25 +964,30 @@
       
       try {
         const api = "https://importacionesvr01crud-2946605267.us-central1.run.app";
-        const response = await fetch(api, {
+        const parametro = "logistica"; // Área según la guía de Python
+        
+        // Construir URL con parámetros de consulta
+        const url = `${api}?area=${parametro}`;
+        
+        const response = await fetch(url, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            ID_IMPORTACIONES: id,
-            FECHA_RECEPCION: fechaRecepcion || null,
-            INCIDENCIAS: incidencias || null
+            id: id,
+            fecha_recepcion: fechaRecepcion || null,
+            incidencias: incidencias || null
           })
         });
         
-        if (response.ok) {
-          alert('Registro actualizado exitosamente');
+        if (response.status === 200) {
+          alert('Importación actualizada exitosamente');
           cerrarModal();
           cargarTablaImportaciones(); // Recargar la tabla
         } else {
           const errorData = await response.text();
-          alert('Error al actualizar: ' + errorData);
+          alert('ERROR: ' + errorData);
         }
       } catch (error) {
         console.error('Error:', error);
