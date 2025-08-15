@@ -660,25 +660,24 @@
                     <h3><i class="fas fa-table"></i> Incidencias Registradas</h3>
                 </div>
                 <div class="table-responsive">
-                    <table id="incidenciasTable" class="table">
-                                                 <thead>
-                             <tr>
-                                 <th>ITEM</th>
-                                 <th>ID Incidencia</th>
-                                 <th>Fecha de Registro</th>
-                                 <th>Número de Despacho</th>
-                                 <th>PDF Inicial</th>
-                                 <th>PDF Incidencia</th>
-                                 <th>Acciones</th>
-                                 <th>Fecha de Recepción</th>
-                                 <th>Fecha de Corrección</th>
-                                 <th>Incidencias?</th>
-                                 <th>ESTADO</th>
-                                 <th>Solución PDF</th>
-                                 <th>RESPONDIDO POR</th>
-                                 <th>ESTADO DESPACHO</th>
-                             </tr>
-                         </thead>
+                                         <table id="incidenciasTable" class="table">
+                                                  <thead>
+                              <tr>
+                                  <th>ID Incidencia</th>
+                                  <th>Fecha de Registro</th>
+                                  <th>Número de Despacho</th>
+                                  <th>PDF Inicial</th>
+                                  <th>PDF Incidencia</th>
+                                  <th>Acciones</th>
+                                  <th>Fecha de Recepción</th>
+                                  <th>Fecha de Corrección</th>
+                                  <th>Incidencias?</th>
+                                  <th>ESTADO</th>
+                                  <th>Solución PDF</th>
+                                  <th>RESPONDIDO POR</th>
+                                  <th>ESTADO DESPACHO</th>
+                              </tr>
+                          </thead>
                         <tbody id="incidenciasBody">
                             <!-- Los datos se cargarán dinámicamente -->
                         </tbody>
@@ -973,10 +972,10 @@
             const tbody = document.getElementById('incidenciasBody');
             tbody.innerHTML = '';
 
-                         if (!Array.isArray(incidencias) || incidencias.length === 0) {
-                 tbody.innerHTML = '<tr><td colspan="14" class="text-center">Sin registros</td></tr>';
-                 return;
-             }
+                                                   if (!Array.isArray(incidencias) || incidencias.length === 0) {
+                  tbody.innerHTML = '<tr><td colspan="13" class="text-center">Sin registros</td></tr>';
+                  return;
+              }
 
             incidencias.forEach(incidencia => {
                 const row = document.createElement('tr');
@@ -1007,50 +1006,49 @@
                     estadoDespachoClass = 'rojo';
                 }
                 
-                                 row.innerHTML = `
-                     <td>${incidencia.ITEM || 'N/A'}</td>
-                     <td>${incidencia.ID_INCIDENCIA || 'N/A'}</td>
-                     <td>${formatearFecha(incidencia.FECHA_REGISTRO)}</td>
-                     <td>${incidencia.NUMERO_DESPACHO || 'N/A'}</td>
-                     <td>
-                         ${incidencia.ARCHIVO_PDF_URL ? 
-                             `<a href="${incidencia.ARCHIVO_PDF_URL}" target="_blank" class="pdf-link">
-                                 <i class="fas fa-file-pdf"></i> Ver PDF
-                             </a>` : 
-                             '<span class="no-pdf">No disponible</span>'
-                         }
-                     </td>
-                     <td>
-                         ${incidencia.PDF_INCIDENCIA_URL ? 
-                             `<a href="${incidencia.PDF_INCIDENCIA_URL}" target="_blank" class="pdf-link">
-                                 <i class="fas fa-file-pdf"></i> Ver PDF
-                             </a>` : 
-                             '<span class="no-pdf">No disponible</span>'
-                         }
-                     </td>
-                     <td>
-                         <button type="button" class="btn btn-info btn-sm" onclick="abrirModalActualizar('${incidencia.ID_INCIDENCIA}')" title="Actualizar">
-                             <i class="fas fa-sync-alt"></i>
-                         </button>
-                         <button type="button" class="btn btn-success btn-sm" onclick="verDetalles('${incidencia.ID_INCIDENCIA}')" title="Ver Detalles">
-                             <i class="fas fa-eye"></i>
-                         </button>
-                     </td>
-                     <td>${formatearFecha(incidencia.FECHA_RECEPCION)}</td>
-                     <td>${formatearFecha(incidencia.FECHA_CORRECCION)}</td>
-                     <td class="colored-cell ${incidenciasClass}">${incidenciasTexto}</td>
-                     <td class="colored-cell ${estadoClass}">${estadoTexto}</td>
-                     <td>
-                         ${incidencia.SOLUCION_PDF ? 
-                             `<a href="${incidencia.SOLUCION_PDF}" target="_blank" class="pdf-link">
-                                 <i class="fas fa-file-pdf"></i> Ver PDF
-                             </a>` : 
-                             '<span class="no-pdf">No disponible</span>'
-                         }
-                     </td>
-                     <td>${incidencia.RESPONDIDO_POR || 'N/A'}</td>
-                     <td class="colored-cell ${estadoDespachoClass}">${estadoDespachoTexto}</td>
-                 `;
+                                                                   row.innerHTML = `
+                      <td>${incidencia.ID_INCIDENCIA || 'N/A'}</td>
+                      <td>${formatearFecha(incidencia.FECHA_REGISTRO)}</td>
+                      <td>${incidencia.NUMERO_DESPACHO || 'N/A'}</td>
+                      <td>
+                          ${incidencia.ARCHIVO_PDF_URL ? 
+                              `<a href="${incidencia.ARCHIVO_PDF_URL}" target="_blank" class="pdf-link">
+                                  <i class="fas fa-file-pdf"></i> Ver PDF
+                              </a>` : 
+                              '<span class="no-pdf">No disponible</span>'
+                          }
+                      </td>
+                      <td>
+                          ${incidencia.PDF_INCIDENCIA_URL ? 
+                              `<a href="${incidencia.PDF_INCIDENCIA_URL}" target="_blank" class="pdf-link">
+                                  <i class="fas fa-file-pdf"></i> Ver PDF
+                              </a>` : 
+                              '<span class="no-pdf">No disponible</span>'
+                          }
+                      </td>
+                      <td>
+                          <button type="button" class="btn btn-info btn-sm" onclick="abrirModalActualizar('${incidencia.ID_INCIDENCIA}')" title="Actualizar">
+                              <i class="fas fa-sync-alt"></i>
+                          </button>
+                          <button type="button" class="btn btn-success btn-sm" onclick="verDetalles('${incidencia.ID_INCIDENCIA}')" title="Ver Detalles">
+                              <i class="fas fa-eye"></i>
+                          </button>
+                      </td>
+                      <td>${formatearFecha(incidencia.FECHA_RECEPCION)}</td>
+                      <td>${formatearFecha(incidencia.FECHA_CORRECCION)}</td>
+                      <td class="colored-cell ${incidenciasClass}">${incidenciasTexto}</td>
+                      <td class="colored-cell ${estadoClass}">${estadoTexto}</td>
+                      <td>
+                          ${incidencia.SOLUCION_PDF ? 
+                              `<a href="${incidencia.SOLUCION_PDF}" target="_blank" class="pdf-link">
+                                  <i class="fas fa-file-pdf"></i> Ver PDF
+                              </a>` : 
+                              '<span class="no-pdf">No disponible</span>'
+                          }
+                      </td>
+                      <td>${incidencia.RESPONDIDO_POR || 'N/A'}</td>
+                      <td class="colored-cell ${estadoDespachoClass}">${estadoDespachoTexto}</td>
+                  `;
                 tbody.appendChild(row);
             });
         }
@@ -1155,150 +1153,333 @@
         }
 
                  // Función para generar PDF
-         async function generarPDF() {
-             // Obtener el ID de la incidencia desde el modal de detalles
-             const idIncidencia = window.currentIncidenciaId;
-             
-             if (!idIncidencia) {
-                 mostrarAlerta('No se ha seleccionado una incidencia', 'error');
-                 return;
-             }
-             
-             try {
-                 // Buscar la incidencia en los datos
-                 const incidencia = incidenciasData.find(inc => String(inc.ID_INCIDENCIA) === String(idIncidencia));
-                 
-                 if (!incidencia) {
-                     mostrarAlerta('No se encontró la incidencia', 'error');
-                     return;
-                 }
-                 
-                 // Cargar productos de la incidencia
-                 const productos = await cargarProductosParaPDF(idIncidencia);
-                 
-                 // Preparar datos para la API
-                 const data = {
-                     numero_despacho: incidencia.NUMERO_DESPACHO || "N/A",
-                     tipo_carga: "Contenedor 40 pies", // Valor por defecto
-                     generado_por: incidencia.RESPONDIDO_POR || "SISTEMA",
-                     fecha: incidencia.FECHA_CORRECCION ? incidencia.FECHA_CORRECCION.split(' ')[0] : new Date().toISOString().split('T')[0],
-                     detalle: productos.map((producto, index) => ({
-                         item: producto.ITEM || String(index + 1),
-                         producto: producto.PRODUCTO || "N/A",
-                         codigo: producto.CODIGO || "N/A",
-                         unidad_medida: producto.UNIDAD_MEDIDA || "N/A",
-                         cantidad_inicial: producto.CANTIDAD_INICIAL || "0",
-                         cantidad_recibida: producto.CANTIDAD_RECIBIDA || "0",
-                         motivo: producto.MOTIVO || "Sin motivo especificado"
-                     }))
-                 };
-                 
-                 console.log('📤 Enviando datos para generar PDF:', data);
-                 
-                 // Llamar a la API para generar PDF
-                 const api = "https://script.google.com/macros/s/AKfycbyUWKmCiijwq5N-XL6DFiVvZscVJg4jsyAiT5bMQSIrOm74LhSqyXFMp-z1s1Y5XtAz/exec";
-                 
-                 console.log('🌐 Intentando conectar a la API:', api);
-                 
-                 // Mostrar indicador de carga
-                 mostrarAlerta('Generando PDF, por favor espere...', 'info');
-                 
-                 const response = await fetch(api, {
-                     method: 'POST',
-                     mode: 'cors', // Agregar modo CORS explícito
-                     headers: {
-                         'Content-Type': 'application/json',
-                         'Accept': 'application/json, text/plain, */*'
-                     },
-                     body: JSON.stringify(data)
-                 });
-                 
-                 console.log('📡 Respuesta recibida:', response.status, response.statusText);
-                 
-                 if (response.ok) {
-                     const result = await response.text();
-                     console.log('✅ PDF generado exitosamente:', result);
-                     
-                     // Abrir el enlace del PDF en una nueva pestaña
-                     if (result && result.trim() !== '') {
-                         // Verificar si la respuesta es una URL válida
-                         if (result.startsWith('http')) {
-                             window.open(result, '_blank');
-                             mostrarAlerta('PDF generado exitosamente. Se abrirá en una nueva pestaña.', 'success');
-                         } else {
-                             console.log('📄 Respuesta no es una URL:', result);
-                             mostrarAlerta('PDF generado pero la respuesta no es una URL válida: ' + result, 'info');
-                         }
-                     } else {
-                         mostrarAlerta('PDF generado pero no se recibió enlace', 'info');
-                     }
-                 } else {
-                     const errorText = await response.text();
-                     console.error('❌ Error en la respuesta:', response.status, errorText);
-                     throw new Error(`Error HTTP ${response.status}: ${errorText || response.statusText}`);
-                 }
-                 
-                              } catch (error) {
-                     console.error('❌ Error al generar PDF:', error);
-                     
-                     // Proporcionar mensajes de error más específicos
-                     let errorMessage = 'Error al generar el PDF';
-                     
-                     if (error.name === 'TypeError' && error.message.includes('fetch')) {
-                         errorMessage = 'Error de conectividad. Verifique su conexión a internet y que la API esté disponible.';
-                     } else if (error.message.includes('CORS')) {
-                         errorMessage = 'Error de CORS. La API no permite peticiones desde este dominio.';
-                     } else if (error.message.includes('Failed to fetch')) {
-                         errorMessage = 'No se pudo conectar con la API. Verifique la URL y su conexión a internet.';
-                     } else {
-                         errorMessage = error.message;
-                     }
-                     
-                     // Intentar método alternativo si falla el fetch
-                     if (error.message.includes('Failed to fetch') || error.message.includes('CORS')) {
-                         console.log('🔄 Intentando método alternativo...');
-                         mostrarAlerta('Error de conectividad. Intentando método alternativo...', 'info');
-                         
-                         // Usar el método alternativo
-                         setTimeout(() => {
-                             generarPDFAlternativo(data);
-                         }, 1000);
-                     } else {
-                         mostrarAlerta(errorMessage, 'error');
-                     }
-                 }
-         }
+        async function generarPDF() {
+            // Obtener el ID de la incidencia desde el modal de detalles
+            const idIncidencia = window.currentIncidenciaId;
+            
+            if (!idIncidencia) {
+                mostrarAlerta('No se ha seleccionado una incidencia', 'error');
+                return;
+            }
+            
+            try {
+                // Buscar la incidencia en los datos
+                const incidencia = incidenciasData.find(inc => String(inc.ID_INCIDENCIA) === String(idIncidencia));
+                
+                if (!incidencia) {
+                    mostrarAlerta('No se encontró la incidencia', 'error');
+                    return;
+                }
+                
+                // Cargar productos de la incidencia
+                const productos = await cargarProductosParaPDF(idIncidencia);
+                
+                // Preparar datos para la API según el formato especificado
+                const data = {
+                    numero_despacho: incidencia.NUMERO_DESPACHO || "N/A",
+                    tipo_carga: "Contenedor 40 pies",
+                    generado_por: incidencia.RESPONDIDO_POR || "SISTEMA",
+                    fecha: incidencia.FECHA_CORRECCION ? incidencia.FECHA_CORRECCION.split(' ')[0] : new Date().toISOString().split('T')[0],
+                    detalle: productos.map((producto, index) => ({
+                        item: producto.ITEM || String(index + 1),
+                        producto: producto.PRODUCTO || "N/A",
+                        codigo: producto.CODIGO || "N/A",
+                        unidad_medida: producto.UNIDAD_MEDIDA || "N/A",
+                        cantidad_inicial: producto.CANTIDAD_INICIAL || "0",
+                        cantidad_recibida: producto.CANTIDAD_RECIBIDA || "0",
+                        motivo: producto.MOTIVO || "Sin motivo especificado"
+                    }))
+                };
+                
+                console.log('📤 Enviando datos para generar PDF:', data);
+                
+                // Llamar a la API para generar PDF
+                const api = "https://generacionespdfappscript-2946605267.us-central1.run.app";
+                
+                console.log('🌐 Intentando conectar a la API:', api);
+                
+                                 // Mostrar indicador de carga
+                 mostrarAlerta('🔄 Generando PDF, esto puede tardar unos segundos. Por favor espere...', 'info');
+                
+                // Intentar con fetch normal primero
+                try {
+                    const response = await fetch(api, {
+                        method: 'POST',
+                        mode: 'cors',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json, text/plain, */*'
+                        },
+                        body: JSON.stringify(data)
+                    });
+                    
+                    console.log('📡 Respuesta recibida:', response.status, response.statusText);
+                    
+                    if (response.status === 200) {
+                        const result = await response.text();
+                        console.log('✅ PDF generado exitosamente:', result);
+                        
+                        // Verificar si la respuesta contiene una URL
+                        if (result && result.trim() !== '') {
+                            console.log('📄 Respuesta completa del servidor:', result);
+                            
+                            // Intentar extraer URL de diferentes formatos de respuesta
+                            let pdfUrl = null;
+                            
+                            // Si la respuesta es directamente una URL
+                            if (result.startsWith('http')) {
+                                pdfUrl = result;
+                            }
+                            // Si la respuesta es JSON con URL
+                            else if (result.includes('"url"') || result.includes('"link"') || result.includes('"pdf"')) {
+                                try {
+                                    const jsonResponse = JSON.parse(result);
+                                    pdfUrl = jsonResponse.url || jsonResponse.link || jsonResponse.pdf || jsonResponse.download_url;
+                                } catch (e) {
+                                    console.log('No se pudo parsear como JSON:', e);
+                                }
+                            }
+                            // Si la respuesta contiene una URL en el texto
+                            else {
+                                const urlMatch = result.match(/(https?:\/\/[^\s]+)/);
+                                if (urlMatch) {
+                                    pdfUrl = urlMatch[1];
+                                }
+                            }
+                            
+                            // Si encontramos una URL, abrirla automáticamente
+                            if (pdfUrl) {
+                                console.log('🔗 URL del PDF encontrada:', pdfUrl);
+                                window.open(pdfUrl, '_blank');
+                                mostrarAlerta('PDF generado exitosamente. Se abrirá en una nueva pestaña.', 'success');
+                            } else {
+                                // Si no es una URL, mostrar el resultado
+                                console.log('📄 Respuesta del servidor (sin URL):', result);
+                                mostrarAlerta('PDF generado exitosamente. Respuesta: ' + result, 'success');
+                            }
+                        } else {
+                            mostrarAlerta('PDF generado exitosamente.', 'success');
+                        }
+                    } else {
+                        const errorText = await response.text();
+                        console.error('❌ Error en la respuesta:', response.status, errorText);
+                        throw new Error(`Error HTTP ${response.status}: ${errorText || response.statusText}`);
+                    }
+                } catch (fetchError) {
+                    console.log('❌ Error con fetch, intentando método alternativo:', fetchError);
+                    
+                    // Si falla fetch, usar método alternativo con XMLHttpRequest
+                    try {
+                        await generarPDFConXMLHttpRequest(api, data);
+                    } catch (xhrError) {
+                        console.log('❌ Error con XMLHttpRequest, intentando proxy CORS:', xhrError);
+                        
+                        // Si también falla XMLHttpRequest, usar proxy CORS
+                        await generarPDFConProxyCORS(api, data);
+                    }
+                }
+                
+            } catch (error) {
+                console.error('❌ Error al generar PDF:', error);
+                
+                // Proporcionar mensajes de error más específicos
+                let errorMessage = 'Error al generar el PDF';
+                
+                if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                    errorMessage = 'Error de conectividad. Verifique su conexión a internet y que la API esté disponible.';
+                } else if (error.message.includes('CORS')) {
+                    errorMessage = 'Error de CORS. La API no permite peticiones desde este dominio.';
+                } else if (error.message.includes('Failed to fetch')) {
+                    errorMessage = 'No se pudo conectar con la API. Verifique la URL y su conexión a internet.';
+                } else {
+                    errorMessage = error.message;
+                }
+                
+                mostrarAlerta(errorMessage, 'error');
+            }
+        }
+        
+        // Función alternativa usando XMLHttpRequest para evitar problemas de CORS
+        function generarPDFConXMLHttpRequest(api, data) {
+            return new Promise((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                
+                xhr.open('POST', api, true);
+                xhr.setRequestHeader('Content-Type', 'application/json');
+                xhr.setRequestHeader('Accept', 'application/json, text/plain, */*');
+                
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState === 4) {
+                        console.log('📡 XMLHttpRequest respuesta:', xhr.status, xhr.statusText);
+                        
+                        if (xhr.status === 200) {
+                            const result = xhr.responseText;
+                            console.log('✅ PDF generado exitosamente con XMLHttpRequest:', result);
+                            
+                            // Verificar si la respuesta contiene una URL
+                            if (result && result.trim() !== '') {
+                                console.log('📄 Respuesta completa del servidor (XMLHttpRequest):', result);
+                                
+                                // Intentar extraer URL de diferentes formatos de respuesta
+                                let pdfUrl = null;
+                                
+                                // Si la respuesta es directamente una URL
+                                if (result.startsWith('http')) {
+                                    pdfUrl = result;
+                                }
+                                // Si la respuesta es JSON con URL
+                                else if (result.includes('"url"') || result.includes('"link"') || result.includes('"pdf"')) {
+                                    try {
+                                        const jsonResponse = JSON.parse(result);
+                                        pdfUrl = jsonResponse.url || jsonResponse.link || jsonResponse.pdf || jsonResponse.download_url;
+                                    } catch (e) {
+                                        console.log('No se pudo parsear como JSON:', e);
+                                    }
+                                }
+                                // Si la respuesta contiene una URL en el texto
+                                else {
+                                    const urlMatch = result.match(/(https?:\/\/[^\s]+)/);
+                                    if (urlMatch) {
+                                        pdfUrl = urlMatch[1];
+                                    }
+                                }
+                                
+                                // Si encontramos una URL, abrirla automáticamente
+                                if (pdfUrl) {
+                                    console.log('🔗 URL del PDF encontrada (XMLHttpRequest):', pdfUrl);
+                                    window.open(pdfUrl, '_blank');
+                                    mostrarAlerta('PDF generado exitosamente. Se abrirá en una nueva pestaña.', 'success');
+                                } else {
+                                    // Si no es una URL, mostrar el resultado
+                                    console.log('📄 Respuesta del servidor (sin URL):', result);
+                                    mostrarAlerta('PDF generado exitosamente. Respuesta: ' + result, 'success');
+                                }
+                            } else {
+                                mostrarAlerta('PDF generado exitosamente.', 'success');
+                            }
+                            resolve(result);
+                        } else {
+                            console.error('❌ Error en XMLHttpRequest:', xhr.status, xhr.responseText);
+                            reject(new Error(`Error HTTP ${xhr.status}: ${xhr.responseText || xhr.statusText}`));
+                        }
+                    }
+                };
+                
+                xhr.onerror = function() {
+                    console.error('❌ Error de red en XMLHttpRequest');
+                    reject(new Error('Error de red al conectar con la API'));
+                };
+                
+                xhr.ontimeout = function() {
+                    console.error('❌ Timeout en XMLHttpRequest');
+                    reject(new Error('Timeout al conectar con la API'));
+                };
+                
+                // Establecer timeout de 30 segundos
+                xhr.timeout = 30000;
+                
+                try {
+                    xhr.send(JSON.stringify(data));
+                } catch (error) {
+                    console.error('❌ Error al enviar XMLHttpRequest:', error);
+                    reject(error);
+                }
+            });
+        }
          
-         // Función alternativa para generar PDF usando JSONP o redirección
-         function generarPDFAlternativo(data) {
-             console.log('🔄 Intentando método alternativo para generar PDF');
-             
-             // Crear un formulario temporal para enviar los datos
-             const form = document.createElement('form');
-             form.method = 'POST';
-             form.action = "https://script.google.com/macros/s/AKfycbyUWKmCiijwq5N-XL6DFiVvZscVJg4jsyAiT5bMQSIrOm74LhSqyXFMp-z1s1Y5XtAz/exec";
-             form.target = '_blank';
-             form.style.display = 'none';
-             
-             // Agregar los datos como campos ocultos
-             const dataStr = JSON.stringify(data);
-             const dataInput = document.createElement('input');
-             dataInput.type = 'hidden';
-             dataInput.name = 'data';
-             dataInput.value = dataStr;
-             form.appendChild(dataInput);
-             
-             // Agregar el formulario al DOM y enviarlo
-             document.body.appendChild(form);
-             form.submit();
-             
-             // Limpiar el formulario
-             setTimeout(() => {
-                 document.body.removeChild(form);
-             }, 1000);
-             
-             mostrarAlerta('Solicitud de PDF enviada. Verifique la nueva pestaña.', 'info');
-         }
+        // Función alternativa usando proxy CORS como último recurso
+        function generarPDFConProxyCORS(api, data) {
+            return new Promise((resolve, reject) => {
+                console.log('🔄 Intentando con proxy CORS...');
+                
+                // Usar un proxy CORS público
+                const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
+                const targetUrl = api;
+                
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', proxyUrl + targetUrl, true);
+                xhr.setRequestHeader('Content-Type', 'application/json');
+                xhr.setRequestHeader('Accept', 'application/json, text/plain, */*');
+                xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+                
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState === 4) {
+                        console.log('📡 Proxy CORS respuesta:', xhr.status, xhr.statusText);
+                        
+                        if (xhr.status === 200) {
+                            const result = xhr.responseText;
+                            console.log('✅ PDF generado exitosamente con proxy CORS:', result);
+                            
+                            // Verificar si la respuesta contiene una URL
+                            if (result && result.trim() !== '') {
+                                console.log('📄 Respuesta completa del servidor (Proxy CORS):', result);
+                                
+                                // Intentar extraer URL de diferentes formatos de respuesta
+                                let pdfUrl = null;
+                                
+                                // Si la respuesta es directamente una URL
+                                if (result.startsWith('http')) {
+                                    pdfUrl = result;
+                                }
+                                // Si la respuesta es JSON con URL
+                                else if (result.includes('"url"') || result.includes('"link"') || result.includes('"pdf"')) {
+                                    try {
+                                        const jsonResponse = JSON.parse(result);
+                                        pdfUrl = jsonResponse.url || jsonResponse.link || jsonResponse.pdf || jsonResponse.download_url;
+                                    } catch (e) {
+                                        console.log('No se pudo parsear como JSON:', e);
+                                    }
+                                }
+                                // Si la respuesta contiene una URL en el texto
+                                else {
+                                    const urlMatch = result.match(/(https?:\/\/[^\s]+)/);
+                                    if (urlMatch) {
+                                        pdfUrl = urlMatch[1];
+                                    }
+                                }
+                                
+                                // Si encontramos una URL, abrirla automáticamente
+                                if (pdfUrl) {
+                                    console.log('🔗 URL del PDF encontrada (Proxy CORS):', pdfUrl);
+                                    window.open(pdfUrl, '_blank');
+                                    mostrarAlerta('PDF generado exitosamente. Se abrirá en una nueva pestaña.', 'success');
+                                } else {
+                                    // Si no es una URL, mostrar el resultado
+                                    console.log('📄 Respuesta del servidor (sin URL):', result);
+                                    mostrarAlerta('PDF generado exitosamente. Respuesta: ' + result, 'success');
+                                }
+                            } else {
+                                mostrarAlerta('PDF generado exitosamente.', 'success');
+                            }
+                            resolve(result);
+                        } else {
+                            console.error('❌ Error en proxy CORS:', xhr.status, xhr.responseText);
+                            reject(new Error(`Error HTTP ${xhr.status}: ${xhr.responseText || xhr.statusText}`));
+                        }
+                    }
+                };
+                
+                xhr.onerror = function() {
+                    console.error('❌ Error de red en proxy CORS');
+                    reject(new Error('Error de red al conectar con el proxy CORS'));
+                };
+                
+                xhr.ontimeout = function() {
+                    console.error('❌ Timeout en proxy CORS');
+                    reject(new Error('Timeout al conectar con el proxy CORS'));
+                };
+                
+                // Establecer timeout de 30 segundos
+                xhr.timeout = 30000;
+                
+                try {
+                    xhr.send(JSON.stringify(data));
+                } catch (error) {
+                    console.error('❌ Error al enviar proxy CORS:', error);
+                    reject(error);
+                }
+            });
+        }
          
          // Función para cargar productos específicamente para PDF
          async function cargarProductosParaPDF(idIncidencia) {
