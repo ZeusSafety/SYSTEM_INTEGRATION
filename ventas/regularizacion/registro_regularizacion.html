@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Regularización</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script>
+    // Cargar datos iniciales al cargar la página
+    google.script.run.withSuccessHandler(function(data) {
+      const asesorSelect = document.getElementById('asesor');
+      const medioPagoSelect = document.getElementById('medio_pago');
+      
+      // Limpiar opciones existentes
+      asesorSelect.innerHTML = '<option value="">Seleccione un asesor</option>';
+      medioPagoSelect.innerHTML = '<option value="">Seleccione un medio de pago</option>';
+      
+      // Cargar asesores
+      data.asesores.forEach(function(asesor) {
+        const option = document.createElement('option');
+        option.value = asesor;
+        option.textContent = asesor;
+        asesorSelect.appendChild(option);
+      });
+      
+      // Cargar formas de pago
+      data.formasPago.forEach(function(formaPago) {
+        const option = document.createElement('option');
+        option.value = formaPago;
+        option.textContent = formaPago;
+        medioPagoSelect.appendChild(option);
+      });
+    }).getRegularizacionData();
+  </script>
+  <style>
+    :root {
+      --primary-color: #F7C800;
+      --secondary-color: #10223f;
+      --accent-color: #333333;
+      --background-color: #0a1525;
+      --card-bg-color: rgba(25, 45, 75, 0.7);
+      --hover-color: #E6B800;
+      --box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      --transition: all 0.3s ease;
+      --text-color: #FFFFFF;
+      --glass-border: 1px solid rgba(255, 255, 255, 0.1);
+      --glass-bg: rgba(255, 255, 255, 0.05);
+      --glass-blur: 10px;
+      --neuro-shadow: 12px 12px 24px rgba(0, 0, 0, 0.4),
+        -12px -12px 24px rgba(255, 255, 255, 0.05);
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: var(--background-color);
+      color: var(--text-color);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background-image:
+        radial-gradient(circle at 10% 20%, rgba(247, 200, 0, 0.03) 0%, transparent 30%),
+        radial-gradient(circle at 90% 80%, rgba(255, 255, 255, 0.02) 0%, transparent 30%),
+        linear-gradient(135deg, #0a1525 0%, #10223f 100%);
+      position: relative;
+      overflow-x: hidden;
+    }
+    body::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="none" stroke="rgba(16,34,63,0.03)" stroke-width="0.5"/></svg>');
+      opacity: 0.5;
+      z-index: 0;
+    }
+    .container {
+    max-width: 1100px;
+    width: 98%;
+    margin: 25px auto;
+    padding: 40px 40px 30px 40px;
+    background: var(--card-bg-color);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border-radius: 25px;
+    box-shadow: var(--neuro-shadow);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    border: var(--glass-border);
+    z-index: 1;
+    }
+    h1 {
+      color: var(--text-color);
+      margin-bottom: 15px;
+      font-weight: 600;
+      position: relative;
+      padding-bottom: 10px;
+      font-size: 2rem;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    }
+    h1::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80px;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
+    }
+    .form-group {
+      margin-bottom: 20px;
+      text-align: left;
+    }
+    label {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--primary-color);
+      font-weight: 500;
+      letter-spacing: 0.5px;
+    }
+    input[type="text"], input[type="number"], input[type="date"] {
+      width: 100%;
+      padding: 12px;
+      border: var(--glass-border);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-color);
+      transition: var(--transition);
+      font-size: 1rem;
+      box-sizing: border-box;
+    }
+    input[type="text"]:focus, input[type="number"]:focus, input[type="date"]:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 2px rgba(247, 200, 0, 0.2);
+    }
+    select {
+      width: 100%;
+      padding: 12px;
+      border: var(--glass-border);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-color);
+      transition: var(--transition);
+      font-size: 1rem;
+      box-sizing: border-box;
+    }
+    .form-actions {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 30px;
+    }
+    .submit-button, .clear-button {
+      padding: 10px 24px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      box-shadow: var(--neuro-shadow);
+    }
+    .submit-button {
+      background-color: var(--primary-color);
+      color: var(--secondary-color);
+    }
+    .submit-button:hover {
+      background-color: var(--hover-color);
+    }
+    .clear-button {
+      background-color: var(--accent-color);
+      color: var(--text-color);
+    }
+    .clear-button:hover {
+      background-color: var(--secondary-color);
+    }
+    select {
+      width: 100%;
+      padding: 12px;
+      border: var(--glass-border);
+      border-radius: 8px;
+      background: rgba(25, 45, 75, 0.9); /* Fondo oscuro */
+      color: var(--text-color);
+      transition: var(--transition);
+      font-size: 1rem;
+      box-sizing: border-box;
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+    }
+    
+    select:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 2px rgba(247, 200, 0, 0.2);
+    }
+    
+    option {
+      background-color: #192d4b;  /* Fondo oscuro para opciones */
+      color: #fff;                /* Texto blanco */
+    }
+    
+    /* Flecha personalizada para el select */
+    select {
+      background-image: url("data:image/svg+xml;utf8,<svg fill='yellow' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+      background-repeat: no-repeat;
+      background-position-x: 98%;
+      background-position-y: 50%;
+    }
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin: 20px 0;
+    }
+    
+    .form-section {
+      background: rgba(16, 34, 63, 0.5);
+      border-radius: 15px;
+      padding: 25px;
+      position: relative;
+      border: 1px solid rgba(247, 200, 0, 0.2);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      margin-bottom: 25px !important;
+    }
+    
+    .section-header {
+      position: absolute;
+      top: -15px;
+      left: 20px;
+      background-color: var(--primary-color);
+      color: var(--secondary-color);
+      padding: 5px 15px;
+      border-radius: 20px;
+      font-weight: bold;
+      font-size: 0.9rem;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+      grid-column: 1 / span 2;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    @media (max-width: 700px) {
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    .table-section {
+      margin-top: 40px;
+      background: var(--card-bg-color);
+      border-radius: 15px;
+      padding: 20px;
+      box-shadow: var(--neuro-shadow);
+      border: var(--glass-border);
+      overflow-x: auto;
+    }
+    .styled-table {
+      width: 100%;
+      border-collapse: collapse;
+      color: var(--text-color);
+      background: transparent;
+    }
+    .styled-table th, .styled-table td {
+      padding: 12px 8px;
+      border-bottom: 1px solid var(--primary-color);
+      text-align: left;
+    }
+    .styled-table th {
+      background: var(--primary-color);
+      color: var(--secondary-color);
+      font-weight: bold;
+    }
+    .styled-table tr:nth-child(even) {
+      background: rgba(255,255,255,0.05);
+    }
+    .styled-table tr:hover {
+      background: rgba(247,200,0,0.07);
+    }
+    .delete-button {
+      background: var(--accent-color);
+      color: var(--text-color);
+      border: none;
+      border-radius: 6px;
+      padding: 7px 14px;
+      cursor: pointer;
+      transition: var(--transition);
+      font-size: 1rem;
+    }
+    .delete-button:hover {
+      background: var(--primary-color);
+      color: var(--secondary-color);
+    }
+    .add-button {
+      background-color: var(--primary-color);
+      color: var(--secondary-color);
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      box-shadow: var(--neuro-shadow);
+      padding: 10px 24px;
+      margin-right: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .add-button:hover {
+      background-color: var(--hover-color);
+    }
+    
+    .nav-button {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      background-color: var(--primary-color);
+      color: var(--secondary-color);
+      border: none;
+      padding: 10px 15px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: var(--transition);
+      box-shadow: var(--neuro-shadow);
+      z-index: 10;
+    }
+    
+    .nav-button:hover {
+      background-color: var(--hover-color);
+      transform: translateY(-2px);
+    }
+    
+    .version-badge {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background-color: rgba(247, 200, 0, 0.2);
+      color: var(--primary-color);
+      padding: 5px 10px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: bold;
+    }
+    /* Estilos para el total efectivo */
+    #total_efectivo {
+      width: 120px;
+      text-align: right;
+      padding: 8px;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(25, 45, 75, 0.9);
+      color: var(--text-color);
+      font-weight: bold;
+    }
+    #total_efectivo.positivo {
+      background: rgba(0, 128, 0, 0.3);
+      border-color: #00ff00;
+    }
+    #total_efectivo.negativo {
+      background: rgba(255, 0, 0, 0.3);
+      border-color: #ff0000;
+    }
+    
+    /* Estilos personalizados para inputs de tipo date */
+    input[type="date"] {
+      appearance: none;
+      -webkit-appearance: none;
+      background: rgba(25, 45, 75, 0.9);
+      padding-right: 35px;
+      background-image: url("data:image/svg+xml;utf8,<svg fill='%23F7C800' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm2-7h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z'/></svg>");
+      background-repeat: no-repeat;
+      background-position: calc(100% - 10px) center;
+      cursor: pointer;
+    }
+    
+    input[type="date"]::-webkit-calendar-picker-indicator {
+      opacity: 0;
+      cursor: pointer;
+      width: 30px;
+      height: 30px;
+      position: absolute;
+      right: 0;
+    }
+    
+    input[type="date"]:hover {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 8px rgba(247, 200, 0, 0.3);
+    }
+  </style>
+</head>
+<body>
+  <div class="particles" id="particles"></div>
+  <button class="nav-button" onclick="window.top.location.href='<?= ScriptApp.getService().getUrl() ?>?page=index'">
+    <i class="fas fa-arrow-left"></i> Volver al Inicio
+  </button>
+  <div class="version-badge">v1.0.0</div>
+  <div class="container">
+    <h1>Regularización</h1>
+    <form id="regularizacionForm" autocomplete="off">
+      <!-- Bloque 1: Datos principales -->
+      <div class="form-grid form-section" style="margin-bottom: 15px;">
+        <div class="section-header">
+          <i class="fas fa-info-circle"></i> Datos Principales
+        </div>
+        <div class="form-group">
+          <label for="nombre_regularizacion">Nombre Regularización</label>
+          <input type="text" id="nombre_regularizacion" name="nombre_regularizacion" required>
+        </div>
+        <div class="form-group">
+          <label for="fecha">Fecha:</label>
+          <input type="text" id="fecha" name="fecha" placeholder="DD/MM/YYYY" required>
+        </div>
+        <div class="form-group">
+          <label for="efectivo">Efectivo</label>
+          <input type="number" id="efectivo" name="efectivo" min="0" step="0.01">
+        </div>
+        <div class="form-group">
+          <label for="confirmado">Confirmado</label>
+          <select id="confirmado" name="confirmado">
+            <option value="SI">SI</option>
+            <option value="NO">NO</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="regularizado">Regularizado (%)</label>
+          <input type="number" id="regularizado" name="regularizado" min="0" max="100" step="0.01">
+        </div>
+        <div class="form-group" style="grid-column: 1 / span 2;">
+          <label for="observaciones">Observaciones</label>
+          <input type="text" id="observaciones" name="observaciones">
+        </div>
+      </div>
+      <!-- Bloque 2: Detalle de comprobantes -->
+      <div class="form-grid form-section" style="margin-top: 0;">  
+        <div class="section-header">
+          <i class="fas fa-receipt"></i> Detalle de Comprobantes
+        </div>
+        <div class="form-group">
+          <label for="comprobante">Comprobante</label>
+          <input type="text" id="comprobante" name="comprobante" required>
+        </div>
+        <div class="form-group">
+          <label for="monto">Monto</label>
+          <input type="number" id="monto" name="monto" required min="0" step="0.01">
+        </div>
+        <div class="form-group">
+          <label for="medio_pago">Medio de Pago</label>
+          <select id="medio_pago" name="medio_pago">
+            <option value="">Seleccione un medio de pago</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="asesor">Asesor</label>
+          <select id="asesor" name="asesor" required>
+            <option value="">Seleccione un asesor</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="fecha_regularizacion">Fecha de Regularización:</label>
+          <input type="text" id="fecha_regularizacion" name="fecha_regularizacion" placeholder="DD/MM/YYYY" required>
+        </div>
+        <div class="form-group">
+          <label for="observacion_detalle">Observación</label>
+          <input type="text" id="observacion_detalle" name="observacion_detalle">
+        </div>
+        <div class="form-group">
+          <label for="estado">Estado</label>
+          <select id="estado" name="estado" required>
+            <option value="VALIDO">VALIDO</option>
+            <option value="ANULADO">ANULADO</option>
+            <option value="RECHAZADO">RECHAZADO</option>
+          </select>
+        </div>
+        <div class="form-group" style="align-self: flex-end;">
+          <button type="button" class="add-button"><i class="fas fa-plus"></i> Añadir</button>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="submit-button"><i class="fas fa-save"></i> Guardar</button>
+        <button type="reset" class="clear-button"><i class="fas fa-eraser"></i> Limpiar</button>
+      </div>
+    </form>
+      <div class="form-group" style="margin-bottom: 10px; display: flex; align-items: center; gap: 10px;">
+        <label for="total_efectivo" style="margin: 0;">Total Efectivo:</label>
+        <input type="text" id="total_efectivo" name="total_efectivo" value="0.00" readonly>
+      </div>
+      <section class="table-section">
+      <table class="styled-table" id="tabla-regularizaciones">
+        <thead>
+          <tr>
+            <th>Comprobante</th>
+            <th>Monto</th>
+            <th>Medio de Pago</th>
+            <th>Asesor</th>
+            <th>Fecha Regularización</th>
+            <th>Observación</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Las filas se insertarán aquí con JS -->
+        </tbody>
+      </table>
+    </section>
+  </div>
+  <script>
+    // Funciones de validación y formato de fecha
+    function validarFormatoFecha(fecha) {
+      const regex = /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/;
+      return regex.test(fecha);
+    }
+
+    function formatearFechaParaEnvio(fecha) {
+      if (!fecha) return '';
+      const [dia, mes, anio] = fecha.split('/');
+      return `${anio}-${mes}-${dia}`;
+    }
+
+    // Manejo de añadir y eliminar filas en la tabla
+    const form = document.getElementById('regularizacionForm');
+    const tabla = document.getElementById('tabla-regularizaciones').getElementsByTagName('tbody')[0];
+    const addBtn = document.querySelector('.add-button');
+    const totalEfectivoInput = document.getElementById('total_efectivo');
+    const inputEfectivo = document.getElementById('efectivo');
+
+    function actualizarTotalEfectivo() {
+      let total = 0;
+      Array.from(tabla.rows).forEach(fila => {
+        const medioPago = fila.cells[2].textContent.trim().toUpperCase();
+        if (medioPago === 'EFECTIVO') {
+          const monto = parseFloat(fila.cells[1].textContent.replace(/,/g, '.'));
+          if (!isNaN(monto)) total += monto;
+        }
+      });
+      totalEfectivoInput.value = total.toFixed(2);
+      
+      // Comparar con input efectivo
+      const esperado = parseFloat(inputEfectivo.value) || 0;
+      const diferencia = Math.abs(esperado - total);
+      
+      // Limpiar ambas clases antes de agregar la nueva
+      totalEfectivoInput.classList.remove('positivo', 'negativo');
+      
+      if (esperado > 0) {
+        if (diferencia < 0.01) {
+          totalEfectivoInput.classList.add('positivo');
+        } else {
+          totalEfectivoInput.classList.add('negativo');
+        }
+      }
+    }
+
+    // Actualizar cuando se agregue/elimine fila o cambie efectivo
+    inputEfectivo.addEventListener('input', actualizarTotalEfectivo);
+
+    addBtn.addEventListener('click', function() {
+      // Obtener valores de los campos
+      const comprobante = document.getElementById('comprobante').value;
+      const monto = document.getElementById('monto').value;
+      const medioPago = document.getElementById('medio_pago').value;
+      const asesor = document.getElementById('asesor').value;
+      const fechaRegularizacion = document.getElementById('fecha_regularizacion').value;
+      const observacionDetalle = document.getElementById('observacion_detalle').value;
+      const estado = document.getElementById('estado').value;
+
+      // Validación simple
+      if (!comprobante || !monto || !asesor || !fechaRegularizacion) {
+        alert('Por favor, completa todos los campos obligatorios antes de añadir.');
+        return;
+      }
+
+      if (!validarFormatoFecha(fechaRegularizacion)) {
+        alert('Por favor, ingrese una fecha de regularización válida en formato DD/MM/YYYY');
+        return;
+      }
+
+      // Crear nueva fila
+      const newRow = tabla.insertRow();
+      newRow.innerHTML = `
+        <td>${comprobante}</td>
+        <td>${monto}</td>
+        <td>${medioPago}</td>
+        <td>${asesor}</td>
+        <td>${fechaRegularizacion}</td>
+        <td>${observacionDetalle}</td>
+        <td>${estado}</td>
+        <td><button type="button" class="delete-button"><i class="fas fa-trash"></i> Eliminar</button></td>
+      `;
+
+      // Añadir evento para eliminar la fila
+      newRow.querySelector('.delete-button').addEventListener('click', function() {
+        tabla.deleteRow(newRow.rowIndex - 1);
+        actualizarTotalEfectivo();
+      });
+      actualizarTotalEfectivo();
+    });
+
+    // Manejo de guardar regularización
+    form.addEventListener('submit', function(event) {
+      event.preventDefault(); // Evita recargar la página
+      // Recolectar los datos de la tabla
+      const filas = Array.from(tabla.rows);
+      if (filas.length === 0) {
+        alert('Debe añadir al menos un comprobante antes de guardar.');
+        return;
+      }
+
+      // Generar ID_REGULARIZACION único en frontend
+      function generarIdRegularizacion() {
+        return 'REG_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
+      }
+
+      // Tomar los datos principales directamente de los inputs
+      const fechaPrincipal = document.getElementById('fecha').value;
+      const datos = {
+        id_regularizacion: generarIdRegularizacion(),
+        nombre: document.getElementById('nombre_regularizacion').value,
+        fecha: formatearFechaParaEnvio(fechaPrincipal),
+        efectivo: document.getElementById('efectivo').value,
+        confirmado: document.getElementById('confirmado').value,
+        'regularizado(%)': document.getElementById('regularizado').value,
+        observaciones: document.getElementById('observaciones').value
+      };
+
+      // Recolectar detalles
+      const detalles = filas.map(fila => ({
+        comprobante: fila.cells[0].textContent,
+        monto: fila.cells[1].textContent,
+        medio_de_pago: fila.cells[2].textContent,
+        asesor: fila.cells[3].textContent,
+        fecha_regularizacion: formatearFechaParaEnvio(fila.cells[4].textContent),
+        observacion: fila.cells[5].textContent,
+        estado: fila.cells[6].textContent
+      }));
+
+      // Llamar a Apps Script
+      google.script.run
+        .withSuccessHandler(function(response) {
+          if (response.success) {
+            alert('Regularización guardada correctamente.');
+            // Limpiar tabla y formulario
+            while (tabla.rows.length > 0) tabla.deleteRow(0);
+            form.reset();
+          } else {
+            alert(response.message || 'Error al guardar.');
+          }
+        })
+        .insertarRegularizacion(datos, detalles);
+    });
+  </script>
+</body>
+</html>
