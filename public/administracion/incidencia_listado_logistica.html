@@ -613,7 +613,7 @@
     </style>
 </head>
 <body>
-    <a href="../../administracion.html" class="btn-back">
+    <a href="../../logistica.html" class="btn-back">
         <i class="fas fa-arrow-left"></i>
         Volver a Logística
     </a>
@@ -660,24 +660,24 @@
                     <h3><i class="fas fa-table"></i> Incidencias Registradas</h3>
                 </div>
                 <div class="table-responsive">
-                    <table id="incidenciasTable" class="table">
-                        <thead>
-                            <tr>
-                                <th>ID Incidencia</th>
-                                <th>Fecha de Registro</th>
-                                <th>Número de Despacho</th>
-                                <th>PDF Inicial</th>
-                                <th>PDF Incidencia</th>
-                                <th>Acciones</th>
-                                <th>Fecha de Recepción</th>
-                                <th>Fecha de Corrección</th>
-                                <th>Incidencias?</th>
-                                <th>ESTADO</th>
-                                <th>Solución PDF</th>
-                                <th>RESPONDIDO POR</th>
-                                <th>ESTADO DESPACHO</th>
-                            </tr>
-                        </thead>
+                                         <table id="incidenciasTable" class="table">
+                                                  <thead>
+                              <tr>
+                                  <th>ID Incidencia</th>
+                                  <th>Fecha de Registro</th>
+                                  <th>Número de Despacho</th>
+                                  <th>PDF Inicial</th>
+                                  <th>PDF Incidencia</th>
+                                  <th>Acciones</th>
+                                  <th>Fecha de Recepción</th>
+                                  <th>Fecha de Corrección</th>
+                                  <th>Incidencias?</th>
+                                  <th>ESTADO</th>
+                                  <th>Solución PDF</th>
+                                  <th>RESPONDIDO POR</th>
+                                  <th>ESTADO DESPACHO</th>
+                              </tr>
+                          </thead>
                         <tbody id="incidenciasBody">
                             <!-- Los datos se cargarán dinámicamente -->
                         </tbody>
@@ -695,25 +695,32 @@
                 <span class="close" onclick="cerrarModal()">&times;</span>
             </div>
             <div class="modal-body">
-                <div class="modal-section productos-section">
-                    <h4><i class="fas fa-box"></i> Productos Afectados</h4>
-                    <div class="table-responsive">
-                        <table class="productos-tabla">
-                            <thead>
-                                <tr>
-                                    <th>Unidad de Medida</th>
-                                    <th>Producto</th>
-                                    <th>Cantidad Inicial</th>
-                                    <th>Cantidad Recibida</th>
-                                    <th>Motivo</th>
-                                </tr>
-                            </thead>
-                            <tbody id="productosDetalle">
-                                <!-- Los productos se cargarán dinámicamente -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                                 <div class="modal-section productos-section">
+                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                         <h4><i class="fas fa-box"></i> Productos Afectados</h4>
+                         <button type="button" class="btn btn-warning" onclick="generarPDF()">
+                             <i class="fas fa-file-pdf"></i>
+                             Generar PDF
+                         </button>
+                     </div>
+                     <div class="table-responsive">
+                                                  <table class="productos-tabla">
+                              <thead>
+                                  <tr>
+                                      <th>ITEM</th>
+                                      <th>Unidad de Medida</th>
+                                      <th>Producto</th>
+                                      <th>Cantidad Inicial</th>
+                                      <th>Cantidad Recibida</th>
+                                      <th>Motivo</th>
+                                  </tr>
+                              </thead>
+                             <tbody id="productosDetalle">
+                                 <!-- Los productos se cargarán dinámicamente -->
+                             </tbody>
+                         </table>
+                     </div>
+                 </div>
                 <div class="modal-section observaciones-section">
                     <h4><i class="fas fa-comment"></i> Observaciones</h4>
                     <textarea id="observacionesDetalle" class="observaciones-textarea" readonly></textarea>
@@ -776,16 +783,16 @@
                          </div>
                      </div>
                     
-                    <div class="form-actions">
-                        <button type="submit" class="btn btn-success">
-                            <i class="fas fa-save"></i>
-                            Guardar Cambios
-                        </button>
-                        <button type="button" class="btn btn-secondary" onclick="cerrarModalActualizar()">
-                            <i class="fas fa-times"></i>
-                            Cancelar
-                        </button>
-                    </div>
+                                                                                   <div class="form-actions">
+                          <button type="submit" class="btn btn-success">
+                              <i class="fas fa-save"></i>
+                              Guardar Cambios
+                          </button>
+                          <button type="button" class="btn btn-secondary" onclick="cerrarModalActualizar()">
+                              <i class="fas fa-times"></i>
+                              Cancelar
+                          </button>
+                      </div>
                 </form>
             </div>
         </div>
@@ -965,10 +972,10 @@
             const tbody = document.getElementById('incidenciasBody');
             tbody.innerHTML = '';
 
-            if (!Array.isArray(incidencias) || incidencias.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="13" class="text-center">Sin registros</td></tr>';
-                return;
-            }
+                                                   if (!Array.isArray(incidencias) || incidencias.length === 0) {
+                  tbody.innerHTML = '<tr><td colspan="13" class="text-center">Sin registros</td></tr>';
+                  return;
+              }
 
             incidencias.forEach(incidencia => {
                 const row = document.createElement('tr');
@@ -999,49 +1006,49 @@
                     estadoDespachoClass = 'rojo';
                 }
                 
-                row.innerHTML = `
-                    <td>${incidencia.ID_INCIDENCIA || 'N/A'}</td>
-                    <td>${formatearFecha(incidencia.FECHA_REGISTRO)}</td>
-                    <td>${incidencia.NUMERO_DESPACHO || 'N/A'}</td>
-                    <td>
-                        ${incidencia.ARCHIVO_PDF_URL ? 
-                            `<a href="${incidencia.ARCHIVO_PDF_URL}" target="_blank" class="pdf-link">
-                                <i class="fas fa-file-pdf"></i> Ver PDF
-                            </a>` : 
-                            '<span class="no-pdf">No disponible</span>'
-                        }
-                    </td>
-                    <td>
-                        ${incidencia.PDF_INCIDENCIA_URL ? 
-                            `<a href="${incidencia.PDF_INCIDENCIA_URL}" target="_blank" class="pdf-link">
-                                <i class="fas fa-file-pdf"></i> Ver PDF
-                            </a>` : 
-                            '<span class="no-pdf">No disponible</span>'
-                        }
-                    </td>
-                    <td>
-                        <button type="button" class="btn btn-info btn-sm" onclick="abrirModalActualizar('${incidencia.ID_INCIDENCIA}')" title="Actualizar">
-                            <i class="fas fa-sync-alt"></i>
-                        </button>
-                        <button type="button" class="btn btn-success btn-sm" onclick="verDetalles('${incidencia.ID_INCIDENCIA}')" title="Ver Detalles">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                    </td>
-                    <td>${formatearFecha(incidencia.FECHA_RECEPCION)}</td>
-                    <td>${formatearFecha(incidencia.FECHA_CORRECCION)}</td>
-                    <td class="colored-cell ${incidenciasClass}">${incidenciasTexto}</td>
-                    <td class="colored-cell ${estadoClass}">${estadoTexto}</td>
-                    <td>
-                        ${incidencia.SOLUCION_PDF ? 
-                            `<a href="${incidencia.SOLUCION_PDF}" target="_blank" class="pdf-link">
-                                <i class="fas fa-file-pdf"></i> Ver PDF
-                            </a>` : 
-                            '<span class="no-pdf">No disponible</span>'
-                        }
-                    </td>
-                    <td>${incidencia.RESPONDIDO_POR || 'N/A'}</td>
-                    <td class="colored-cell ${estadoDespachoClass}">${estadoDespachoTexto}</td>
-                `;
+                                                                   row.innerHTML = `
+                      <td>${incidencia.ID_INCIDENCIA || 'N/A'}</td>
+                      <td>${formatearFecha(incidencia.FECHA_REGISTRO)}</td>
+                      <td>${incidencia.NUMERO_DESPACHO || 'N/A'}</td>
+                      <td>
+                          ${incidencia.ARCHIVO_PDF_URL ? 
+                              `<a href="${incidencia.ARCHIVO_PDF_URL}" target="_blank" class="pdf-link">
+                                  <i class="fas fa-file-pdf"></i> Ver PDF
+                              </a>` : 
+                              '<span class="no-pdf">No disponible</span>'
+                          }
+                      </td>
+                      <td>
+                          ${incidencia.PDF_INCIDENCIA_URL ? 
+                              `<a href="${incidencia.PDF_INCIDENCIA_URL}" target="_blank" class="pdf-link">
+                                  <i class="fas fa-file-pdf"></i> Ver PDF
+                              </a>` : 
+                              '<span class="no-pdf">No disponible</span>'
+                          }
+                      </td>
+                      <td>
+                          <button type="button" class="btn btn-info btn-sm" onclick="abrirModalActualizar('${incidencia.ID_INCIDENCIA}')" title="Actualizar">
+                              <i class="fas fa-sync-alt"></i>
+                          </button>
+                          <button type="button" class="btn btn-success btn-sm" onclick="verDetalles('${incidencia.ID_INCIDENCIA}')" title="Ver Detalles">
+                              <i class="fas fa-eye"></i>
+                          </button>
+                      </td>
+                      <td>${formatearFecha(incidencia.FECHA_RECEPCION)}</td>
+                      <td>${formatearFecha(incidencia.FECHA_CORRECCION)}</td>
+                      <td class="colored-cell ${incidenciasClass}">${incidenciasTexto}</td>
+                      <td class="colored-cell ${estadoClass}">${estadoTexto}</td>
+                      <td>
+                          ${incidencia.SOLUCION_PDF ? 
+                              `<a href="${incidencia.SOLUCION_PDF}" target="_blank" class="pdf-link">
+                                  <i class="fas fa-file-pdf"></i> Ver PDF
+                              </a>` : 
+                              '<span class="no-pdf">No disponible</span>'
+                          }
+                      </td>
+                      <td>${incidencia.RESPONDIDO_POR || 'N/A'}</td>
+                      <td class="colored-cell ${estadoDespachoClass}">${estadoDespachoTexto}</td>
+                  `;
                 tbody.appendChild(row);
             });
         }
@@ -1145,8 +1152,370 @@
             document.getElementById('formActualizarIncidencia').reset();
         }
 
-        // Función para guardar cambios de la incidencia
-        async function guardarCambiosIncidencia(event) {
+                 // Función para generar PDF
+        async function generarPDF() {
+            // Obtener el ID de la incidencia desde el modal de detalles
+            const idIncidencia = window.currentIncidenciaId;
+            
+            if (!idIncidencia) {
+                mostrarAlerta('No se ha seleccionado una incidencia', 'error');
+                return;
+            }
+            
+            try {
+                // Buscar la incidencia en los datos
+                const incidencia = incidenciasData.find(inc => String(inc.ID_INCIDENCIA) === String(idIncidencia));
+                
+                if (!incidencia) {
+                    mostrarAlerta('No se encontró la incidencia', 'error');
+                    return;
+                }
+                
+                // Cargar productos de la incidencia
+                const productos = await cargarProductosParaPDF(idIncidencia);
+                
+                // Preparar datos para la API según el formato especificado
+                const data = {
+                    numero_despacho: incidencia.NUMERO_DESPACHO || "N/A",
+                    tipo_carga: "Contenedor 40 pies",
+                    generado_por: incidencia.RESPONDIDO_POR || "SISTEMA",
+                    fecha: incidencia.FECHA_CORRECCION ? incidencia.FECHA_CORRECCION.split(' ')[0] : new Date().toISOString().split('T')[0],
+                    detalle: productos.map((producto, index) => ({
+                        item: producto.ITEM || String(index + 1),
+                        producto: producto.PRODUCTO || "N/A",
+                        codigo: producto.CODIGO || "N/A",
+                        unidad_medida: producto.UNIDAD_MEDIDA || "N/A",
+                        cantidad_inicial: producto.CANTIDAD_INICIAL || "0",
+                        cantidad_recibida: producto.CANTIDAD_RECIBIDA || "0",
+                        motivo: producto.MOTIVO || "Sin motivo especificado"
+                    }))
+                };
+                
+                console.log('📤 Enviando datos para generar PDF:', data);
+                
+                // Llamar a la API para generar PDF
+                const api = "https://generacionespdfappscript-2946605267.us-central1.run.app";
+                
+                console.log('🌐 Intentando conectar a la API:', api);
+                
+                                 // Mostrar indicador de carga
+                 mostrarAlerta('🔄 Generando PDF, esto puede tardar unos segundos. Por favor espere...', 'info');
+                
+                // Intentar con fetch normal primero
+                try {
+                    const response = await fetch(api, {
+                        method: 'POST',
+                        mode: 'cors',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json, text/plain, */*'
+                        },
+                        body: JSON.stringify(data)
+                    });
+                    
+                    console.log('📡 Respuesta recibida:', response.status, response.statusText);
+                    
+                    if (response.status === 200) {
+                        const result = await response.text();
+                        console.log('✅ PDF generado exitosamente:', result);
+                        
+                        // Verificar si la respuesta contiene una URL
+                        if (result && result.trim() !== '') {
+                            console.log('📄 Respuesta completa del servidor:', result);
+                            
+                            // Intentar extraer URL de diferentes formatos de respuesta
+                            let pdfUrl = null;
+                            
+                            // Si la respuesta es directamente una URL
+                            if (result.startsWith('http')) {
+                                pdfUrl = result;
+                            }
+                            // Si la respuesta es JSON con URL
+                            else if (result.includes('"url"') || result.includes('"link"') || result.includes('"pdf"')) {
+                                try {
+                                    const jsonResponse = JSON.parse(result);
+                                    pdfUrl = jsonResponse.url || jsonResponse.link || jsonResponse.pdf || jsonResponse.download_url;
+                                } catch (e) {
+                                    console.log('No se pudo parsear como JSON:', e);
+                                }
+                            }
+                            // Si la respuesta contiene una URL en el texto
+                            else {
+                                const urlMatch = result.match(/(https?:\/\/[^\s]+)/);
+                                if (urlMatch) {
+                                    pdfUrl = urlMatch[1];
+                                }
+                            }
+                            
+                            // Si encontramos una URL, abrirla automáticamente
+                            if (pdfUrl) {
+                                console.log('🔗 URL del PDF encontrada:', pdfUrl);
+                                window.open(pdfUrl, '_blank');
+                                mostrarAlerta('PDF generado exitosamente. Se abrirá en una nueva pestaña.', 'success');
+                            } else {
+                                // Si no es una URL, mostrar el resultado
+                                console.log('📄 Respuesta del servidor (sin URL):', result);
+                                mostrarAlerta('PDF generado exitosamente. Respuesta: ' + result, 'success');
+                            }
+                        } else {
+                            mostrarAlerta('PDF generado exitosamente.', 'success');
+                        }
+                    } else {
+                        const errorText = await response.text();
+                        console.error('❌ Error en la respuesta:', response.status, errorText);
+                        throw new Error(`Error HTTP ${response.status}: ${errorText || response.statusText}`);
+                    }
+                } catch (fetchError) {
+                    console.log('❌ Error con fetch, intentando método alternativo:', fetchError);
+                    
+                    // Si falla fetch, usar método alternativo con XMLHttpRequest
+                    try {
+                        await generarPDFConXMLHttpRequest(api, data);
+                    } catch (xhrError) {
+                        console.log('❌ Error con XMLHttpRequest, intentando proxy CORS:', xhrError);
+                        
+                        // Si también falla XMLHttpRequest, usar proxy CORS
+                        await generarPDFConProxyCORS(api, data);
+                    }
+                }
+                
+            } catch (error) {
+                console.error('❌ Error al generar PDF:', error);
+                
+                // Proporcionar mensajes de error más específicos
+                let errorMessage = 'Error al generar el PDF';
+                
+                if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                    errorMessage = 'Error de conectividad. Verifique su conexión a internet y que la API esté disponible.';
+                } else if (error.message.includes('CORS')) {
+                    errorMessage = 'Error de CORS. La API no permite peticiones desde este dominio.';
+                } else if (error.message.includes('Failed to fetch')) {
+                    errorMessage = 'No se pudo conectar con la API. Verifique la URL y su conexión a internet.';
+                } else {
+                    errorMessage = error.message;
+                }
+                
+                mostrarAlerta(errorMessage, 'error');
+            }
+        }
+        
+        // Función alternativa usando XMLHttpRequest para evitar problemas de CORS
+        function generarPDFConXMLHttpRequest(api, data) {
+            return new Promise((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                
+                xhr.open('POST', api, true);
+                xhr.setRequestHeader('Content-Type', 'application/json');
+                xhr.setRequestHeader('Accept', 'application/json, text/plain, */*');
+                
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState === 4) {
+                        console.log('📡 XMLHttpRequest respuesta:', xhr.status, xhr.statusText);
+                        
+                        if (xhr.status === 200) {
+                            const result = xhr.responseText;
+                            console.log('✅ PDF generado exitosamente con XMLHttpRequest:', result);
+                            
+                            // Verificar si la respuesta contiene una URL
+                            if (result && result.trim() !== '') {
+                                console.log('📄 Respuesta completa del servidor (XMLHttpRequest):', result);
+                                
+                                // Intentar extraer URL de diferentes formatos de respuesta
+                                let pdfUrl = null;
+                                
+                                // Si la respuesta es directamente una URL
+                                if (result.startsWith('http')) {
+                                    pdfUrl = result;
+                                }
+                                // Si la respuesta es JSON con URL
+                                else if (result.includes('"url"') || result.includes('"link"') || result.includes('"pdf"')) {
+                                    try {
+                                        const jsonResponse = JSON.parse(result);
+                                        pdfUrl = jsonResponse.url || jsonResponse.link || jsonResponse.pdf || jsonResponse.download_url;
+                                    } catch (e) {
+                                        console.log('No se pudo parsear como JSON:', e);
+                                    }
+                                }
+                                // Si la respuesta contiene una URL en el texto
+                                else {
+                                    const urlMatch = result.match(/(https?:\/\/[^\s]+)/);
+                                    if (urlMatch) {
+                                        pdfUrl = urlMatch[1];
+                                    }
+                                }
+                                
+                                // Si encontramos una URL, abrirla automáticamente
+                                if (pdfUrl) {
+                                    console.log('🔗 URL del PDF encontrada (XMLHttpRequest):', pdfUrl);
+                                    window.open(pdfUrl, '_blank');
+                                    mostrarAlerta('PDF generado exitosamente. Se abrirá en una nueva pestaña.', 'success');
+                                } else {
+                                    // Si no es una URL, mostrar el resultado
+                                    console.log('📄 Respuesta del servidor (sin URL):', result);
+                                    mostrarAlerta('PDF generado exitosamente. Respuesta: ' + result, 'success');
+                                }
+                            } else {
+                                mostrarAlerta('PDF generado exitosamente.', 'success');
+                            }
+                            resolve(result);
+                        } else {
+                            console.error('❌ Error en XMLHttpRequest:', xhr.status, xhr.responseText);
+                            reject(new Error(`Error HTTP ${xhr.status}: ${xhr.responseText || xhr.statusText}`));
+                        }
+                    }
+                };
+                
+                xhr.onerror = function() {
+                    console.error('❌ Error de red en XMLHttpRequest');
+                    reject(new Error('Error de red al conectar con la API'));
+                };
+                
+                xhr.ontimeout = function() {
+                    console.error('❌ Timeout en XMLHttpRequest');
+                    reject(new Error('Timeout al conectar con la API'));
+                };
+                
+                // Establecer timeout de 30 segundos
+                xhr.timeout = 30000;
+                
+                try {
+                    xhr.send(JSON.stringify(data));
+                } catch (error) {
+                    console.error('❌ Error al enviar XMLHttpRequest:', error);
+                    reject(error);
+                }
+            });
+        }
+         
+        // Función alternativa usando proxy CORS como último recurso
+        function generarPDFConProxyCORS(api, data) {
+            return new Promise((resolve, reject) => {
+                console.log('🔄 Intentando con proxy CORS...');
+                
+                // Usar un proxy CORS público
+                const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
+                const targetUrl = api;
+                
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', proxyUrl + targetUrl, true);
+                xhr.setRequestHeader('Content-Type', 'application/json');
+                xhr.setRequestHeader('Accept', 'application/json, text/plain, */*');
+                xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+                
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState === 4) {
+                        console.log('📡 Proxy CORS respuesta:', xhr.status, xhr.statusText);
+                        
+                        if (xhr.status === 200) {
+                            const result = xhr.responseText;
+                            console.log('✅ PDF generado exitosamente con proxy CORS:', result);
+                            
+                            // Verificar si la respuesta contiene una URL
+                            if (result && result.trim() !== '') {
+                                console.log('📄 Respuesta completa del servidor (Proxy CORS):', result);
+                                
+                                // Intentar extraer URL de diferentes formatos de respuesta
+                                let pdfUrl = null;
+                                
+                                // Si la respuesta es directamente una URL
+                                if (result.startsWith('http')) {
+                                    pdfUrl = result;
+                                }
+                                // Si la respuesta es JSON con URL
+                                else if (result.includes('"url"') || result.includes('"link"') || result.includes('"pdf"')) {
+                                    try {
+                                        const jsonResponse = JSON.parse(result);
+                                        pdfUrl = jsonResponse.url || jsonResponse.link || jsonResponse.pdf || jsonResponse.download_url;
+                                    } catch (e) {
+                                        console.log('No se pudo parsear como JSON:', e);
+                                    }
+                                }
+                                // Si la respuesta contiene una URL en el texto
+                                else {
+                                    const urlMatch = result.match(/(https?:\/\/[^\s]+)/);
+                                    if (urlMatch) {
+                                        pdfUrl = urlMatch[1];
+                                    }
+                                }
+                                
+                                // Si encontramos una URL, abrirla automáticamente
+                                if (pdfUrl) {
+                                    console.log('🔗 URL del PDF encontrada (Proxy CORS):', pdfUrl);
+                                    window.open(pdfUrl, '_blank');
+                                    mostrarAlerta('PDF generado exitosamente. Se abrirá en una nueva pestaña.', 'success');
+                                } else {
+                                    // Si no es una URL, mostrar el resultado
+                                    console.log('📄 Respuesta del servidor (sin URL):', result);
+                                    mostrarAlerta('PDF generado exitosamente. Respuesta: ' + result, 'success');
+                                }
+                            } else {
+                                mostrarAlerta('PDF generado exitosamente.', 'success');
+                            }
+                            resolve(result);
+                        } else {
+                            console.error('❌ Error en proxy CORS:', xhr.status, xhr.responseText);
+                            reject(new Error(`Error HTTP ${xhr.status}: ${xhr.responseText || xhr.statusText}`));
+                        }
+                    }
+                };
+                
+                xhr.onerror = function() {
+                    console.error('❌ Error de red en proxy CORS');
+                    reject(new Error('Error de red al conectar con el proxy CORS'));
+                };
+                
+                xhr.ontimeout = function() {
+                    console.error('❌ Timeout en proxy CORS');
+                    reject(new Error('Timeout al conectar con el proxy CORS'));
+                };
+                
+                // Establecer timeout de 30 segundos
+                xhr.timeout = 30000;
+                
+                try {
+                    xhr.send(JSON.stringify(data));
+                } catch (error) {
+                    console.error('❌ Error al enviar proxy CORS:', error);
+                    reject(error);
+                }
+            });
+        }
+         
+         // Función para cargar productos específicamente para PDF
+         async function cargarProductosParaPDF(idIncidencia) {
+             try {
+                 const api = "https://incidenciaslogisticacrud-2946605267.us-central1.run.app";
+                 const response = await fetch(`${api}?id=${idIncidencia}`);
+                 
+                 if (response.status === 200) {
+                     const datos = await response.text();
+                     
+                     let productos = [];
+                     try {
+                         productos = JSON.parse(datos);
+                     } catch (e) {
+                         console.log("Los datos no son JSON válido para productos");
+                         productos = [];
+                     }
+                     
+                     // Si es un objeto individual, convertirlo a array
+                     if (productos && typeof productos === 'object' && !Array.isArray(productos)) {
+                         productos = [productos];
+                     }
+                     
+                     return Array.isArray(productos) ? productos : [];
+                 } else {
+                     console.error("Error al cargar productos para PDF");
+                     return [];
+                 }
+             } catch (error) {
+                 console.error('Error al cargar productos para PDF:', error);
+                 return [];
+             }
+         }
+
+         // Función para guardar cambios de la incidencia
+         async function guardarCambiosIncidencia(event) {
             event.preventDefault();
             
             const idIncidencia = document.getElementById('idIncidenciaActualizar').value;
@@ -1218,10 +1587,13 @@
                 return;
             }
             
-            console.log('✅ Incidencia encontrada:', incidencia);
-            
-            // Mostrar modal primero
-            document.getElementById('detallesModal').style.display = 'block';
+                         console.log('✅ Incidencia encontrada:', incidencia);
+             
+             // Guardar el ID de la incidencia para usar en generarPDF()
+             window.currentIncidenciaId = id;
+             
+             // Mostrar modal primero
+             document.getElementById('detallesModal').style.display = 'block';
             
             // Mostrar observaciones en el textarea
             const observacionesTextarea = document.getElementById('observacionesDetalle');
@@ -1291,13 +1663,14 @@
             productosArray.forEach((producto, index) => {
                 console.log(`📦 Producto ${index + 1}:`, producto);
                 const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${producto.UNIDAD_MEDIDA || 'N/A'}</td>
-                    <td>${producto.PRODUCTO || 'N/A'}</td>
-                    <td>${producto.CANTIDAD_INICIAL || 'N/A'}</td>
-                    <td>${producto.CANTIDAD_RECIBIDA || 'N/A'}</td>
-                    <td>${producto.MOTIVO || 'N/A'}</td>
-                `;
+                                 row.innerHTML = `
+                     <td>${producto.ITEM || 'N/A'}</td>
+                     <td>${producto.UNIDAD_MEDIDA || 'N/A'}</td>
+                     <td>${producto.PRODUCTO || 'N/A'}</td>
+                     <td>${producto.CANTIDAD_INICIAL || 'N/A'}</td>
+                     <td>${producto.CANTIDAD_RECIBIDA || 'N/A'}</td>
+                     <td>${producto.MOTIVO || 'N/A'}</td>
+                 `;
                 productosBody.appendChild(row);
             });
         }
