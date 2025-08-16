@@ -272,6 +272,245 @@
             color: #1e40af;
         }
 
+        /* Estilos para botones de acción */
+        .action-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.8rem;
+            margin: 0 2px;
+        }
+
+        .update-btn {
+            background: var(--azul-claro);
+            color: var(--blanco);
+        }
+
+        .update-btn:hover {
+            background: var(--azul-oscuro);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .delete-btn {
+            background: var(--rojo-error);
+            color: var(--blanco);
+        }
+
+        .delete-btn:hover {
+            background: #dc2626;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+
+        /* Estilos para modales */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: var(--blanco);
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(30, 58, 138, 0.3);
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: slideIn 0.3s ease;
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, var(--azul-principal) 0%, var(--azul-oscuro) 100%);
+            color: var(--blanco);
+            padding: 20px;
+            border-radius: 12px 12px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .close {
+            color: var(--blanco);
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: opacity 0.3s ease;
+        }
+
+        .close:hover {
+            opacity: 0.7;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: var(--gris-oscuro);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid var(--gris-claro);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--azul-claro);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .modal-footer {
+            padding: 20px;
+            border-top: 1px solid var(--gris-claro);
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: var(--azul-claro);
+            color: var(--blanco);
+        }
+
+        .btn-primary:hover {
+            background: var(--azul-oscuro);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: var(--gris-medio);
+            color: var(--blanco);
+        }
+
+        .btn-secondary:hover {
+            background: var(--gris-oscuro);
+            transform: translateY(-1px);
+        }
+
+        .btn-danger {
+            background: var(--rojo-error);
+            color: var(--blanco);
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+            transform: translateY(-1px);
+        }
+
+        /* Confirmación de eliminación */
+        .confirm-modal {
+            display: none;
+            position: fixed;
+            z-index: 1001;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .confirm-modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .confirm-content {
+            background: var(--blanco);
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(30, 58, 138, 0.3);
+            width: 90%;
+            max-width: 400px;
+            animation: slideIn 0.3s ease;
+        }
+
+        .confirm-header {
+            background: var(--rojo-error);
+            color: var(--blanco);
+            padding: 20px;
+            border-radius: 12px 12px 0 0;
+            text-align: center;
+        }
+
+        .confirm-body {
+            padding: 20px;
+            text-align: center;
+        }
+
+        .confirm-footer {
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
         @media (max-width: 768px) {
             .header-content {
                 flex-direction: column;
@@ -342,74 +581,167 @@
         <!-- La tabla secundaria se insertará dinámicamente -->
     </div>
 
+    <!-- Modal para Actualizar -->
+    <div id="updateModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">
+                    <i class="fas fa-edit"></i>
+                    Actualizar Regularización
+                </h3>
+                <span class="close" onclick="closeUpdateModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="updateForm">
+                    <div class="form-group">
+                        <label for="comprobantes" class="form-label">Comprobantes *</label>
+                        <input type="text" id="comprobantes" name="comprobantes" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="fecha_regularizacion" class="form-label">Fecha de Regularización *</label>
+                        <input type="date" id="fecha_regularizacion" name="fecha_regularizacion" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="monto" class="form-label">Monto *</label>
+                        <input type="text" id="monto" name="monto" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="asesor" class="form-label">Asesor *</label>
+                        <input type="text" id="asesor" name="asesor" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="medio_de_pago" class="form-label">Medio de Pago *</label>
+                        <select id="medio_de_pago" name="medio_de_pago" class="form-input" required>
+                            <option value="">Seleccionar medio de pago</option>
+                            <option value="Efectivo">Efectivo</option>
+                            <option value="Transferencia">Transferencia</option>
+                            <option value="Tarjeta">Tarjeta</option>
+                            <option value="Cheque">Cheque</option>
+                            <option value="PAYPAL">PAYPAL</option>
+                            <option value="Otro">Otro</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="observaciones" class="form-label">Observaciones</label>
+                        <textarea id="observaciones" name="observaciones" class="form-input form-textarea" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeUpdateModal()">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="updateRegularizacion()">
+                    <i class="fas fa-save"></i>
+                    Guardar Cambios
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmación para Eliminar -->
+    <div id="confirmModal" class="confirm-modal">
+        <div class="confirm-content">
+            <div class="confirm-header">
+                <h3>
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Confirmar Eliminación
+                </h3>
+            </div>
+            <div class="confirm-body">
+                <p>¿Está seguro de que desea eliminar este registro?</p>
+                <p><strong>Esta acción no se puede deshacer.</strong></p>
+            </div>
+            <div class="confirm-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeConfirmModal()">Cancelar</button>
+                <button type="button" class="btn btn-danger" onclick="deleteRegularizacion()">
+                    <i class="fas fa-trash"></i>
+                    Eliminar
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
 
         // Datos de prueba para la tabla secundaria
         const mockDetailData = {
             1: [
                 {
+                    ID_DETALLE: "2051",
                     NOMBRE: "Factura 001-2024",
                     COMPROBANTES: "FAC-001-2024",
                     FECHA_REGULARIZACION: "2024-03-15",
                     MONTO: "$15,000.00",
                     ASESOR: "María González",
-                    MEDIO_DE_PAGO: "Transferencia"
+                    MEDIO_DE_PAGO: "Transferencia",
+                    OBSERVACION: "Factura regularizada por diferencias de inventario"
                 },
                 {
+                    ID_DETALLE: "2052",
                     NOMBRE: "Nota de Crédito 002",
                     COMPROBANTES: "NC-002-2024",
                     FECHA_REGULARIZACION: "2024-03-16",
                     MONTO: "$3,500.00",
                     ASESOR: "Carlos Ruiz",
-                    MEDIO_DE_PAGO: "Efectivo"
+                    MEDIO_DE_PAGO: "Efectivo",
+                    OBSERVACION: "Nota de crédito por devolución"
                 }
             ],
             2: [
                 {
+                    ID_DETALLE: "2053",
                     NOMBRE: "Ajuste Contable",
                     COMPROBANTES: "AJ-001-2024",
                     FECHA_REGULARIZACION: "2024-02-28",
                     MONTO: "$8,750.00",
                     ASESOR: "Ana Martínez",
-                    MEDIO_DE_PAGO: "Cheque"
+                    MEDIO_DE_PAGO: "Cheque",
+                    OBSERVACION: "Ajuste por diferencias contables"
                 }
             ],
             3: [
                 {
+                    ID_DETALLE: "2054",
                     NOMBRE: "Reconciliación Banco",
                     COMPROBANTES: "REC-001-2024",
                     FECHA_REGULARIZACION: "2024-03-10",
                     MONTO: "$25,000.00",
                     ASESOR: "Luis Pérez",
-                    MEDIO_DE_PAGO: "Transferencia"
+                    MEDIO_DE_PAGO: "Transferencia",
+                    OBSERVACION: "Reconciliación bancaria mensual"
                 },
                 {
+                    ID_DETALLE: "2055",
                     NOMBRE: "Ajuste Diferencia",
                     COMPROBANTES: "AJ-002-2024",
                     FECHA_REGULARIZACION: "2024-03-11",
                     MONTO: "$2,500.00",
                     ASESOR: "Luis Pérez",
-                    MEDIO_DE_PAGO: "Efectivo"
+                    MEDIO_DE_PAGO: "Efectivo",
+                    OBSERVACION: "Ajuste por diferencias menores"
                 }
             ],
             4: [
                 {
+                    ID_DETALLE: "2056",
                     NOMBRE: "Gastos Operativos",
                     COMPROBANTES: "GO-001-2024",
                     FECHA_REGULARIZACION: "2024-03-20",
                     MONTO: "$12,000.00",
                     ASESOR: "Patricia López",
-                    MEDIO_DE_PAGO: "Tarjeta"
+                    MEDIO_DE_PAGO: "Tarjeta",
+                    OBSERVACION: "Gastos operativos del mes"
                 }
             ],
             5: [
                 {
+                    ID_DETALLE: "2057",
                     NOMBRE: "Ajuste Inventario",
                     COMPROBANTES: "AI-001-2024",
                     FECHA_REGULARIZACION: "2024-03-25",
                     MONTO: "$9,000.00",
                     ASESOR: "Roberto Silva",
-                    MEDIO_DE_PAGO: "Transferencia"
+                    MEDIO_DE_PAGO: "Transferencia",
+                    OBSERVACION: "Ajuste de inventario físico"
                 }
             ]
         };
@@ -557,11 +889,12 @@
                                         <th>MONTO</th>
                                         <th>ASESOR</th>
                                         <th>MEDIO DE PAGO</th>
+                                        <th>ACCIONES</th>
                                     </tr>
                                 </thead>
                                 <tbody id="detailTableBody-${id}">
                                     <tr>
-                                        <td colspan="6" class="loading">
+                                        <td colspan="7" class="loading">
                                             <i class="fas fa-spinner"></i>
                                             <p>Cargando detalles...</p>
                                         </td>
@@ -631,7 +964,7 @@
             if (!data || data.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="6" class="no-data">
+                        <td colspan="7" class="no-data">
                             <i class="fas fa-inbox"></i>
                             <p>No hay detalles disponibles</p>
                         </td>
@@ -648,6 +981,16 @@
                     <td>${item.MONTO}</td>
                     <td>${item.ASESOR}</td>
                     <td>${item.MEDIO_DE_PAGO}</td>
+                    <td>
+                        <button class="action-btn update-btn" onclick="openUpdateModal('${item.ID_DETALLE || item.id_detalle}', '${item.COMPROBANTES}', '${item.FECHA_REGULARIZACION}', '${item.MONTO}', '${item.ASESOR}', '${item.MEDIO_DE_PAGO}', '${item.OBSERVACION || ''}')">
+                            <i class="fas fa-edit"></i>
+                            Actualizar
+                        </button>
+                        <button class="action-btn delete-btn" onclick="confirmDelete('${item.ID_DETALLE || item.id_detalle}')">
+                            <i class="fas fa-trash"></i>
+                            Eliminar
+                        </button>
+                    </td>
                 </tr>
             `).join('');
         }
@@ -669,6 +1012,172 @@
             
             // En producción, implementar la descarga real:
             // window.open(`${api}/download/${id}`, '_blank');
+        }
+
+        // Variables globales para modales
+        let currentUpdateId = null;
+        let currentDeleteId = null;
+
+        // Funciones para el modal de actualización
+        function openUpdateModal(id, comprobantes, fecha, monto, asesor, medioPago, observacion) {
+            currentUpdateId = id;
+            
+            // Llenar el formulario con los datos actuales
+            document.getElementById('comprobantes').value = comprobantes || '';
+            document.getElementById('fecha_regularizacion').value = fecha || '';
+            document.getElementById('monto').value = monto || '';
+            document.getElementById('asesor').value = asesor || '';
+            
+            // Corregir el combo box de medio de pago
+            const medioPagoSelect = document.getElementById('medio_de_pago');
+            medioPagoSelect.value = medioPago || '';
+            
+            document.getElementById('observaciones').value = observacion || '';
+            
+            // Mostrar el modal
+            document.getElementById('updateModal').classList.add('show');
+        }
+
+        function closeUpdateModal() {
+            document.getElementById('updateModal').classList.remove('show');
+            currentUpdateId = null;
+            document.getElementById('updateForm').reset();
+        }
+
+        async function updateRegularizacion() {
+            if (!currentUpdateId) {
+                alert('Error: No se ha seleccionado un registro para actualizar');
+                return;
+            }
+
+            const form = document.getElementById('updateForm');
+            const formData = new FormData(form);
+            
+            // Validar campos requeridos
+            const requiredFields = ['comprobantes', 'fecha_regularizacion', 'monto', 'asesor', 'medio_de_pago'];
+            for (let field of requiredFields) {
+                if (!formData.get(field)) {
+                    alert(`Por favor complete el campo: ${field}`);
+                    return;
+                }
+            }
+
+            try {
+                const api = "https://crudventas-2946605267.us-central1.run.app";
+                const area = "regularizacion";
+                const forma = "actualizar";
+                
+                const data = {
+                    id: currentUpdateId,
+                    comprobantes: formData.get('comprobantes'),
+                    fecha_regularizacion: formData.get('fecha_regularizacion'),
+                    monto: formData.get('monto'),
+                    asesor: formData.get('asesor'),
+                    medio_de_pago: formData.get('medio_de_pago'),
+                    observacion: formData.get('observaciones') || ''
+                };
+
+                console.log('Enviando datos de actualización:', data);
+
+                const response = await fetch(`${api}?area=${area}&forma=${forma}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                console.log('Status de respuesta actualización:', response.status);
+
+                if (response.status === 200) {
+                    const result = await response.json();
+                    console.log('Respuesta de actualización:', result);
+                    
+                    alert('Registro actualizado exitosamente');
+                    closeUpdateModal();
+                    
+                    // Recargar los datos para mostrar los cambios
+                    const mainId = document.querySelector('#mainTableBody tr.selected').getAttribute('data-id');
+                    loadDetailData(mainId);
+                } else {
+                    console.error('Error en la respuesta de actualización:', response.status);
+                    alert('Error al actualizar el registro. Por favor intente nuevamente.');
+                }
+            } catch (error) {
+                console.error('Error actualizando registro:', error);
+                alert('Error de conexión. Por favor intente nuevamente.');
+            }
+        }
+
+        // Funciones para el modal de confirmación de eliminación
+        function confirmDelete(id) {
+            currentDeleteId = id;
+            document.getElementById('confirmModal').classList.add('show');
+        }
+
+        function closeConfirmModal() {
+            document.getElementById('confirmModal').classList.remove('show');
+            currentDeleteId = null;
+        }
+
+        async function deleteRegularizacion() {
+            if (!currentDeleteId) {
+                alert('Error: No se ha seleccionado un registro para eliminar');
+                return;
+            }
+
+            try {
+                const api = "https://crudventas-2946605267.us-central1.run.app";
+                const area = "regularizacion";
+                const forma = "eliminar";
+                
+                const data = {
+                    id: currentDeleteId
+                };
+
+                console.log('Enviando datos de eliminación:', data);
+
+                const response = await fetch(`${api}?area=${area}&forma=${forma}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                console.log('Status de respuesta eliminación:', response.status);
+
+                if (response.status === 200) {
+                    const result = await response.json();
+                    console.log('Respuesta de eliminación:', result);
+                    
+                    alert('Registro eliminado exitosamente');
+                    closeConfirmModal();
+                    
+                    // Recargar los datos para mostrar los cambios
+                    const mainId = document.querySelector('#mainTableBody tr.selected').getAttribute('data-id');
+                    loadDetailData(mainId);
+                } else {
+                    console.error('Error en la respuesta de eliminación:', response.status);
+                    alert('Error al eliminar el registro. Por favor intente nuevamente.');
+                }
+            } catch (error) {
+                console.error('Error eliminando registro:', error);
+                alert('Error de conexión. Por favor intente nuevamente.');
+            }
+        }
+
+        // Cerrar modales al hacer clic fuera de ellos
+        window.onclick = function(event) {
+            const updateModal = document.getElementById('updateModal');
+            const confirmModal = document.getElementById('confirmModal');
+            
+            if (event.target === updateModal) {
+                closeUpdateModal();
+            }
+            if (event.target === confirmModal) {
+                closeConfirmModal();
+            }
         }
 
         // Cargar datos al iniciar la página
