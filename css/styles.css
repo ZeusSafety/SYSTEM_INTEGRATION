@@ -6,17 +6,17 @@
 }
 
 :root {
-    --negro-principal: #1a1a1a;
-    --negro-oscuro: #000000;
-    --amarillo-seguridad: #ffd700;
-    --amarillo-claro: #fff3cd;
-    --naranja-industrial: #ff8c00;
-    --naranja-claro: #ffa500;
-    --blanco: #ffffff;
-    --gris-industrial: #2c2c2c;
-    --gris-claro: #f8f9fa;
-    --gris-medio: #6c757d;
-    --rojo-alerta: #dc3545;
+    --negro-principal: #0b274d;
+    --negro-oscuro: #022949;
+    --amarillo-seguridad: #d3b829;
+    --amarillo-claro: #01b6f7;
+    --naranja-industrial: #fb8d06;
+    --naranja-claro: #000000;
+    --blanco: #e9e4e4;
+    --gris-industrial: #070d1c;
+    --gris-claro: #fbfbfb;
+    --gris-medio: #1c80cb;
+    --rojo-alerta: #bb2e3b;
     --verde-exito: #28a745;
 }
 
@@ -30,14 +30,14 @@ body {
 
 /* Header */
 .header {
-    background: rgba(26, 26, 26, 0.95);
-    padding: 30px 40px;
+    background: white;
+    padding: 20px 10px;
     box-shadow: 0 8px 32px rgba(0,0,0,0.3);
     position: sticky;
     top: 0;
     z-index: 100;
     backdrop-filter: blur(10px);
-    border-bottom: 4px solid var(--amarillo-seguridad);
+    border-bottom: 4px solid #d3b30a;
 }
 
 .logo-container {
@@ -47,8 +47,8 @@ body {
 }
 
 .logo {
-    width: 70px;
-    height: 70px;
+    width: auto;
+    height: 100px;
     object-fit: contain;
     filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
     transition: transform 0.3s ease;
