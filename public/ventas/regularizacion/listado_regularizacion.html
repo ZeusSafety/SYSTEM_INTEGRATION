@@ -872,7 +872,7 @@
                 apiStatus.innerHTML = '<i class="fas fa-spinner"></i> Conectando a API...';
                 
                 // Llamada real a la API
-                const api = "https://crudventas-2946605267.us-central1.run.app";
+                const api = "https://regularizacioncrud-2946605267.us-central1.run.app";
                 const area = "regularizacion";
                 
                 const response = await fetch(`${api}?area=${area}`);
@@ -1029,7 +1029,7 @@
                 console.log('Cargando detalles para ID:', id);
                 
                 // Llamada real a la API de detalles
-                const api = "https://crudventas-2946605267.us-central1.run.app";
+                const api = "https://regularizacioncrud-2946605267.us-central1.run.app";
                 const area = "regularizacion";
                 
                 const response = await fetch(`${api}?area=${area}&id=${id}`);
@@ -1179,7 +1179,7 @@
             }
 
             try {
-                const api = "https://crudventas-2946605267.us-central1.run.app";
+                const api = "https://regularizacioncrud-2946605267.us-central1.run.app";
                 const area = "regularizacion";
                 const forma = "actualizar";
                 
@@ -1243,7 +1243,7 @@
             }
 
             try {
-                const api = "https://crudventas-2946605267.us-central1.run.app";
+                const api = "https://regularizacioncrud-2946605267.us-central1.run.app";
                 const area = "regularizacion";
                 const forma = "eliminar";
                 
@@ -1297,7 +1297,7 @@
         }
 
         // Función para buscar por comprobante
-        function buscarComprobante() {
+        async function buscarComprobante() {
             const comprobante = document.getElementById('searchComprobante').value.trim();
             const tbody = document.getElementById('searchTableBody');
             
@@ -1323,18 +1323,83 @@
                 </tr>
             `;
 
-            // Por ahora, mostrar mensaje de que la funcionalidad estará disponible pronto
-            setTimeout(() => {
+            try {
+                console.log('Buscando comprobante:', comprobante);
+                
+                // Llamada a la API de búsqueda
+                const api = "https://regularizacioncrud-2946605267.us-central1.run.app";
+                const area = "busqueda";
+                const id = comprobante;
+                
+                const response = await fetch(`${api}?area=${area}&id=${encodeURIComponent(id)}`);
+                console.log('Status de respuesta búsqueda:', response.status);
+                
+                if (response.status === 200) {
+                    const data = await response.json();
+                    console.log('Datos de búsqueda cargados:', data);
+                    displaySearchResults(data);
+                } else {
+                    console.error('Error en la respuesta de búsqueda:', response.status);
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="7" class="no-data">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <p>Error al buscar el comprobante</p>
+                                <p><small>Comprobante: ${comprobante}</small></p>
+                            </td>
+                        </tr>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error en la búsqueda:', error);
                 tbody.innerHTML = `
                     <tr>
                         <td colspan="7" class="no-data">
-                            <i class="fas fa-tools"></i>
-                            <p>Funcionalidad de búsqueda en desarrollo</p>
-                            <p><small>Comprobante buscado: ${comprobante}</small></p>
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <p>Error de conexión al buscar</p>
+                            <p><small>Comprobante: ${comprobante}</small></p>
                         </td>
                     </tr>
                 `;
-            }, 1000);
+            }
+        }
+
+        // Función para mostrar resultados de búsqueda
+        function displaySearchResults(data) {
+            const tbody = document.getElementById('searchTableBody');
+            
+            if (!data || data.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="no-data">
+                            <i class="fas fa-search"></i>
+                            <p>No se encontraron resultados para la búsqueda</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = data.map(item => `
+                <tr>
+                    <td>${item.NOMBRE || ''}</td>
+                    <td>${item.COMPROBANTES || ''}</td>
+                    <td>${formatDate(item.FECHA_REGULARIZACION) || ''}</td>
+                    <td>${item.MONTO || ''}</td>
+                    <td>${item.ASESOR || ''}</td>
+                    <td>${item.MEDIO_DE_PAGO || ''}</td>
+                    <td>
+                        <button class="action-btn update-btn" onclick="openUpdateModal('${item.ID_DETALLE || ''}', '${item.COMPROBANTES || ''}', '${item.FECHA_REGULARIZACION || ''}', '${item.MONTO || ''}', '${item.ASESOR || ''}', '${item.MEDIO_DE_PAGO || ''}', '${item.OBSERVACION || ''}')">
+                            <i class="fas fa-edit"></i>
+                            Actualizar
+                        </button>
+                        <button class="action-btn delete-btn" onclick="confirmDelete('${item.ID_DETALLE || ''}')">
+                            <i class="fas fa-trash"></i>
+                            Eliminar
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
         }
 
         // Permitir búsqueda con Enter
