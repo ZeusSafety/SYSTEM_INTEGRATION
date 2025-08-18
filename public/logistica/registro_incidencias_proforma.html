@@ -60,13 +60,23 @@
     .filter-group{ display:flex; flex-direction:column; font-size:.85rem; min-width:180px; }
     .filter-actions{ margin-left:auto; display:flex; gap:.5rem; align-items:center; }
 
-    .cell-actions{ display:flex; gap:.5rem; align-items:center; }
-    .icon-btn{ cursor:pointer; text-decoration:none; }
+    .cell-actions{ display:flex; gap:.5rem; align-items:center; justify-content:center; }
+    .icon-btn{ cursor:pointer; text-decoration:none; color: #007bff; font-weight: bold; }
+    .icon-btn:hover{ color: #0056b3; text-decoration: underline; }
     .nowrap{ white-space:nowrap; }
 
     /* Column tweaks con reindexación por "Registrado por" */
+    /* Columna de ítems de error (columna 9) */
     #tablaIncidencias th:nth-child(9),
-    #tablaIncidencias td:nth-child(9){ min-width:110px; white-space:nowrap; text-align:center; }
+    #tablaIncidencias td:nth-child(9){ min-width:120px; white-space:nowrap; text-align:center; }
+    
+    /* Columna de observaciones adicionales (columna 15) */
+    #tablaIncidencias th:nth-child(15),
+    #tablaIncidencias td:nth-child(15){ min-width:100px; white-space:nowrap; text-align:center; }
+    
+    /* Columna de archivo de solución (columna 19) */
+    #tablaIncidencias th:nth-child(19),
+    #tablaIncidencias td:nth-child(19){ min-width:120px; white-space:nowrap; text-align:center; }
     #tablaIncidencias th:nth-child(12),
     #tablaIncidencias td:nth-child(12){ min-width:160px; white-space:nowrap; }
     #tablaIncidencias th:nth-child(12),
@@ -470,10 +480,28 @@
 
     // ===== Funciones de filtrado y búsqueda =====
     const findById=(id)=>{
-      console.log('Buscando ID:', id);
-      console.log('Registros disponibles:', allRecords);
-      const found = allRecords.find(r=>r && r.ID===id);
-      console.log('Registro encontrado:', found);
+      console.log('Buscando ID:', id, 'Tipo:', typeof id);
+      
+      // Convertir el ID a número si es posible
+      const numId = parseInt(id, 10);
+      const isNumId = !isNaN(numId);
+      
+      // Buscar por diferentes posibles campos de ID
+      const found = allRecords.find(r => {
+        if (!r) return false;
+        
+        const rId = r.ID || r.id || r.Id;
+        
+        // Si el ID buscado es un número válido, comparar como números
+        if (isNumId) {
+          return rId === numId;
+        }
+        
+        // Si no es número, comparar como strings
+        return String(rId) === String(id);
+      });
+      
+      console.log('Registro encontrado:', found ? 'SÍ' : 'NO');
       return found || null;
     };
     const norm=(s)=> (s||'').toUpperCase().replace(/[ÁÀÂÄ]/g,'A').replace(/[ÉÈÊË]/g,'E').replace(/[ÍÌÎÏ]/g,'I').replace(/[ÓÒÔÖ]/g,'O').replace(/[ÚÙÛÜ]/g,'U');
@@ -501,6 +529,9 @@
       const box=document.createElement('div'); 
       box.className='cell-actions'; 
       
+      const recordId = rec.ID || rec.id || rec.Id;
+      console.log('Asignando ID en itemsCell:', recordId, 'Tipo:', typeof recordId);
+      
       // Botón para ver detalles
       const eye=document.createElement('a'); 
       eye.href='#'; 
@@ -508,7 +539,7 @@
       eye.className='icon-btn'; 
       eye.title='Ver ítems'; 
       eye.dataset.action='view'; 
-      eye.dataset.id=rec.ID; 
+      eye.dataset.id=recordId; 
       box.appendChild(eye);
       
       // Botón para generar PDF
@@ -518,7 +549,7 @@
       pdf.className='icon-btn'; 
       pdf.title='Generar PDF'; 
       pdf.dataset.action='pdf'; 
-      pdf.dataset.id=rec.ID; 
+      pdf.dataset.id=recordId; 
       box.appendChild(document.createTextNode(' ')); 
       box.appendChild(pdf);
       
@@ -526,14 +557,52 @@
       return td; 
     };
 
-    const archivoCell=(rec)=>{ const td=document.createElement('td'); const box=document.createElement('div'); box.className='cell-actions'; const hasText=!!String(rec.ARCHIVO_SOLUCION_PDF||'').trim(); if(hasText){ const a=document.createElement('a'); a.href='#'; a.textContent='Ver'; a.className='icon-btn'; a.dataset.action='view-text'; a.dataset.id=rec.ID; box.appendChild(a);} if(!box.children.length){ box.appendChild(document.createTextNode('—')); } const btn=document.createElement('button'); btn.className='btn btn-ghost'; btn.textContent='Editar'; btn.dataset.action='edit-file'; btn.dataset.id=rec.ID; box.appendChild(document.createTextNode(' ')); box.appendChild(btn); td.appendChild(box); return td; };
+    const archivoCell=(rec)=>{ 
+      const td=document.createElement('td'); 
+      const box=document.createElement('div'); 
+      box.className='cell-actions'; 
+      
+      const recordId = rec.ID || rec.id || rec.Id;
+      console.log('Asignando ID en archivoCell:', recordId, 'Tipo:', typeof recordId);
+      
+      const hasText=!!String(rec.ARCHIVO_SOLUCION_PDF||'').trim(); 
+      if(hasText){ 
+        const a=document.createElement('a'); 
+        a.href='#'; 
+        a.textContent='Ver'; 
+        a.className='icon-btn'; 
+        a.dataset.action='view-text'; 
+        a.dataset.id=recordId; 
+        box.appendChild(a);
+      } 
+      if(!box.children.length){ 
+        box.appendChild(document.createTextNode('—')); 
+      } 
+      const btn=document.createElement('button'); 
+      btn.className='btn btn-ghost'; 
+      btn.textContent='Editar'; 
+      btn.dataset.action='edit-file'; 
+      btn.dataset.id=recordId; 
+      box.appendChild(document.createTextNode(' ')); 
+      box.appendChild(btn); 
+      td.appendChild(box); 
+      return td; 
+    };
 
     function renderList(){
       const tbody=document.querySelector('#tablaIncidencias tbody'); tbody.innerHTML='';
       const filtered=filterRecords();
       console.log('Registros filtrados:', filtered);
+      
+      // Debug: mostrar estructura del primer registro
+      if(filtered.length > 0) {
+        console.log('Estructura del primer registro:', Object.keys(filtered[0]));
+        console.log('Primer registro completo:', filtered[0]);
+      }
       filtered.forEach(rec=>{
-        const tr=document.createElement('tr'); const id=rec.ID;
+        const tr=document.createElement('tr'); 
+        const id=rec.ID || rec.id || rec.Id;
+        console.log('Procesando registro con ID:', id, 'Registro:', rec);
         tr.appendChild(tdText(id));
         tr.appendChild(tdHTML(spanNowrap(fmtDateDisplay(rec.FECHA_REGISTRO)||'')));
         tr.appendChild(tdText(rec.REGISTRADO_POR));
@@ -550,7 +619,23 @@
         tr.appendChild(tdText(rec.TIPO_INCIDENCIA));
         tr.appendChild(tdHTML(spanNowrap(fmtDateDisplay(rec.FECHA_NOTIFICACION)||'')));
         tr.appendChild(tdHTML(spanNowrap(rec.SOLUCION||'')));
-        const tdObs=document.createElement('td'); const txt=String(rec.OBSERVACION_ADICIONAL_CORRECION||'').trim(); if(txt){ const a=document.createElement('a'); a.href='#'; a.textContent='👁️'; a.className='icon-btn'; a.dataset.action='view-obs-log'; a.dataset.id=id; tdObs.appendChild(a);} else tdObs.textContent='—'; tr.appendChild(tdObs);
+        const tdObs=document.createElement('td'); 
+        const txt=String(rec.OBSERVACION_ADICIONAL_CORRECION||'').trim(); 
+        const recordId = rec.ID || rec.id || rec.Id;
+        console.log('Asignando ID en observaciones:', recordId, 'Tipo:', typeof recordId);
+        
+        if(txt){ 
+          const a=document.createElement('a'); 
+          a.href='#'; 
+          a.textContent='👁️'; 
+          a.className='icon-btn'; 
+          a.dataset.action='view-obs-log'; 
+          a.dataset.id=recordId; 
+          tdObs.appendChild(a);
+        } else {
+          tdObs.textContent='—';
+        } 
+        tr.appendChild(tdObs);
         tr.appendChild(tdText(rec.REVISADO_POR));
         const est=String(rec.ESTADO_INCIDENCIA||'').toUpperCase(); const badge=document.createElement('span'); badge.className=`badge ${badgeClass(est)}`; badge.textContent=est; tr.appendChild(tdHTML(badge));
         tr.appendChild(tdHTML(spanNowrap(fmtDateDisplay(rec.FECHA_ENVIO_ARCHIVO)||'')));
@@ -561,12 +646,37 @@
       });
 
       document.querySelector('#tablaIncidencias').onclick=(e)=>{
-        const t=e.target.closest('a,button'); if(!t) return; const action=t.dataset.action; const id=t.dataset.id||'';
-        if(action==='view'){ e.preventDefault(); showDetailById(id); }
-        if(action==='pdf'){ e.preventDefault(); generatePDFById(id); }
-        if(action==='edit-file'){ e.preventDefault(); openArchivoModalById(id); }
-        if(action==='view-text'){ e.preventDefault(); openViewTextModalById(id); }
-        if(action==='view-obs-log'){ e.preventDefault(); openObsModalById_Log(id); }
+        const t=e.target.closest('a,button'); 
+        if(!t) return; 
+        const action=t.dataset.action; 
+        const id=t.dataset.id||'';
+        console.log('Click en acción:', action, 'ID:', id);
+        
+        if(action==='view'){ 
+          e.preventDefault(); 
+          console.log('Abriendo detalles para ID:', id);
+          showDetailById(id); 
+        }
+        if(action==='pdf'){ 
+          e.preventDefault(); 
+          console.log('Generando PDF para ID:', id);
+          generatePDFById(id); 
+        }
+        if(action==='edit-file'){ 
+          e.preventDefault(); 
+          console.log('Abriendo modal de archivo para ID:', id);
+          openArchivoModalById(id); 
+        }
+        if(action==='view-text'){ 
+          e.preventDefault(); 
+          console.log('Abriendo modal de texto para ID:', id);
+          openViewTextModalById(id); 
+        }
+        if(action==='view-obs-log'){ 
+          e.preventDefault(); 
+          console.log('Abriendo modal de observaciones para ID:', id);
+          openObsModalById_Log(id); 
+        }
       };
 
       adjustTableViewport();
