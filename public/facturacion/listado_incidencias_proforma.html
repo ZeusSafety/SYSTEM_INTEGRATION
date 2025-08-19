@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<!-- alias: FACTURACION2025ORIGINALZEUS | módulo: facturación | STORAGE_KEY=incidencias_v12 -->
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Área de Facturación: Listado de incidencia de comprobantes y actas</title>
+  <style>
+    :root{
+      --azul:#0056D2;           /* azul vivo (coherente con logística/administración) */
+      --negro:#000000;           /* encabezado de tabla */
+      --gris:#FFFFFF;            /* fondo general blanco */
+      --rojo:#FF3B30;            /* eliminar / alerta */
+      --verde:#00B140;           /* guardar/ok */
+      --link:#0056D2;            /* enlaces dentro de celdas */
+      --amarillo:#ffc107; --naranja:#ff9800; --celeste:#17a2b8; --verde-suave:#4caf50;
+    }
+    body{ font-family:Arial, sans-serif; margin:0; background:var(--gris); color:#000; }
+    header.titulo-principal{ background:var(--azul); color:#fff; font-weight:bold; padding:10px 15px; border-radius:5px 5px 0 0; text-align:left; }
+
+    .container{ max-width:1400px; margin:0 auto; padding:1rem; }
+    .card{ background:#fff; border-radius:8px; box-shadow:0 6px 18px rgba(18,38,63,.08); margin-bottom:1.25rem; overflow:hidden; }
+    .card-header{ background:var(--azul); color:#fff; padding:.75rem 1rem; display:flex; align-items:center; justify-content:space-between; }
+    .card-header h2{ margin:0; font-size:1.05rem; }
+    .card-body{ padding:1rem; }
+
+    /* Filtros como logística/administración */
+    .filter-row{ display:flex; flex-wrap:wrap; gap:1rem; align-items:flex-end; margin-bottom:.75rem; }
+    .filter-group{ display:flex; flex-direction:column; font-size:.85rem; min-width:180px; }
+    .filter-actions{ margin-left:auto; display:flex; gap:.5rem; align-items:center; }
+
+    .btn{ padding:.45rem .8rem; border:none; border-radius:6px; cursor:pointer; font-size:.85rem; }
+    .btn-azul{ background:var(--azul); color:#fff; }
+    .btn-azul:hover{ filter:brightness(.92); }
+    .btn-ghost{ background:transparent; border:1px solid #ddd; }
+    .btn-ok{ background:var(--verde); color:#fff; }
+    .btn-danger{ background:var(--rojo); color:#fff; }
+    .btn-outline-light{ background:transparent; color:#fff; border:1px solid rgba(255,255,255,.75); border-radius:6px; padding:6px 12px; font-weight:600; display:inline-flex; align-items:center; gap:.35rem; }
+    .btn-outline-light:hover{ background:rgba(255,255,255,.12); border-color:#fff; }
+
+    .table-responsive{ overflow:auto; }
+    table{ width:100%; border-collapse:collapse; }
+    thead th{ background:var(--negro); color:#fff; text-align:center; padding:8px; position:sticky; top:0; z-index:1; }
+    th, td{ padding:.55rem; border:1px solid #e7e7e7; font-size:.85rem; vertical-align:top; }
+
+    td a{ color:var(--link); text-decoration:none; cursor:pointer; } /* sin subrayado (👁️ / PDF) */
+    .nowrap{ white-space:nowrap; }
+    .inline-row{ display:inline-flex; align-items:center; gap:.5rem; white-space:nowrap; }
+    .cell-actions{ display:flex; gap:.5rem; align-items:center; }
+
+    /* Badges (Administración) */
+    .badge{ padding:.2rem .5rem; border-radius:.25rem; color:#fff; font-size:.75rem; display:inline-block; }
+    .badge-pendiente{ background:var(--amarillo); color:#000; }
+    .badge-enrevision{ background:var(--naranja); }
+    .badge-notificado{ background:var(--celeste); }
+    .badge-completado{ background:var(--verde-suave); }
+    .badge-observado{ background:#c00000; }
+
+    /* Estado de solución (Facturación) */
+    .badge-sol-pendiente{ background:var(--amarillo); color:#000; }
+    .badge-sol-realizado{ background:var(--verde); }
+
+    /* Alineaciones específicas por índice (tras agregar 2 columnas) */
+    /* 7: N° proforma/acta | 8: N° comprobante | 9: Ítems | 10: Tipo */
+    #tablaFact th:nth-child(7), #tablaFact td:nth-child(7){ text-align:center; }
+    #tablaFact th:nth-child(8), #tablaFact td:nth-child(8){ text-align:center; }
+    #tablaFact th:nth-child(9), #tablaFact td:nth-child(9){ text-align:center; }
+    #tablaFact th:nth-child(10), #tablaFact td:nth-child(10){ text-align:center; text-transform:uppercase; }
+    /* 12: Solución (texto) */
+    #tablaFact th:nth-child(12), #tablaFact td:nth-child(12){ text-align:center; text-transform:uppercase; }
+    /* 14: Revisado por */
+    #tablaFact th:nth-child(14), #tablaFact td:nth-child(14){ text-align:center; text-transform:uppercase; }
+    /* 21: Estado de solución (badge+editar) */
+    #tablaFact th:nth-child(21), #tablaFact td:nth-child(21){ min-width:220px; white-space:nowrap; }
+    /* 22: Culminado centrado */
+    #tablaFact th:nth-child(22), #tablaFact td:nth-child(22){ text-align:center; }
+
+    /* Modales */
+    .modal{ position:fixed; inset:0; background:rgba(0,0,0,.5); display:none; justify-content:center; align-items:flex-start; padding-top:5%; z-index:1000; }
+    .modal-content{ background:#fff; padding:1rem; border-radius:8px; width:92%; max-width:640px; max-height:80vh; overflow-y:auto; box-shadow:0 12px 32px rgba(0,0,0,.25); }
+    .modal-close{ background:transparent; border:none; font-size:1.5rem; float:right; cursor:pointer; }
+    .form-group{ display:flex; flex-direction:column; margin-bottom:.75rem; }
+    .form-group label{ font-weight:bold; margin-bottom:.25rem; }
+    .form-group input, .form-group select, .form-group textarea{ padding:.5rem; border:1px solid #ccc; border-radius:6px; font-size:.9rem; }
+    .muted{ color:#6b7280; font-size:.85rem; }
+    .prelike{ white-space:pre-wrap; background:#f9fafb; border:1px solid #e5e7eb; border-radius:6px; padding:.5rem; }
+  </style>
+</head>
+<body>
+  <header class="titulo-principal">Área de Facturación: Listado de incidencia de comprobantes y actas</header>
+
+  <div class="container">
+    <div class="card">
+      <div class="card-header">
+        <h2>Listado de incidencias</h2>
+        <button type="button" id="btnProcedimiento" class="btn btn-outline-light" title="Ver procedimiento">
+          <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M20 22V6a2 2 0 0 0-2-2H6.5A2.5 2.5 0 0 0 4 6.5v13"/><path d="M8 6v12"/><path d="M12 6v12"/><path d="M16 6v12"/></svg>
+          Ver procedimiento
+        </button>
+      </div>
+      <div class="card-body">
+        <!-- Filtros (como logística/administración) -->
+        <div class="filter-row">
+          <div class="filter-group">
+            <label for="filterEstado">Filtrar por verificación</label>
+            <select id="filterEstado">
+              <option value="TODOS">Todos</option>
+              <option value="PENDIENTE">Pendiente</option>
+              <option value="EN REVISIÓN">En revisión</option>
+              <option value="NOTIFICADO">Notificado</option>
+              <option value="COMPLETADO">Completado</option>
+              <option value="OBSERVADO">Observado</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="filterStart">Desde</label>
+            <input type="date" id="filterStart" />
+          </div>
+          <div class="filter-group">
+            <label for="filterEnd">Hasta</label>
+            <input type="date" id="filterEnd" />
+          </div>
+          <div class="filter-actions">
+            <button id="applyFilter" class="btn btn-azul">Aplicar filtros</button>
+            <button id="clearFilters" class="btn btn-ghost">Limpiar</button>
+            <button id="exportCSV" class="btn btn-azul">Exportar CSV</button>
+            <button id="generateReport" class="btn btn-azul">Generar reporte</button>
+          </div>
+        </div>
+
+        <div class="table-responsive" id="tableViewport">
+          <table id="tablaFact">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Fecha de registro</th>
+                <th>Registrado por</th>
+                <th>Mes</th>
+                <th>Encargado comprobante</th>
+                <th>Fecha de emisión</th>
+                <th>N° proforma/acta</th>
+                <th>N° comprobante</th>
+                <th>Ítems de error</th>
+                <th>Tipo de incidencia</th>
+                <th>Fecha de notificación</th>
+                <th>Solución</th>
+                <th>Obs. adicionales</th>
+                <th>Revisado por</th>
+                <th>Estado de verificación</th>
+                <th>Fecha envío de archivo</th>
+                <th>Archivo de solución</th>
+                <th>Fecha de corrección</th>
+                <th>Comprobante</th>
+                <th>N° de comprobante</th>
+                <th>Estado de solución</th>
+                <th>Culminado</th>
+                <th>Fecha concluyente</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modales básicos -->
+  <div id="detailModal" class="modal" role="dialog" aria-modal="true">
+    <div class="modal-content">
+      <button class="modal-close" id="closeDetail" aria-label="Cerrar">&times;</button>
+      <div id="detailContent"></div>
+    </div>
+  </div>
+
+  <div id="viewTextModal" class="modal" role="dialog" aria-modal="true">
+    <div class="modal-content">
+      <button class="modal-close" id="closeViewText" aria-label="Cerrar">&times;</button>
+      <h3 style="margin-top:0">Archivo de solución — texto/enlace</h3>
+      <div id="viewArchivoContent"></div>
+    </div>
+  </div>
+
+  <div id="procedimientoModal" class="modal" role="dialog" aria-modal="true">
+    <div class="modal-content">
+      <button class="modal-close" id="closeProcedimiento" aria-label="Cerrar">&times;</button>
+      <h3 style="margin-top:0">Procedimiento</h3>
+      <div class="prelike">1) Paso inicial\n2) Paso intermedio\n3) Paso final</div>
+    </div>
+  </div>
+
+  <!-- Modal: Editar Estado de solución (Facturación) -->
+  <div id="estadoSolModal" class="modal" role="dialog" aria-modal="true">
+    <div class="modal-content">
+      <button class="modal-close" id="closeEstadoSol" aria-label="Cerrar">&times;</button>
+      <h3 style="margin-top:0">Actualizar estado de solución</h3>
+      <p class="muted">Fecha de corrección: <strong>se registrará automáticamente al guardar</strong>.</p>
+      <div class="form-group">
+        <label for="fTipoComprobante">Comprobante</label>
+        <select id="fTipoComprobante">
+          <option value="">Seleccione...</option>
+          <option>factura</option>
+          <option>boleta</option>
+          <option>nota de venta</option>
+          <option>acta</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="fNumeroComprobante">N° de comprobante</label>
+        <input type="text" id="fNumeroComprobante" placeholder="Ej. F001-123456" />
+      </div>
+      <div class="form-group">
+        <label for="fEstadoSolucion">Estado de solución</label>
+        <select id="fEstadoSolucion">
+          <option value="">Seleccione...</option>
+          <option>Pendiente</option>
+          <option>Realizado</option>
+        </select>
+      </div>
+      <div class="inline-row">
+        <button id="saveEstadoSol" class="btn btn-ok">Guardar</button>
+        <button id="cancelEstadoSol" class="btn btn-ghost">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script>
+    // =====================
+    // Datos & helpers base
+    // =====================
+    const STORAGE_KEY='incidencias_v12';
+    const loadStored=()=>{ try{const s=localStorage.getItem(STORAGE_KEY); return s?JSON.parse(s):[]}catch{ localStorage.removeItem(STORAGE_KEY); return [];} };
+    const saveStored=(arr)=>localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
+    const getAllRecords=()=>loadStored();
+    const findById=(id)=>getAllRecords().find(r=>r && r.ID===id)||null;
+    const upsertStoredById=(rec)=>{ const s=loadStored(); const i=s.findIndex(r=>r&&r.ID===rec.ID); if(i===-1) s.unshift(rec); else s[i]=rec; saveStored(s); };
+
+    const nowLocalISO=()=>{ const d=new Date(); const yyyy=d.getFullYear(); const mm=String(d.getMonth()+1).padStart(2,'0'); const dd=String(d.getDate()).padStart(2,'0'); const HH=String(d.getHours()).padStart(2,'0'); const MI=String(d.getMinutes()).padStart(2,'0'); const SS=String(d.getSeconds()).padStart(2,'0'); return `${yyyy}-${mm}-${dd}T${HH}:${MI}:${SS}`; };
+    const fmtDateDisplay=(dt)=>{ if(!dt) return ''; const d=new Date(dt); if(isNaN(d)) return dt; const dd=String(d.getDate()).padStart(2,'0'); const mm=String(d.getMonth()+1).padStart(2,'0'); const yyyy=d.getFullYear(); let hh=d.getHours(); const ap=hh>=12?'PM':'AM'; hh=hh%12||12; const mi=String(d.getMinutes()).padStart(2,'0'); const ss=String(d.getSeconds()).padStart(2,'0'); return `${dd}-${mm}-${yyyy} ${String(hh).padStart(2,'0')}:${mi}:${ss} ${ap}`; };
+
+    const badgeVerifClass=(v)=>{ const s=(v||'').toUpperCase(); if(s==='PENDIENTE')return 'badge-pendiente'; if(s==='EN REVISIÓN'||s==='EN REVISION')return 'badge-enrevision'; if(s==='NOTIFICADO')return 'badge-notificado'; if(s==='COMPLETADO')return 'badge-completado'; if(s==='OBSERVADO')return 'badge-observado'; return 'badge-pendiente'; };
+    const badgeSolClass=(v)=>{ const s=(v||'').toUpperCase(); if(s==='PENDIENTE')return 'badge-sol-pendiente'; if(s==='REALIZADO')return 'badge-sol-realizado'; return 'badge-sol-pendiente'; };
+
+    const tdText=(t)=>{ const td=document.createElement('td'); td.textContent=t==null?'':String(t); return td; };
+    const tdHTML=(n)=>{ const td=document.createElement('td'); td.appendChild(n); return td; };
+    const spanNowrap=(t)=>{ const s=document.createElement('span'); s.className='nowrap'; s.textContent=t||''; return s; };
+
+    const itemsCell=(rec)=>{ const td=document.createElement('td'); const arr=rec['ITEMS']; const ok=Array.isArray(arr)&&arr.length>0; if(!ok){ td.textContent='Sin ítems'; return td; } const eye=document.createElement('a'); eye.href='#'; eye.textContent='👁️'; eye.dataset.action='view-items'; eye.dataset.id=rec.ID; const pdf=document.createElement('a'); pdf.href='#'; pdf.textContent='PDF'; pdf.dataset.action='pdf'; pdf.dataset.id=rec.ID; td.append(eye, document.createTextNode(' '), pdf); return td; };
+    const archivoCell=(rec)=>{ const td=document.createElement('td'); const box=document.createElement('div'); box.className='inline-row'; const hasText=!!(rec['ARCHIVO SOLUCION TEXTO'] && String(rec['ARCHIVO SOLUCION TEXTO']).trim()); const hasPdf=!!(rec['ARCHIVO SOLUCION DATAURL']); if(hasText){ const a=document.createElement('a'); a.href='#'; a.textContent='Ver'; a.dataset.action='view-text'; a.dataset.id=rec.ID; box.appendChild(a);} if(hasPdf){ if(box.children.length) box.appendChild(document.createTextNode(' / ')); const a=document.createElement('a'); a.href=rec['ARCHIVO SOLUCION DATAURL']; a.setAttribute('download', rec['ARCHIVO SOLUCION NOMBRE']||'archivo.pdf'); a.textContent='PDF'; box.appendChild(a);} if(!box.children.length) box.appendChild(document.createTextNode('—')); td.appendChild(box); return td; };
+
+    const estadoSolCell=(rec)=>{ const td=document.createElement('td'); const box=document.createElement('div'); box.className='inline-row'; const estado=(rec['FACTURACION ESTADO SOLUCION']||'').toString(); const badge=document.createElement('span'); badge.className=`badge ${badgeSolClass(estado)}`; badge.textContent=(estado||'').toUpperCase()||'PENDIENTE'; const btn=document.createElement('button'); btn.className=( (estado||'').toUpperCase()==='REALIZADO' ? 'btn btn-ok':'btn btn-danger'); btn.textContent='Editar'; btn.dataset.action='edit-sol'; btn.dataset.id=rec.ID; box.append(badge, btn); td.appendChild(box); return td; };
+
+    // =====================
+    // Filtros y render
+    // =====================
+    const filterRecords=()=>{ const estadoSel=document.getElementById('filterEstado')?.value||'TODOS'; const start=document.getElementById('filterStart')?.value||''; const end=document.getElementById('filterEnd')?.value||''; return getAllRecords().filter(rec=>{ const est=(rec['ESTADO VERIFICACION']||'PENDIENTE').toString().toUpperCase(); if(estadoSel!=='TODOS' && est!==estadoSel) return false; const fISO=rec['FECHA DE EMISION']||''; const f=typeof fISO==='string'? fISO.substring(0,10):''; if(start && (!f||f<start)) return false; if(end && (!f||f>end)) return false; return true; }); };
+
+    const renderTable=()=>{ const tbody=document.querySelector('#tablaFact tbody'); tbody.innerHTML=''; filterRecords().forEach(rec=>{ const tr=document.createElement('tr');
+        const solucionUpper=(rec['SOLUCION DE COMPROBANTE']||rec['SOLUCION']||'').trim().toUpperCase();
+        const isSinIncidencia = (solucionUpper==='SIN INCIDENCIA');
+
+        tr.appendChild(tdText(rec['ID']||''));
+        tr.appendChild(tdHTML(spanNowrap(fmtDateDisplay(rec['FECHA REGISTRO'])||'')));  // 12h AM/PM
+        tr.appendChild(tdText(rec['REGISTRADO POR']||''));
+        tr.appendChild(tdText(rec['MES']||''));
+        tr.appendChild(tdText(rec['ENCARGADO DE LA VENTA']||rec['ENCARGADO DE COMPROBANTE']||''));
+        tr.appendChild(tdHTML(spanNowrap(fmtDateDisplay(rec['FECHA DE EMISION'])||'')));
+        tr.appendChild(tdText(rec['N° DE PROFORMA']||rec['N° PROFORMA O ACTA']||''));
+        tr.appendChild(tdText(rec['N° DE COMPROBANTE']||''));
+        tr.appendChild(itemsCell(rec));
+        // Tipo: extraer de logística y mostrar en MAYÚSCULAS
+        const tipo=(rec['OBSERVACIONES']||rec['TIPO DE INCIDENCIA']||'');
+        tr.appendChild(tdText(tipo? String(tipo).toUpperCase():''));
+        tr.appendChild(tdHTML(spanNowrap(fmtDateDisplay(rec['FECHA NOTIFICACION'])||'')));
+        // Solución: SOLO TEXTO (sin ojo), desde Administración
+        tr.appendChild(tdText(solucionUpper));
+        // Obs adicionales (texto)
+        tr.appendChild(tdText((rec['OBSERVACIONES_ADMIN']||'').trim()));
+        tr.appendChild(tdText((rec['REVISADO POR']||'').toString().toUpperCase()));
+        { const tdV=document.createElement('td'); const est=(rec['ESTADO VERIFICACION']||rec['ESTADO']||'').toUpperCase(); const badge=document.createElement('span'); badge.className=`badge ${badgeVerifClass(est)}`; badge.textContent=est||''; tdV.appendChild(badge); tr.appendChild(tdV); }
+        tr.appendChild(tdHTML(spanNowrap(fmtDateDisplay(rec['FECHA ENVIO ARCHIVO'])||'')));
+        tr.appendChild(archivoCell(rec));
+        // Facturación: si solución es SIN INCIDENCIA, los siguientes cuadros muestran "SIN INCIDENCIA"
+        tr.appendChild(tdHTML(spanNowrap(isSinIncidencia? 'SIN INCIDENCIA' : fmtDateDisplay(rec['FACTURACION FECHA CORRECCION']||''))));
+        tr.appendChild(tdText(isSinIncidencia? 'SIN INCIDENCIA' : (rec['FACTURACION TIPO COMPROBANTE']||'')));
+        tr.appendChild(tdText(isSinIncidencia? 'SIN INCIDENCIA' : (rec['FACTURACION NUMERO']||'')));
+        tr.appendChild( ( ()=>{ if(isSinIncidencia){ return tdText('SIN INCIDENCIA'); } return estadoSolCell(rec); } )() );
+        tr.appendChild(tdText((rec['CULMINADO']||'NO').toUpperCase()));
+        tr.appendChild(tdHTML(spanNowrap(fmtDateDisplay(rec['FECHA CONCLUYENTE']||rec['FECHA CULMINADO']||''))));
+        tbody.appendChild(tr);
+      });
+      adjustTableHeightToRows(10); // 10 visibles por defecto en Facturación
+    };
+
+    // Scroll calculado (ajuste visible)
+    const adjustTableHeightToRows=(n)=>{ try{ const table=document.getElementById('tablaFact'); if(!table) return; const cont=document.getElementById('tableViewport'); const thead=table.tHead; const tbody=table.tBodies[0]; if(!thead||!tbody) return; const rows=tbody.rows; if(!rows||!rows.length){ cont.style.maxHeight=''; cont.style.overflow=''; return; } const headerH=thead.getBoundingClientRect().height||40; const rowH=rows[0].getBoundingClientRect().height||40; const visible=Math.min(n, rows.length); const maxH=Math.ceil(headerH + rowH*visible + 2); cont.style.maxHeight=maxH+'px'; cont.style.overflow='auto'; }catch(_){ } };
+
+    // =====================
+    // Modales lectura / edición
+    // =====================
+    function showDetailById(id){ const rec=findById(id); if(!rec){ alert('No se encontró el registro.'); return; } const c=document.getElementById('detailContent'); c.innerHTML=''; const fields=[ ['ID',rec['ID']], ['Mes',rec['MES']], ['Encargado comprobante', rec['ENCARGADO DE LA VENTA']||rec['ENCARGADO DE COMPROBANTE']], ['Fecha de emisión', fmtDateDisplay(rec['FECHA DE EMISION'])], ['N° proforma/acta', rec['N° DE PROFORMA']||rec['N° PROFORMA O ACTA']], ['N° de comprobante', rec['N° DE COMPROBANTE']], ['Tipo de incidencia', rec['OBSERVACIONES']||rec['TIPO DE INCIDENCIA']||''], ['Fecha de notificación', fmtDateDisplay(rec['FECHA NOTIFICACION']||'')], ['Estado de verificación', (rec['ESTADO VERIFICACION']||rec['ESTADO']||'').toUpperCase()] ]; fields.forEach(([l,v])=>{ const p=document.createElement('p'); p.innerHTML=`<strong>${l}:</strong> ${v||''}`; c.appendChild(p); }); if(rec['ITEMS'] && rec['ITEMS'].length){ const ul=document.createElement('ul'); rec['ITEMS'].forEach((it,i)=>{ const li=document.createElement('li'); li.innerHTML=`<strong>Detalle ${i+1}:</strong> ${it['DETALLE DE ERROR']||''}<br><strong>Debe ser ${i+1}:</strong> ${it['DEBE SER']||''}`; ul.appendChild(li); }); c.appendChild(ul);} document.getElementById('detailModal').style.display='flex'; }
+
+    function isUrl(str){ try{ const u=new URL(str); return !!(u.protocol==='http:'||u.protocol==='https:'); }catch(_){ return false; } }
+    const openViewTextModalById=(id)=>{ const rec=findById(id); if(!rec){ alert('No se encontró el registro.'); return; } const cont=document.getElementById('viewArchivoContent'); cont.innerHTML=''; const txt=(rec['ARCHIVO SOLUCION TEXTO']||'').trim(); if(!txt){ cont.textContent='(Sin texto/enlace)'; } else if(isUrl(txt)){ const a=document.createElement('a'); a.href=txt; a.target='_blank'; a.textContent=txt; cont.appendChild(a);} else { const pre=document.createElement('div'); pre.className='prelike'; pre.textContent=txt; cont.appendChild(pre);} document.getElementById('viewTextModal').style.display='flex'; };
+
+    // Modal Estado de solución
+    let currentEditId=null;
+    const openEstadoSolModalById=(id)=>{ const rec=findById(id); if(!rec){ alert('No se encontró el registro.'); return; } currentEditId=id; document.getElementById('fTipoComprobante').value = rec['FACTURACION TIPO COMPROBANTE']||''; document.getElementById('fNumeroComprobante').value = rec['FACTURACION NUMERO']||''; const est=(rec['FACTURACION ESTADO SOLUCION']||''); const pres=['Pendiente','Realizado']; document.getElementById('fEstadoSolucion').value = pres.find(x=>x.toUpperCase()===(est||'').toUpperCase())||''; document.getElementById('estadoSolModal').style.display='flex'; };
+
+    // =====================
+    // Eventos globales
+    // =====================
+    window.addEventListener('load', ()=>{
+      renderTable();
+
+      // Delegación clicks en tabla
+      document.getElementById('tablaFact').addEventListener('click', (e)=>{
+        const t=e.target.closest('a,button'); if(!t) return; e.preventDefault(); const id=t.dataset.id; const action=t.dataset.action; if(action==='view-items'){ showDetailById(id);} if(action==='pdf'){ generatePDFById(id);} if(action==='view-text'){ openViewTextModalById(id);} if(action==='edit-sol'){ openEstadoSolModalById(id);} });
+
+      // Filtros
+      document.getElementById('applyFilter').onclick=()=>{ renderTable(); };
+      document.getElementById('clearFilters').onclick=()=>{ document.getElementById('filterEstado').value='TODOS'; document.getElementById('filterStart').value=''; document.getElementById('filterEnd').value=''; renderTable(); };
+
+      // Export CSV
+      document.getElementById('exportCSV').onclick=()=>{ const table=document.getElementById('tablaFact'); const header=[...table.tHead.rows[0].cells].map(th=>`"${th.innerText.replace(/"/g,'""')}"`).join(','); const body=[...table.tBodies[0].rows].map(tr=>[...tr.cells].map(td=>`"${td.innerText.replace(/"/g,'""')}"`).join(',')).join('\n'); const csv=header+'\n'+body; const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='incidencias_facturacion.csv'; a.click(); URL.revokeObjectURL(url); };
+
+      // Reporte PDF
+      document.getElementById('generateReport').onclick=async()=>{ const table=document.getElementById('tablaFact'); const canvas=await html2canvas(table); const img=canvas.toDataURL('image/png'); const { jsPDF }=window.jspdf; const pdf=new jsPDF({orientation:'landscape'}); const props=pdf.getImageProperties(img); const pdfW=pdf.internal.pageSize.getWidth(); const pdfH=(props.height*pdfW)/props.width; pdf.addImage(img,'PNG',0,10,pdfW,pdfH); pdf.save('reporte_incidencias_facturacion.pdf'); };
+
+      // Procedimiento
+      document.getElementById('btnProcedimiento').onclick=()=>{ document.getElementById('procedimientoModal').style.display='flex'; };
+      document.getElementById('closeProcedimiento').onclick=()=>{ document.getElementById('procedimientoModal').style.display='none'; };
+
+      // Cierre de modales
+      document.getElementById('closeDetail').onclick=()=>{ document.getElementById('detailModal').style.display='none'; };
+      document.getElementById('closeViewText').onclick=()=>{ document.getElementById('viewTextModal').style.display='none'; };
+      document.getElementById('closeEstadoSol').onclick=()=>{ document.getElementById('estadoSolModal').style.display='none'; };
+      document.getElementById('cancelEstadoSol').onclick=()=>{ document.getElementById('estadoSolModal').style.display='none'; };
+
+      // Guardar estado solución
+      document.getElementById('saveEstadoSol').onclick=()=>{ if(!currentEditId) return; const rec=findById(currentEditId); if(!rec){ alert('No se encontró el registro.'); return; } const tipo=(document.getElementById('fTipoComprobante').value||'').trim(); const num=(document.getElementById('fNumeroComprobante').value||'').trim(); const est=(document.getElementById('fEstadoSolucion').value||'').trim(); if(!tipo && !num && !est){ alert('Complete al menos un campo.'); return; } rec['FACTURACION FECHA CORRECCION']= nowLocalISO(); rec['FACTURACION TIPO COMPROBANTE']= tipo; rec['FACTURACION NUMERO']= num; rec['FACTURACION ESTADO SOLUCION']= est.toUpperCase(); upsertStoredById(rec); document.getElementById('estadoSolModal').style.display='none'; renderTable(); };
+
+      // Autoajuste de alto visible a 10 filas
+      try{ const tbody=document.querySelector('#tablaFact tbody'); const mo=new MutationObserver(()=>adjustTableHeightToRows(10)); mo.observe(tbody,{childList:true}); window.__factRowsObserver=mo; }catch{}
+      window.addEventListener('resize', ()=>adjustTableHeightToRows(10));
+    });
+
+    // =====================
+    // PDF por fila (detalle)
+    // =====================
+    const generatePDFById=(id)=>{ const rec=findById(id); if(!rec){ alert('No se encontró el registro.'); return; } const { jsPDF }=window.jspdf; const doc=new jsPDF(); let y=12; doc.setFontSize(14); doc.text('Detalle de Incidencia – Zeus Safety', 105, y, { align:'center' }); y+=10; doc.setFontSize(10); const lines=[ `ID: ${rec['ID']}`, `Mes: ${rec['MES']}`, `Encargado: ${rec['ENCARGADO DE LA VENTA']||rec['ENCARGADO DE COMPROBANTE']}`, `Fecha emisión: ${fmtDateDisplay(rec['FECHA DE EMISION'])}`, `N° proforma/acta: ${rec['N° DE PROFORMA']||rec['N° PROFORMA O ACTA']}`, `N° comprobante: ${rec['N° DE COMPROBANTE']}`, `Tipo: ${rec['OBSERVACIONES']||rec['TIPO DE INCIDENCIA']||''}`, `Fecha notificación: ${fmtDateDisplay(rec['FECHA NOTIFICACION'])}`, `Solución: ${(rec['SOLUCION DE COMPROBANTE']||rec['SOLUCION']||'')}`, `Obs. adicionales: ${(rec['OBSERVACIONES_ADMIN']||'').toString().replace(/\n/g,' ')}`, `Revisado por: ${rec['REVISADO POR']||''}`, `Estado verificación: ${(rec['ESTADO VERIFICACION']||rec['ESTADO']||'')}`, `Fecha envío archivo: ${fmtDateDisplay(rec['FECHA ENVIO ARCHIVO']||'')}`, `Fecha corrección: ${fmtDateDisplay(rec['FACTURACION FECHA CORRECCION']||'')}`, `Comprobante: ${rec['FACTURACION TIPO COMPROBANTE']||''}`, `N° Comprobante: ${rec['FACTURACION NUMERO']||''}`, `Estado solución: ${rec['FACTURACION ESTADO SOLUCION']||''}`, `Culminado: ${rec['CULMINADO']||'NO'}`, `Fecha concluyente: ${fmtDateDisplay(rec['FECHA CONCLUYENTE']||rec['FECHA CULMINADO']||'')}` ]; lines.forEach(line=>{ doc.text(line,10,y); y+=6; if(y>280){ doc.addPage(); y=10; } }); /* Ítems */ if(rec['ITEMS']&&rec['ITEMS'].length){ y+=4; doc.text('Ítems:',10,y); y+=6; rec['ITEMS'].forEach((it,i)=>{ doc.text(`Detalle ${i+1}: ${it['DETALLE DE ERROR']||''}`,10,y); y+=6; doc.text(`Debe ser ${i+1}: ${it['DEBE SER']||''}`,10,y); y+=6; }); } doc.save(`incidencia_${rec['ID']||'detalle'}.pdf`); };
+
+    // =====================
+    // Tests mínimos
+    // =====================
+    const runSelfTests=()=>{ console.group('Facturación Tests'); try{ const d=fmtDateDisplay('2025-08-11T23:32:55'); console.assert(/11-08-2025 11:32:55 PM/.test(d), 'fmtDateDisplay 12h'); const td=estadoSolCell({ 'FACTURACION ESTADO SOLUCION':'Pendiente', ID:'X' }); console.assert(td.querySelector('.badge') && td.querySelector('button'),'estadoSolCell ok'); const tbody=document.createElement('tbody'); const rec={ID:'T', 'SOLUCION':'SIN INCIDENCIA'}; const r=rec; const isSin=((r['SOLUCION']||'').toUpperCase()==='SIN INCIDENCIA'); console.assert(isSin,'Regla SIN INCIDENCIA activa'); console.log('✓ Tests OK'); }catch(e){ console.warn('Tests warning', e);} console.groupEnd(); };
+    runSelfTests();
+  </script>
+</body>
+</html>

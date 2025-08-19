@@ -554,6 +554,161 @@
             border: 1px solid rgba(249, 115, 22, 0.3);
         }
 
+        /* Estilos para el formulario de productos */
+        .btn-agregar-producto {
+            background: linear-gradient(135deg, var(--maiz-claro), var(--maiz-oscuro));
+            border: none;
+            color: white;
+            font-weight: 600;
+            padding: 12px 25px;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+        }
+
+        .btn-agregar-producto:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+        }
+
+        .btn-agregar-producto i {
+            margin-right: 8px;
+        }
+
+        /* Autocompletado */
+        .autocomplete-container {
+            position: relative;
+            width: 100%;
+        }
+
+        .autocomplete-list {
+            position: absolute !important;
+            top: 100% !important;
+            left: 0 !important;
+            right: 0 !important;
+            background: white !important;
+            border: 3px solid #ff0000 !important;
+            border-top: none !important;
+            border-radius: 0 0 8px 8px !important;
+            max-height: 200px !important;
+            overflow-y: auto !important;
+            z-index: 99999 !important;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3) !important;
+            display: none;
+        }
+
+        /* Forzar visibilidad cuando tiene contenido */
+        .autocomplete-list:not(:empty) {
+            display: block !important;
+        }
+
+        .autocomplete-item {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+            transition: background-color 0.2s;
+        }
+
+        .autocomplete-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .autocomplete-item:last-child {
+            border-bottom: none;
+        }
+
+        .autocomplete-item .product-name {
+            font-weight: 600;
+            color: #333;
+            display: block;
+            font-size: 14px;
+        }
+
+        .autocomplete-item .product-code {
+            font-size: 12px;
+            color: #666;
+            display: block;
+            margin-top: 2px;
+        }
+
+        .no-results {
+            padding: 15px;
+            text-align: center;
+            color: #666;
+            font-style: italic;
+        }
+
+        /* Formulario de producto */
+        .producto-form {
+            background: var(--gris-claro);
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            border: 2px solid #e2e8f0;
+        }
+
+        .producto-form .form-row {
+            margin-bottom: 15px;
+        }
+
+        .producto-form .form-group {
+            margin-bottom: 0;
+        }
+
+        .producto-form .btn-agregar-producto {
+            margin-top: 10px;
+        }
+
+        /* Lista de productos */
+        .productos-lista {
+            margin-top: 25px;
+        }
+
+        .productos-lista h4 {
+            color: var(--azul-oscuro);
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Mejorar inputs de la tabla */
+        .table .form-control {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .table .form-control:focus {
+            border-color: var(--azul-claro);
+            box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25);
+        }
+
+        .table .form-control:read-only {
+            background-color: #f8f9fa;
+            color: #6c757d;
+        }
+
+        /* Botón eliminar */
+        .btn-danger {
+            background: var(--rojo);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+            transform: scale(1.05);
+        }
+
+        .btn-sm {
+            padding: 6px 10px;
+            font-size: 14px;
+            border-radius: 6px;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             body {
@@ -758,11 +913,6 @@
                     
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="solucionPdf">Solución PDF:</label>
-                            <input type="file" id="solucionPdf" class="form-control" accept=".pdf">
-                            <small class="form-text text-muted">Seleccione un archivo PDF para la solución</small>
-                        </div>
-                        <div class="form-group">
                             <label for="respondidoPor">Respondido Por:</label>
                             <select id="respondidoPor" class="form-control" required>
                                 <option value="">Seleccionar...</option>
@@ -770,18 +920,111 @@
                                 <option value="HERVIN">HERVIN</option>
                             </select>
                         </div>
+                        <div class="form-group">
+                            <label for="estadoDespacho">Estado Despacho:</label>
+                            <select id="estadoDespacho" class="form-control" required>
+                                <option value="">Seleccionar...</option>
+                                <option value="CONCLUIDO">CONCLUIDO</option>
+                                <option value="NO CONCLUIDO">NO CONCLUIDO</option>
+                            </select>
+                        </div>
                     </div>
-                    
-                                         <div class="form-row">
-                         <div class="form-group">
-                             <label for="estadoDespacho">Estado Despacho:</label>
-                             <select id="estadoDespacho" class="form-control" required>
-                                 <option value="">Seleccionar...</option>
-                                 <option value="CONCLUIDO">CONCLUIDO</option>
-                                 <option value="NO CONCLUIDO">NO CONCLUIDO</option>
-                             </select>
-                         </div>
-                     </div>
+
+                    <!-- Formulario para Agregar Productos -->
+                    <div class="productos-section">
+                        <div class="section-header">
+                            <h3><i class="fas fa-box"></i> Agregar Producto con Incidencia</h3>
+                        </div>
+                        
+                        <!-- Formulario de producto -->
+                        <div class="producto-form">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="nuevoItem">Item:</label>
+                                    <input type="number" id="nuevoItem" class="form-control" placeholder="Número de item" min="1">
+                                </div>
+                                <div class="form-group">
+                                    <label for="nuevoProducto">Producto:</label>
+                                    <div class="autocomplete-container">
+                                        <input type="text" id="nuevoProducto" class="form-control producto-input" placeholder="Buscar producto..." autocomplete="off">
+                                        <div class="autocomplete-list"></div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="nuevoCodigo">Código:</label>
+                                    <input type="text" id="nuevoCodigo" class="form-control" readonly placeholder="Código automático">
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="nuevaCantidadInicial">Cantidad Inicial:</label>
+                                    <input type="number" id="nuevaCantidadInicial" class="form-control" placeholder="0" min="0" step="0.01">
+                                </div>
+                                <div class="form-group">
+                                    <label for="nuevaUnidadMedida">Unidad de Medida:</label>
+                                    <select id="nuevaUnidadMedida" class="form-control">
+                                        <option value="">Seleccione...</option>
+                                        <option value="unidades">Unidades</option>
+                                        <option value="kilos">Docenas</option>
+                                        <option value="litros">Paquetes</option>
+                                        <option value="cajas">Cajas</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="nuevaCantidadRecibida">Cantidad Recibida:</label>
+                                    <input type="number" id="nuevaCantidadRecibida" class="form-control" placeholder="0" min="0" step="0.01">
+                                </div>
+                                <div class="form-group">
+                                    <label for="nuevoMotivo">Motivo:</label>
+                                    <select id="nuevoMotivo" class="form-control">
+                                        <option value="">Seleccione...</option>
+                                        <option value="falta">Falta</option>
+                                        <option value="sobrante">Sobrante</option>
+                                        <option value="dañado">Dañado</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <button type="button" class="btn btn-agregar-producto" onclick="agregarProducto()">
+                                <i class="fas fa-plus"></i>
+                                Agregar a la Lista
+                            </button>
+                        </div>
+                        
+                        <!-- Tabla de productos agregados -->
+                        <div class="productos-lista">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                <h4><i class="fas fa-list"></i> Productos Agregados</h4>
+                                <button type="button" class="btn btn-info" onclick="extraerImportacionInicial()">
+                                    <i class="fas fa-download"></i>
+                                    Extraer Importación Inicial
+                                </button>
+                            </div>
+                            <div class="table-responsive">
+                                <table id="productosTable" class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Item</th>
+                                            <th>Producto</th>
+                                            <th>Código</th>
+                                            <th>Cantidad Inicial</th>
+                                            <th>Unidad de Medida</th>
+                                            <th>Cantidad Recibida</th>
+                                            <th>Motivo</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="productosBody">
+                                        <!-- Los productos se agregarán aquí dinámicamente -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
                     
                                                                                    <div class="form-actions">
                           <button type="submit" class="btn btn-success">
@@ -794,6 +1037,42 @@
                           </button>
                       </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para editar producto -->
+    <div id="editModal" class="modal" style="display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
+        <div class="modal-content" style="background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 500px; border-radius: 10px;">
+            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="margin: 0; color: var(--azul-oscuro);">Editar Producto</h3>
+                <span class="close" onclick="cerrarModal()" style="color: #aaa; font-size: 28px; font-weight: bold; cursor: pointer;">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editCantidadRecibida">Cantidad Recibida:</label>
+                        <input type="number" id="editCantidadRecibida" class="form-control" placeholder="0" min="0" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label for="editMotivo">Motivo:</label>
+                        <select id="editMotivo" class="form-control">
+                            <option value="">Seleccione...</option>
+                            <option value="falta">Falta</option>
+                            <option value="sobrante">Sobrante</option>
+                            <option value="dañado">Dañado</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="text-align: right; margin-top: 20px;">
+                    <button type="button" class="btn btn-primary" onclick="guardarEdicion()">
+                        <i class="fas fa-save"></i>
+                        Guardar Cambios
+                    </button>
+                    <button type="button" class="btn" onclick="cerrarModal()" style="background: #6c757d; color: white; margin-left: 10px;">
+                        Cancelar
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -911,6 +1190,10 @@
     <script>
         // Variables globales
         let incidenciasData = [];
+        let productosData = [];
+        let timeoutId = null;
+        let filaEditando = null;
+        let numeroDespachoActual = null;
 
         // Función de navegación
         function navegarA(pagina) {
@@ -964,6 +1247,324 @@
             } catch (error) {
                 console.error('❌ Error al cargar incidencias:', error);
                 mostrarAlerta('Error al cargar las incidencias: ' + error.message, 'error');
+            }
+        }
+
+        // Función para cargar productos desde la API
+        async function cargarProductos() {
+            try {
+                const apiUrl = 'https://productoscrud-2946605267.us-central1.run.app';
+                const response = await fetch(apiUrl);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    productosData = data;
+                    console.log('✅ Productos cargados:', productosData.length);
+                    return true;
+                } else {
+                    console.error('❌ Error al cargar productos:', response.status);
+                    return false;
+                }
+            } catch (error) {
+                console.error('❌ Error al conectar con la API de productos:', error);
+                return false;
+            }
+        }
+
+        // Función para configurar autocompletado
+        function configurarAutocompletado(productoInput, codigoInput) {
+            productoInput.addEventListener('input', function() {
+                const query = this.value.trim().toLowerCase();
+                console.log('🔍 Búsqueda:', query);
+                
+                if (timeoutId) {
+                    clearTimeout(timeoutId);
+                }
+                
+                timeoutId = setTimeout(() => {
+                    buscarProductos(this, codigoInput, query);
+                }, 300);
+            });
+
+            // Ocultar al hacer clic fuera
+            document.addEventListener('click', function(e) {
+                const autocompleteList = productoInput.parentElement.querySelector('.autocomplete-list');
+                if (autocompleteList && !productoInput.contains(e.target) && !autocompleteList.contains(e.target)) {
+                    autocompleteList.style.display = 'none';
+                }
+            });
+        }
+
+        // Función para buscar productos
+        function buscarProductos(input, codigoInput, query) {
+            console.log('🔍 DEBUG buscarProductos:');
+            console.log('- Query:', query);
+            console.log('- Productos disponibles:', productosData.length);
+            console.log('- Input:', input);
+            console.log('- CodigoInput:', codigoInput);
+
+            if (!query) {
+                const autocompleteList = input.parentElement.querySelector('.autocomplete-list');
+                if (autocompleteList) {
+                    autocompleteList.style.display = 'none';
+                }
+                console.log('❌ Query vacío, ocultando dropdown');
+                return;
+            }
+
+            const resultados = productosData.filter(producto => 
+                producto.NOMBRE && producto.NOMBRE.toLowerCase().includes(query) ||
+                producto.CODIGO && producto.CODIGO.toLowerCase().includes(query)
+            );
+
+            console.log('📋 Resultados encontrados:', resultados.length);
+            console.log('📋 Primeros 3 resultados:', resultados.slice(0, 3));
+            mostrarResultados(input, codigoInput, resultados);
+        }
+
+        // Función para mostrar resultados
+        function mostrarResultados(input, codigoInput, resultados) {
+            const autocompleteList = input.parentElement.querySelector('.autocomplete-list');
+            autocompleteList.innerHTML = '';
+
+            console.log('🔍 DEBUG mostrarResultados:');
+            console.log('- Input:', input);
+            console.log('- AutocompleteList:', autocompleteList);
+            console.log('- Resultados:', resultados.length);
+
+            if (resultados.length === 0) {
+                autocompleteList.innerHTML = '<div class="no-results">No se encontraron productos</div>';
+                autocompleteList.style.display = 'block';
+                autocompleteList.style.border = '3px solid #ff0000 !important';
+                autocompleteList.style.background = 'white !important';
+                autocompleteList.style.zIndex = '99999 !important';
+                console.log('⚠️ No hay resultados, pero dropdown debería mostrarse');
+                return;
+            }
+
+            const resultadosLimitados = resultados.slice(0, 10);
+            
+            resultadosLimitados.forEach((producto, index) => {
+                const item = document.createElement('div');
+                item.className = 'autocomplete-item';
+                item.innerHTML = `
+                    <span class="product-name">${producto.NOMBRE || ''}</span>
+                    <span class="product-code">Código: ${producto.CODIGO || ''}</span>
+                `;
+                
+                item.addEventListener('click', function() {
+                    console.log('✅ Seleccionado:', producto.NOMBRE);
+                    input.value = producto.NOMBRE || '';
+                    codigoInput.value = producto.CODIGO || '';
+                    autocompleteList.style.display = 'none';
+                    autocompleteList.style.visibility = 'hidden';
+                    input.focus();
+                });
+                
+                autocompleteList.appendChild(item);
+                console.log(`📦 Item ${index + 1} agregado:`, producto.NOMBRE);
+            });
+            
+            // Forzar visibilidad con estilos inline
+            autocompleteList.style.cssText = `
+                position: absolute !important;
+                top: 100% !important;
+                left: 0 !important;
+                right: 0 !important;
+                background: white !important;
+                border: 3px solid #ff0000 !important;
+                border-top: none !important;
+                border-radius: 0 0 8px 8px !important;
+                max-height: 200px !important;
+                overflow-y: auto !important;
+                z-index: 99999 !important;
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3) !important;
+                display: block !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+            `;
+            
+            console.log('🎯 Dropdown forzado a ser visible con', resultadosLimitados.length, 'elementos');
+            console.log('🎯 Estilos aplicados:', autocompleteList.style.cssText);
+        }
+
+        // Función para agregar producto a la lista
+        function agregarProducto() {
+            const item = document.getElementById('nuevoItem').value;
+            const producto = document.getElementById('nuevoProducto').value;
+            const codigo = document.getElementById('nuevoCodigo').value;
+            const cantidadInicial = document.getElementById('nuevaCantidadInicial').value;
+            const unidadMedida = document.getElementById('nuevaUnidadMedida').value;
+            const cantidadRecibida = document.getElementById('nuevaCantidadRecibida').value;
+            const motivo = document.getElementById('nuevoMotivo').value;
+            
+            // Validar que se haya seleccionado un producto
+            if (!producto || !codigo) {
+                mostrarAlerta('Debe seleccionar un producto', 'error');
+                return;
+            }
+            
+            // Validar campos requeridos
+            if (!item || !cantidadInicial || !unidadMedida || !cantidadRecibida || !motivo) {
+                mostrarAlerta('Debe completar todos los campos', 'error');
+                return;
+            }
+            
+            // Agregar a la tabla
+            const tbody = document.getElementById('productosBody');
+            const row = tbody.insertRow();
+            row.className = 'producto-row';
+            
+            row.innerHTML = `
+                <td>${item}</td>
+                <td>${producto}</td>
+                <td>${codigo}</td>
+                <td>${cantidadInicial}</td>
+                <td>${unidadMedida}</td>
+                <td>${cantidadRecibida}</td>
+                <td>${motivo}</td>
+                <td>
+                    <button type="button" class="btn btn-primary btn-sm" onclick="editarFila(this)" title="Editar producto" style="margin-right: 5px;">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button type="button" class="btn btn-danger btn-sm" onclick="eliminarFila(this)" title="Eliminar producto">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            `;
+            
+            // Limpiar formulario
+            limpiarFormularioProducto();
+            
+            mostrarAlerta('Producto agregado exitosamente', 'success');
+        }
+
+        // Función para limpiar formulario de producto
+        function limpiarFormularioProducto() {
+            document.getElementById('nuevoItem').value = '';
+            document.getElementById('nuevoProducto').value = '';
+            document.getElementById('nuevoCodigo').value = '';
+            document.getElementById('nuevaCantidadInicial').value = '';
+            document.getElementById('nuevaUnidadMedida').value = '';
+            document.getElementById('nuevaCantidadRecibida').value = '';
+            document.getElementById('nuevoMotivo').value = '';
+        }
+
+        // Función para eliminar fila
+        function eliminarFila(button) {
+            const row = button.closest('tr');
+            row.remove();
+        }
+
+        // Función para abrir modal de edición
+        function editarFila(button) {
+            const row = button.closest('tr');
+            const celdas = row.querySelectorAll('td');
+            
+            // Obtener valores actuales
+            const cantidadRecibida = celdas[5].textContent.trim();
+            const motivo = celdas[6].textContent.trim();
+            
+            // Llenar el modal
+            document.getElementById('editCantidadRecibida').value = cantidadRecibida;
+            document.getElementById('editMotivo').value = motivo;
+            
+            // Guardar referencia a la fila
+            filaEditando = row;
+            
+            // Mostrar modal
+            document.getElementById('editModal').style.display = 'block';
+        }
+
+        // Función para cerrar modal de edición
+        function cerrarModal() {
+            document.getElementById('editModal').style.display = 'none';
+            filaEditando = null;
+        }
+
+        // Función para guardar edición
+        function guardarEdicion() {
+            if (!filaEditando) return;
+            
+            const nuevaCantidad = document.getElementById('editCantidadRecibida').value;
+            const nuevoMotivo = document.getElementById('editMotivo').value;
+            
+            if (!nuevaCantidad || !nuevoMotivo) {
+                mostrarAlerta('Debe completar todos los campos', 'error');
+                return;
+            }
+            
+            // Actualizar la fila
+            const celdas = filaEditando.querySelectorAll('td');
+            celdas[5].textContent = nuevaCantidad;
+            celdas[6].textContent = nuevoMotivo;
+            
+            cerrarModal();
+            mostrarAlerta('Producto actualizado exitosamente', 'success');
+        }
+
+        // Función para extraer importación inicial
+        async function extraerImportacionInicial() {
+            if (!numeroDespachoActual) {
+                mostrarAlerta('No hay un número de despacho disponible para extraer', 'error');
+                return;
+            }
+
+            try {
+                console.log('🔄 Extrayendo importación inicial para despacho:', numeroDespachoActual);
+                
+                const api = "https://importacionesvr01crud-2946605267.us-central1.run.app";
+                const response = await fetch(`${api}?despacho=${encodeURIComponent(numeroDespachoActual)}`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('✅ Datos de importación extraídos:', data);
+                    
+                    // Verificar si hay detalles
+                    if (data.detalles && Array.isArray(data.detalles) && data.detalles.length > 0) {
+                        console.log('📦 Detalles encontrados:', data.detalles);
+                        
+                        // Limpiar tabla actual
+                        const tbody = document.getElementById('productosBody');
+                        tbody.innerHTML = '';
+                        
+                        // Agregar cada producto a la tabla
+                        data.detalles.forEach((detalle, index) => {
+                            const row = tbody.insertRow();
+                            row.className = 'producto-row';
+                            
+                            row.innerHTML = `
+                                <td>${detalle.ITEM || index + 1}</td>
+                                <td>${detalle.PRODUCTO || 'N/A'}</td>
+                                <td>${detalle.CODIGO || 'N/A'}</td>
+                                <td>${detalle.CANTIDAD || '0'}</td>
+                                <td>${detalle.UNIDAD_MEDIDA || 'N/A'}</td>
+                                <td>0</td>
+                                <td></td>
+                                <td>
+                                    <button type="button" class="btn btn-primary btn-sm" onclick="editarFila(this)" title="Editar producto" style="margin-right: 5px;">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-danger btn-sm" onclick="eliminarFila(this)" title="Eliminar producto">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            `;
+                        });
+                        
+                        mostrarAlerta(`Se extrajeron ${data.detalles.length} productos de la importación inicial`, 'success');
+                        console.log('✅ Productos agregados a la tabla:', data.detalles.length);
+                    } else {
+                        console.log('⚠️ No se encontraron detalles en la importación');
+                        mostrarAlerta('No se encontraron productos en la importación inicial', 'warning');
+                    }
+                } else {
+                    console.error('❌ Error al extraer importación:', response.status);
+                    mostrarAlerta('Error al extraer la importación inicial', 'error');
+                }
+            } catch (error) {
+                console.error('❌ Error al extraer importación inicial:', error);
+                mostrarAlerta('Error al conectar con el servidor para extraer la importación', 'error');
             }
         }
 
@@ -1135,11 +1736,18 @@
             // Establecer el ID en el formulario
             document.getElementById('idIncidenciaActualizar').value = id;
             
+            // Guardar el número de despacho para usar en extraerImportacionInicial
+            numeroDespachoActual = incidencia.NUMERO_DESPACHO;
+            console.log('📦 Número de despacho guardado:', numeroDespachoActual);
+            
             // Llenar los campos con los datos actuales
             document.getElementById('fechaCorreccion').value = incidencia.FECHA_CORRECCION ? incidencia.FECHA_CORRECCION.split(' ')[0] : '';
             document.getElementById('estadoIncidencia').value = incidencia.ESTADO_INCIDENCIA || '';
             document.getElementById('respondidoPor').value = incidencia.RESPONDIDO_POR || '';
             document.getElementById('estadoDespacho').value = incidencia.ESTADO_DESPACHO || '';
+            
+            // Limpiar tabla de productos al abrir el modal
+            document.getElementById('productosBody').innerHTML = '';
             
             // Mostrar el modal
             document.getElementById('actualizarModal').style.display = 'block';
@@ -1150,6 +1758,8 @@
             document.getElementById('actualizarModal').style.display = 'none';
             // Limpiar el formulario
             document.getElementById('formActualizarIncidencia').reset();
+            // Limpiar la variable del número de despacho
+            numeroDespachoActual = null;
         }
 
                  // Función para generar PDF
@@ -1523,7 +2133,6 @@
             const estadoIncidencia = document.getElementById('estadoIncidencia').value;
             const respondidoPor = document.getElementById('respondidoPor').value;
             const estadoDespacho = document.getElementById('estadoDespacho').value;
-            const solucionPdf = document.getElementById('solucionPdf').files[0];
             
             // Validar campos requeridos
             if (!fechaCorreccion || !estadoIncidencia || !respondidoPor || !estadoDespacho) {
@@ -1540,10 +2149,6 @@
                 formData.append('respondidoPor', respondidoPor);
                 formData.append('estadoDespacho', estadoDespacho);
                 
-                if (solucionPdf) {
-                    formData.append('solucionPdf', solucionPdf);
-                }
-                
                 // Aquí iría la llamada a la API para actualizar
                 // Por ahora solo simulamos la actualización
                 console.log('📤 Enviando datos de actualización:', {
@@ -1551,8 +2156,7 @@
                     fechaCorreccion,
                     estadoIncidencia,
                     respondidoPor,
-                    estadoDespacho,
-                    tienePdf: !!solucionPdf
+                    estadoDespacho
                 });
                 
                 // Simular actualización exitosa
@@ -1710,9 +2314,31 @@
         }
 
         // Inicialización cuando el DOM esté listo
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', async function() {
             console.log('🔄 Cargando incidencias...');
             cargarIncencias();
+            
+            // Cargar productos desde la API
+            console.log('🔄 Cargando productos...');
+            const productosCargados = await cargarProductos();
+            
+            if (productosCargados) {
+                console.log('✅ Productos cargados exitosamente');
+                console.log('📊 Total de productos:', productosData.length);
+                
+                // Configurar autocompletado para el formulario de producto
+                const productoInput = document.getElementById('nuevoProducto');
+                const codigoInput = document.getElementById('nuevoCodigo');
+                if (productoInput && codigoInput) {
+                    configurarAutocompletado(productoInput, codigoInput);
+                    console.log('🎯 Autocompletado configurado para el formulario de producto');
+                } else {
+                    console.error('❌ No se encontraron los inputs de producto o código');
+                }
+            } else {
+                console.error('❌ Error al cargar productos');
+                mostrarAlerta('Error al cargar la lista de productos', 'error');
+            }
             
             // Establecer fechas por defecto (últimos 30 días)
             const hoy = new Date();
@@ -1724,6 +2350,30 @@
             
             // Event listener para el formulario de actualización
             document.getElementById('formActualizarIncidencia').addEventListener('submit', guardarCambiosIncidencia);
+            
+            // Cerrar modal al hacer clic fuera de él
+            window.onclick = function(event) {
+                const modalDetalles = document.getElementById('detallesModal');
+                const modalProcedimientos = document.getElementById('procedimientosModal');
+                const modalActualizar = document.getElementById('actualizarModal');
+                const modalEdit = document.getElementById('editModal');
+                
+                if (event.target === modalDetalles) {
+                    cerrarModal();
+                }
+                
+                if (event.target === modalProcedimientos) {
+                    cerrarModalProcedimientos();
+                }
+                
+                if (event.target === modalActualizar) {
+                    cerrarModalActualizar();
+                }
+                
+                if (event.target === modalEdit) {
+                    cerrarModal();
+                }
+            }
         });
     </script>
 </body>
