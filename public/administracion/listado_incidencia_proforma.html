@@ -315,6 +315,16 @@
     const fmtDateDisplay=(dt)=>{ if(!dt) return ''; const d=new Date(dt); if(isNaN(d)) return dt; const dd=String(d.getDate()).padStart(2,'0'); const mm=String(d.getMonth()+1).padStart(2,'0'); const yyyy=d.getFullYear(); let hh=d.getHours(); const ap=hh>=12?'PM':'AM'; hh=hh%12||12; const mi=String(d.getMinutes()).padStart(2,'0'); const ss=String(d.getSeconds()).padStart(2,'0'); return `${dd}-${mm}-${yyyy} ${String(hh).padStart(2,'0')}:${mi}:${ss} ${ap}`; };
     const fmtDateOnly=(dt)=>{ if(!dt) return ''; const d=new Date(dt); if(isNaN(d)) return dt; const dd=String(d.getDate()).padStart(2,'0'); const mm=String(d.getMonth()+1).padStart(2,'0'); const yyyy=d.getFullYear(); return `${dd}/${mm}/${yyyy}`; };
     const nowLocalISO=()=>{ const d=new Date(); const yyyy=d.getFullYear(); const mm=String(d.getMonth()+1).padStart(2,'0'); const dd=String(d.getDate()).padStart(2,'0'); const HH=String(d.getHours()).padStart(2,'0'); const MI=String(d.getMinutes()).padStart(2,'0'); const SS=String(d.getSeconds()).padStart(2,'0'); return `${yyyy}-${mm}-${dd}T${HH}:${MI}:${SS}`; };
+    
+    // ====== Mes a texto ======
+    const getMonthName = (monthNum) => {
+      const months = [
+        '', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+        'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+      ];
+      const num = parseInt(monthNum) || 0;
+      return months[num] || monthNum;
+    };
 
     // ====== Badges ======
     const badgeClass=(v)=>{ const s=(v||'').toUpperCase(); if(s==='PENDIENTE')return'badge-pendiente'; if(s==='EN REVISIÓN'||s==='EN REVISION'||s==='EN PROCESO')return'badge-enrevision'; if(s==='NOTIFICADO')return'badge-notificado'; if(s==='COMPLETADO')return'badge-completado'; if(s==='OBSERVADO')return'badge-observado'; return''; };
@@ -324,9 +334,53 @@
     const tdHTML=(n)=>{ const td=document.createElement('td'); td.appendChild(n); return td; };
     const spanNowrap=(t)=>{ const s=document.createElement('span'); s.className='nowrap'; s.textContent=t||''; return s; };
 
-    const itemsCell=(rec)=>{ const td=document.createElement('td'); const arr=rec['ITEMS']; const ok=Array.isArray(arr)&&arr.length>0; if(!ok){ td.textContent='Sin ítems'; return td; } const eye=document.createElement('a'); eye.href='#'; eye.textContent='👁️'; eye.dataset.action='view'; eye.dataset.id=rec.ID; const pdf=document.createElement('a'); pdf.href='#'; pdf.textContent='PDF'; pdf.dataset.action='pdf'; pdf.dataset.id=rec.ID; td.append(eye, document.createTextNode(' '), pdf); return td; };
+    const itemsCell=(rec)=>{ 
+      const td=document.createElement('td'); 
+      td.style.textAlign='center';
+      
+      // Crear ojo para ver detalles
+      const eye=document.createElement('a'); 
+      eye.href='#'; 
+      eye.textContent='👁️'; 
+      eye.dataset.action='view'; 
+      eye.dataset.id=rec.ID;
+      eye.style.marginRight='10px';
+      
+      // Crear enlace PDF
+      const pdf=document.createElement('a'); 
+      pdf.href='#'; 
+      pdf.textContent='PDF'; 
+      pdf.dataset.action='pdf'; 
+      pdf.dataset.id=rec.ID;
+      
+      td.append(eye, pdf); 
+      return td; 
+    };
 
-    const archivoCellReadOnly=(rec)=>{ const td=document.createElement('td'); const box=document.createElement('div'); box.className='cell-actions'; const hasText=!!(rec['ARCHIVO_SOLUCION_PDF'] && String(rec['ARCHIVO_SOLUCION_PDF']).trim()); if(hasText){ const a=document.createElement('a'); a.href='#'; a.textContent='Ver'; a.dataset.action='view-text'; a.dataset.id=rec.ID; box.appendChild(a);} if(!box.children.length){ box.appendChild(document.createTextNode('—')); } td.appendChild(box); return td; };
+    const archivoCellReadOnly=(rec)=>{ 
+      const td=document.createElement('td'); 
+      td.style.textAlign='center';
+      
+      const archivoUrl = rec['ARCHIVO_SOLUCION_PDF'];
+      const hasArchivo = archivoUrl && String(archivoUrl).trim();
+      
+      if(hasArchivo){
+        const btn = document.createElement('button');
+        btn.className = 'btn btn-azul';
+        btn.textContent = 'Ver archivo';
+        btn.style.fontSize = '0.75rem';
+        btn.style.padding = '0.25rem 0.5rem';
+        btn.onclick = (e) => {
+          e.preventDefault();
+          openViewTextModalById(rec.ID);
+        };
+        td.appendChild(btn);
+      } else {
+        td.textContent = '—';
+      }
+      
+      return td; 
+    };
 
     const estadoCell=(rec)=>{ const td=document.createElement('td'); const box=document.createElement('div'); box.className='cell-actions'; const estado=(rec['ESTADO_INCIDENCIA']||'').toString(); const badge=document.createElement('span'); badge.className=`badge ${badgeClass(estado)}`; badge.textContent=(estado||'').toUpperCase(); const btn=document.createElement('button'); btn.className=( (estado||'').toUpperCase()==='PENDIENTE' ? 'btn btn-danger' : 'btn btn-ok'); btn.textContent='Editar'; btn.dataset.action='edit-verif'; btn.dataset.id=rec.ID; box.append(badge, btn); td.appendChild(box); return td; };
 
@@ -348,7 +402,7 @@
         tr.appendChild(tdText(rec['ID']||'')); 
         tr.appendChild(tdHTML(spanNowrap(fmtDateDisplay(rec['FECHA_REGISTRO'])||''))); 
         tr.appendChild(tdText(rec['REGISTRADO_POR']||'')); 
-        tr.appendChild(tdText(rec['MONTH(FECHA_EMISION)']||'')); 
+        tr.appendChild(tdText(getMonthName(rec['MONTH(FECHA_EMISION)'])||'')); 
         tr.appendChild(tdText(rec['ENCARGADO_COMPROBANTE']||'')); 
         tr.appendChild(tdHTML(spanNowrap(fmtDateDisplay(rec['DATE(FECHA_EMISION)'])||''))); 
         tr.appendChild(tdText(rec['NUMERO_PROFORMA']||'')); 
@@ -403,7 +457,7 @@
       console.log('✅ Registro encontrado para detalles:', rec);
       const c=document.getElementById('detailContent'); 
       c.innerHTML=''; 
-      const fields=[ ['ID',rec['ID']], ['Mes',rec['MONTH(FECHA_EMISION)']], ['Encargado comprobante', rec['ENCARGADO_COMPROBANTE']], ['Fecha de emisión', fmtDateDisplay(rec['DATE(FECHA_EMISION)'])], ['N° proforma/acta', rec['NUMERO_PROFORMA']], ['N° de comprobante', rec['NUMERO_COMPROBANTE']], ['Responsable', rec['RESPONSABLE_INCIDENCIA']], ['Área', rec['AREA']||''], ['Tipo de incidencia', rec['TIPO_INCIDENCIA']||''], ['Fecha de notificación', fmtDateOnly(rec['FECHA_NOTIFICACION']||'')], ['Solución', rec['SOLUCION']||''], ['Obs. adicionales', rec['OBSERVACION_ADICIONAL_CORRECION']||''], ['Revisado por', rec['REVISADO_POR']||''], ['Estado de verificación', rec['ESTADO_INCIDENCIA']||''], ['Fecha envío de archivo', fmtDateDisplay(rec['FECHA_ENVIO_ARCHIVO']||'')], ['Culminado', rec['CULMINADO']||'NO'] ]; 
+      const fields=[ ['ID',rec['ID']], ['Mes',getMonthName(rec['MONTH(FECHA_EMISION)'])], ['Encargado comprobante', rec['ENCARGADO_COMPROBANTE']], ['Fecha de emisión', fmtDateDisplay(rec['DATE(FECHA_EMISION)'])], ['N° proforma/acta', rec['NUMERO_PROFORMA']], ['N° de comprobante', rec['NUMERO_COMPROBANTE']], ['Responsable', rec['RESPONSABLE_INCIDENCIA']], ['Área', rec['AREA']||''], ['Tipo de incidencia', rec['TIPO_INCIDENCIA']||''], ['Fecha de notificación', fmtDateOnly(rec['FECHA_NOTIFICACION']||'')], ['Solución', rec['SOLUCION']||''], ['Obs. adicionales', rec['OBSERVACION_ADICIONAL_CORRECION']||''], ['Revisado por', rec['REVISADO_POR']||''], ['Estado de verificación', rec['ESTADO_INCIDENCIA']||''], ['Fecha envío de archivo', fmtDateDisplay(rec['FECHA_ENVIO_ARCHIVO']||'')], ['Culminado', rec['CULMINADO']||'NO'] ]; 
       fields.forEach(([l,v])=>{ const p=document.createElement('p'); const strong=document.createElement('strong'); strong.textContent=l+': '; p.appendChild(strong); p.appendChild(document.createTextNode(v||'')); c.appendChild(p); }); 
       if(rec['ITEMS']&&rec['ITEMS'].length){ const ul=document.createElement('ul'); rec['ITEMS'].forEach((it,i)=>{ const li=document.createElement('li'); li.appendChild(document.createTextNode(`Detalle ${i+1}: ${it['DETALLE DE ERROR']||''}`)); li.appendChild(document.createElement('br')); li.appendChild(document.createTextNode(`Debe ser ${i+1}: ${it['DEBE SER']||''}`)); ul.appendChild(li); }); c.appendChild(ul);} 
       document.getElementById('detailModal').style.display='flex'; 
@@ -594,7 +648,7 @@
       const doc=new jsPDF(); 
       let y=10; 
       doc.setFontSize(12); 
-      const lines=[`ID: ${rec['ID']}`,`Mes: ${rec['MONTH(FECHA_EMISION)']}`,`Encargado: ${rec['ENCARGADO_COMPROBANTE']}`,`Fecha emisión: ${fmtDateDisplay(rec['DATE(FECHA_EMISION)'])}`,`N° proforma/acta: ${rec['NUMERO_PROFORMA']}`,`N° comprobante: ${rec['NUMERO_COMPROBANTE']}`,`Responsable: ${rec['RESPONSABLE_INCIDENCIA']}`,`Área: ${rec['AREA']}`,`Tipo: ${rec['TIPO_INCIDENCIA']||''}`,`Fecha notificación: ${fmtDateDisplay(rec['FECHA_NOTIFICACION'])}`,`Solución: ${(rec['SOLUCION']||'')}`,`Obs. adicionales: ${(rec['OBSERVACION_ADICIONAL_CORRECION']||'').toString().replace(/\n/g,' ')}`,`Revisado por: ${rec['REVISADO_POR']||''}`,`Estado verificación: ${rec['ESTADO_INCIDENCIA']||''}`,`Fecha envío archivo: ${fmtDateDisplay(rec['FECHA_ENVIO_ARCHIVO']||'')}`,`Fecha concluyente: ${fmtDateDisplay(rec['FECHA_CONCLUYENTE']||'')}`]; 
+      const lines=[`ID: ${rec['ID']}`,`Mes: ${getMonthName(rec['MONTH(FECHA_EMISION)'])}`,`Encargado: ${rec['ENCARGADO_COMPROBANTE']}`,`Fecha emisión: ${fmtDateDisplay(rec['DATE(FECHA_EMISION)'])}`,`N° proforma/acta: ${rec['NUMERO_PROFORMA']}`,`N° comprobante: ${rec['NUMERO_COMPROBANTE']}`,`Responsable: ${rec['RESPONSABLE_INCIDENCIA']}`,`Área: ${rec['AREA']}`,`Tipo: ${rec['TIPO_INCIDENCIA']||''}`,`Fecha notificación: ${fmtDateDisplay(rec['FECHA_NOTIFICACION'])}`,`Solución: ${(rec['SOLUCION']||'')}`,`Obs. adicionales: ${(rec['OBSERVACION_ADICIONAL_CORRECION']||'').toString().replace(/\n/g,' ')}`,`Revisado por: ${rec['REVISADO_POR']||''}`,`Estado verificación: ${rec['ESTADO_INCIDENCIA']||''}`,`Fecha envío archivo: ${fmtDateDisplay(rec['FECHA_ENVIO_ARCHIVO']||'')}`,`Fecha concluyente: ${fmtDateDisplay(rec['FECHA_CONCLUYENTE']||'')}`]; 
       lines.forEach(line=>{ doc.text(line,10,y); y+=7; if(y>280){ doc.addPage(); y=10; } }); 
       doc.save(`${rec['ID']||'incidencia'}.pdf`); 
     };
