@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ventas - ZEUS SAFETY</title>
+    <link rel="stylesheet" href="css/ventas.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <a href="index.html" class="btn-back">Volver al Menú</a>
+
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-chart-line"></i> VENTAS</h1>
+            <p>Gestión de Ventas y Regularización</p>
+        </div>
+
+        <!-- Secciones Primarias -->
+        <div class="primary-sections">
+            <!-- Sección Ventas -->
+            <div class="primary-section" id="ventas-section">
+                <div class="section-header" onclick="toggleSection('ventas')">
+                    <i class="fas fa-chart-line"></i>
+                    <h2>Ventas</h2>
+                    <i class="fas fa-chevron-down toggle-icon"></i>
+                </div>
+                <div class="section-content" id="ventas-content">
+                    <div class="menu-grid">
+                        <div class="menu-card">
+                            <i class="fas fa-plus-circle icon"></i>
+                            <h3>Registrar Venta</h3>
+                            <p>Registrar nueva venta en el sistema</p>
+                            <a href="public/ventas/registro.html" class="btn">
+                                <i class="fas fa-plus"></i> Crear Venta
+                            </a>
+                        </div>
+
+                        <div class="menu-card">
+                            <i class="fas fa-list-alt icon"></i>
+                            <h3>Gestionar Venta</h3>
+                            <p>Ver y gestionar todas las ventas registradas</p>
+                            <a href="public/ventas/listado_ventas.html" class="btn">
+                                <i class="fas fa-eye"></i> Ver Listado
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sección Regularización -->
+            <div class="primary-section" id="regularizacion-section">
+                <div class="section-header" onclick="toggleSection('regularizacion')">
+                    <i class="fas fa-cogs"></i>
+                    <h2>Regularización</h2>
+                    <i class="fas fa-chevron-down toggle-icon"></i>
+                </div>
+                <div class="section-content" id="regularizacion-content">
+                    <div class="menu-grid">
+                        <div class="menu-card">
+                            <i class="fas fa-plus-circle icon"></i>
+                            <h3>Registrar Regularización</h3>
+                            <p>Registrar nueva regularización</p>
+                            <a href="public/ventas/regularizacion/registro_regularizacion.html" class="btn">
+                                <i class="fas fa-plus"></i> Crear Regularización
+                            </a>
+                        </div>
+
+                        <div class="menu-card">
+                            <i class="fas fa-list-alt icon"></i>
+                            <h3>Gestionar Regularización</h3>
+                            <p>Ver y gestionar todas las regularizaciones</p>
+                            <a href="public/ventas/regularizacion/listado_regularizacion.html" class="btn">
+                                <i class="fas fa-eye"></i> Ver Listado
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script>
+        function toggleSection(sectionName) {
+            const section = document.getElementById(sectionName + '-section');
+            const content = document.getElementById(sectionName + '-content');
+            const toggleIcon = section.querySelector('.toggle-icon');
+            
+            // Toggle la clase active
+            section.classList.toggle('active');
+            
+            // Toggle la visibilidad del contenido
+            if (content.style.maxHeight) {
+                content.style.maxHeight = null;
+                toggleIcon.style.transform = 'rotate(0deg)';
+            } else {
+                content.style.maxHeight = content.scrollHeight + "px";
+                toggleIcon.style.transform = 'rotate(180deg)';
+            }
+        }
+
+        // Todas las secciones cerradas por defecto
+        document.addEventListener('DOMContentLoaded', function() {
+            // No abrir ninguna sección automáticamente
+        });
+    </script>
+</body>
+</html>
