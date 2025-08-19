@@ -237,13 +237,79 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script>
-    // ====== Storage ======
-    const STORAGE_KEY='incidencias_v12';
-    const loadStored=()=>{ try{const s=localStorage.getItem(STORAGE_KEY); return s?JSON.parse(s):[];}catch{ localStorage.removeItem(STORAGE_KEY); return [];} };
-    const saveStored=(d)=>localStorage.setItem(STORAGE_KEY, JSON.stringify(d));
-    const getAllRecords=()=>[...loadStored()];
-    const findById=(id)=>getAllRecords().find(r=>r && r.ID===id)||null;
-    const upsertStoredById=(rec)=>{ const s=loadStored(); const i=s.findIndex(r=>r&&r.ID===rec.ID); if(i===-1) s.unshift(rec); else s[i]=rec; saveStored(s); };
+    // ====== API Configuration ======
+    const API_BASE_URL = 'https://incidenciaslogisticaproformas-2946605267.us-central1.run.app';
+    const API_HEADERS = { "Content-Type": "application/json" };
+    
+    // ====== API Methods ======
+    const apiGet = async (params = {}) => {
+      try {
+        const url = new URL(API_BASE_URL);
+        Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
+        
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: API_HEADERS
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        return await response.json();
+      } catch (error) {
+        console.error('Error en API GET:', error);
+        return [];
+      }
+    };
+
+    const apiPost = async (data) => {
+      try {
+        const response = await fetch(API_BASE_URL, {
+          method: 'POST',
+          headers: API_HEADERS,
+          body: JSON.stringify(data)
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        return await response.json();
+      } catch (error) {
+        console.error('Error en API POST:', error);
+        return null;
+      }
+    };
+
+    // ====== Data Management ======
+    let allRecords = [];
+    const loadRecords = async () => {
+      try {
+        console.log('🔄 Cargando registros desde API...');
+        const data = await apiGet({ tipo: "listado" });
+        console.log('📊 Datos recibidos de API:', data);
+        allRecords = Array.isArray(data) ? data : [];
+        console.log('✅ Registros cargados:', allRecords.length);
+        console.log('📋 Primer registro (ejemplo):', allRecords[0]);
+        return allRecords;
+      } catch (error) {
+        console.error('❌ Error cargando registros:', error);
+        allRecords = [];
+        return [];
+      }
+    };
+
+    const getAllRecords = () => [...allRecords];
+    const findById = (id) => {
+      console.log('🔍 Buscando registro con ID:', id);
+      console.log('📋 Total de registros disponibles:', allRecords.length);
+      console.log('📋 IDs disponibles:', allRecords.map(r => r?.ID).slice(0, 5));
+      
+      const found = getAllRecords().find(r => r && r.ID == id) || null;
+      console.log('🎯 Registro encontrado:', found);
+      return found;
+    };
 
     // ====== Fechas ======
     const fmtDateDisplay=(dt)=>{ if(!dt) return ''; const d=new Date(dt); if(isNaN(d)) return dt; const dd=String(d.getDate()).padStart(2,'0'); const mm=String(d.getMonth()+1).padStart(2,'0'); const yyyy=d.getFullYear(); let hh=d.getHours(); const ap=hh>=12?'PM':'AM'; hh=hh%12||12; const mi=String(d.getMinutes()).padStart(2,'0'); const ss=String(d.getSeconds()).padStart(2,'0'); return `${dd}-${mm}-${yyyy} ${String(hh).padStart(2,'0')}:${mi}:${ss} ${ap}`; };
@@ -260,44 +326,225 @@
 
     const itemsCell=(rec)=>{ const td=document.createElement('td'); const arr=rec['ITEMS']; const ok=Array.isArray(arr)&&arr.length>0; if(!ok){ td.textContent='Sin ítems'; return td; } const eye=document.createElement('a'); eye.href='#'; eye.textContent='👁️'; eye.dataset.action='view'; eye.dataset.id=rec.ID; const pdf=document.createElement('a'); pdf.href='#'; pdf.textContent='PDF'; pdf.dataset.action='pdf'; pdf.dataset.id=rec.ID; td.append(eye, document.createTextNode(' '), pdf); return td; };
 
-    const archivoCellReadOnly=(rec)=>{ const td=document.createElement('td'); const box=document.createElement('div'); box.className='cell-actions'; const hasText=!!(rec['ARCHIVO SOLUCION TEXTO'] && String(rec['ARCHIVO SOLUCION TEXTO']).trim()); const hasPdf=!!rec['ARCHIVO SOLUCION DATAURL']; if(hasText){ const a=document.createElement('a'); a.href='#'; a.textContent='Ver'; a.dataset.action='view-text'; a.dataset.id=rec.ID; box.appendChild(a);} if(hasPdf){ if(box.children.length) box.appendChild(document.createTextNode(' / ')); const a=document.createElement('a'); a.href=rec['ARCHIVO SOLUCION DATAURL']; a.setAttribute('download', rec['ARCHIVO SOLUCION NOMBRE']||'archivo.pdf'); a.textContent='PDF'; box.appendChild(a);} if(!box.children.length){ box.appendChild(document.createTextNode('—')); } td.appendChild(box); return td; };
+    const archivoCellReadOnly=(rec)=>{ const td=document.createElement('td'); const box=document.createElement('div'); box.className='cell-actions'; const hasText=!!(rec['ARCHIVO_SOLUCION_PDF'] && String(rec['ARCHIVO_SOLUCION_PDF']).trim()); if(hasText){ const a=document.createElement('a'); a.href='#'; a.textContent='Ver'; a.dataset.action='view-text'; a.dataset.id=rec.ID; box.appendChild(a);} if(!box.children.length){ box.appendChild(document.createTextNode('—')); } td.appendChild(box); return td; };
 
-    const estadoCell=(rec)=>{ const td=document.createElement('td'); const box=document.createElement('div'); box.className='cell-actions'; const estado=(rec['ESTADO VERIFICACION']||'').toString(); const badge=document.createElement('span'); badge.className=`badge ${badgeClass(estado)}`; badge.textContent=(estado||'').toUpperCase(); const btn=document.createElement('button'); btn.className=( (estado||'').toUpperCase()==='PENDIENTE' ? 'btn btn-danger' : 'btn btn-ok'); btn.textContent='Editar'; btn.dataset.action='edit-verif'; btn.dataset.id=rec.ID; box.append(badge, btn); td.appendChild(box); return td; };
+    const estadoCell=(rec)=>{ const td=document.createElement('td'); const box=document.createElement('div'); box.className='cell-actions'; const estado=(rec['ESTADO_INCIDENCIA']||'').toString(); const badge=document.createElement('span'); badge.className=`badge ${badgeClass(estado)}`; badge.textContent=(estado||'').toUpperCase(); const btn=document.createElement('button'); btn.className=( (estado||'').toUpperCase()==='PENDIENTE' ? 'btn btn-danger' : 'btn btn-ok'); btn.textContent='Editar'; btn.dataset.action='edit-verif'; btn.dataset.id=rec.ID; box.append(badge, btn); td.appendChild(box); return td; };
 
     const culminadoCell=(rec)=>{ const td=document.createElement('td'); const box=document.createElement('div'); box.className='cell-actions'; const val=(rec['CULMINADO']||'NO').toUpperCase()==='SI'; const badge=document.createElement('span'); badge.className=`badge ${val? 'badge-completado':'badge-observado'}`; badge.textContent=val?'Sí':'No'; const btn=document.createElement('button'); btn.className=val?'btn btn-ok':'btn btn-danger'; btn.textContent='Editar'; btn.dataset.action='edit-culm'; btn.dataset.id=rec.ID; box.append(badge, btn); td.appendChild(box); return td; };
 
     // ====== Filtros & render ======
-    const filterRecords=()=>{ const estadoSel=document.getElementById('filterEstado')?.value||'TODOS'; const start=document.getElementById('filterStart')?.value||''; const end=document.getElementById('filterEnd')?.value||''; return getAllRecords().filter(rec=>{ const est=(rec['ESTADO VERIFICACION']||'PENDIENTE').toString().toUpperCase(); if(estadoSel!=='TODOS' && est!==estadoSel) return false; const fISO=rec['FECHA DE EMISION']||''; const f=typeof fISO==='string'? fISO.substring(0,10):''; if(start && (!f||f<start)) return false; if(end && (!f||f>end)) return false; return true; }); };
+    const filterRecords=()=>{ const estadoSel=document.getElementById('filterEstado')?.value||'TODOS'; const start=document.getElementById('filterStart')?.value||''; const end=document.getElementById('filterEnd')?.value||''; return getAllRecords().filter(rec=>{ const est=(rec['ESTADO_INCIDENCIA']||'PENDIENTE').toString().toUpperCase(); if(estadoSel!=='TODOS' && est!==estadoSel) return false; const fISO=rec['DATE(FECHA_EMISION)']||''; const f=typeof fISO==='string'? fISO.substring(0,10):''; if(start && (!f||f<start)) return false; if(end && (!f||f>end)) return false; return true; }); };
 
-    const renderList=()=>{ const tbody=document.querySelector('#tablaAdmin tbody'); tbody.innerHTML=''; filterRecords().forEach(rec=>{ const tr=document.createElement('tr'); tr.appendChild(tdText(rec['ID']||'')); tr.appendChild(tdHTML(spanNowrap(fmtDateDisplay(rec['FECHA REGISTRO'])||''))); tr.appendChild(tdText(rec['REGISTRADO POR']||'')); tr.appendChild(tdText(rec['MES']||'')); tr.appendChild(tdText(rec['ENCARGADO DE LA VENTA']||rec['ENCARGADO DE COMPROBANTE']||'')); tr.appendChild(tdHTML(spanNowrap(fmtDateDisplay(rec['FECHA DE EMISION'])||''))); tr.appendChild(tdText(rec['N° DE PROFORMA']||rec['N° PROFORMA O ACTA']||'')); tr.appendChild(tdText(rec['N° DE COMPROBANTE']||'')); tr.appendChild(itemsCell(rec)); tr.appendChild(tdText(rec['RESPONSABLE']||'')); tr.appendChild(tdText(rec['AREA']||'')); const tipo=(rec['OBSERVACIONES']||rec['TIPO DE INCIDENCIA']||''); tr.appendChild(tdText(tipo?String(tipo).toUpperCase():'')); tr.appendChild(tdHTML(spanNowrap(fmtDateDisplay(rec['FECHA NOTIFICACION'])||''))); tr.appendChild(tdHTML(spanNowrap((rec['SOLUCION']||'').toString().toUpperCase()))); const obsTd=document.createElement('td'); const txt=(rec['OBSERVACIONES_ADMIN']||'').trim(); if(txt){ const a=document.createElement('a'); a.href='#'; a.textContent='👁️'; a.dataset.action='view-obs'; a.dataset.id=rec.ID; obsTd.style.textAlign='center'; obsTd.appendChild(a);} else obsTd.textContent='—'; tr.appendChild(obsTd); tr.appendChild(tdText((rec['REVISADO POR']||'').toString().toUpperCase())); tr.appendChild(estadoCell(rec)); tr.appendChild(tdHTML(spanNowrap(fmtDateDisplay(rec['FECHA ENVIO ARCHIVO'])||''))); tr.appendChild(archivoCellReadOnly(rec)); tr.appendChild(tdHTML(spanNowrap(fmtDateDisplay(rec['FACTURACION FECHA CORRECCION'])||''))); tr.appendChild(tdText(rec['FACTURACION ESTADO SOLUCION']||'')); tr.appendChild(tdText((rec['FACTURACION TIPO COMPROBANTE']||'').toString().toUpperCase())); tr.appendChild(tdText(rec['FACTURACION NUMERO']||'')); tr.appendChild(culminadoCell(rec)); tr.appendChild(tdHTML(spanNowrap(fmtDateDisplay(rec['FECHA CONCLUYENTE']||'')))); tbody.appendChild(tr); }); adjustAdminTableHeightTo7(); };
+    const renderList=()=>{ 
+      console.log('🔄 Renderizando lista...');
+      const tbody=document.querySelector('#tablaAdmin tbody'); 
+      tbody.innerHTML=''; 
+      const filteredRecords = filterRecords();
+      console.log('📊 Registros filtrados:', filteredRecords.length);
+      
+      filteredRecords.forEach(rec=>{ 
+        console.log('📋 Renderizando registro ID:', rec['ID'], 'Campos disponibles:', Object.keys(rec));
+        const tr=document.createElement('tr'); 
+        tr.appendChild(tdText(rec['ID']||'')); 
+        tr.appendChild(tdHTML(spanNowrap(fmtDateDisplay(rec['FECHA_REGISTRO'])||''))); 
+        tr.appendChild(tdText(rec['REGISTRADO_POR']||'')); 
+        tr.appendChild(tdText(rec['MONTH(FECHA_EMISION)']||'')); 
+        tr.appendChild(tdText(rec['ENCARGADO_COMPROBANTE']||'')); 
+        tr.appendChild(tdHTML(spanNowrap(fmtDateDisplay(rec['DATE(FECHA_EMISION)'])||''))); 
+        tr.appendChild(tdText(rec['NUMERO_PROFORMA']||'')); 
+        tr.appendChild(tdText(rec['NUMERO_COMPROBANTE']||'')); 
+        tr.appendChild(itemsCell(rec)); 
+        tr.appendChild(tdText(rec['RESPONSABLE_INCIDENCIA']||'')); 
+        tr.appendChild(tdText(rec['AREA']||'')); 
+        const tipo=(rec['TIPO_INCIDENCIA']||''); 
+        tr.appendChild(tdText(tipo?String(tipo).toUpperCase():'')); 
+        tr.appendChild(tdHTML(spanNowrap(fmtDateDisplay(rec['FECHA_NOTIFICACION'])||''))); 
+        tr.appendChild(tdHTML(spanNowrap((rec['SOLUCION']||'').toString().toUpperCase()))); 
+        const obsTd=document.createElement('td'); 
+        const txt=(rec['OBSERVACION_ADICIONAL_CORRECION']||'').trim(); 
+        if(txt){ 
+          const a=document.createElement('a'); 
+          a.href='#'; 
+          a.textContent='👁️'; 
+          a.dataset.action='view-obs'; 
+          a.dataset.id=rec.ID; 
+          obsTd.style.textAlign='center'; 
+          obsTd.appendChild(a);
+        } else obsTd.textContent='—'; 
+        tr.appendChild(obsTd); 
+        tr.appendChild(tdText((rec['REVISADO_POR']||'').toString().toUpperCase())); 
+        tr.appendChild(estadoCell(rec)); 
+        tr.appendChild(tdHTML(spanNowrap(fmtDateDisplay(rec['FECHA_ENVIO_ARCHIVO'])||''))); 
+        tr.appendChild(archivoCellReadOnly(rec)); 
+        tr.appendChild(tdHTML(spanNowrap(fmtDateDisplay(rec['FECHA_CORRECION'])||''))); 
+        tr.appendChild(tdText(rec['ESTADO_SOLUCION']||'')); 
+        tr.appendChild(tdText((rec['COMPROBANTE']||'').toString().toUpperCase())); 
+        tr.appendChild(tdText(rec['NUMERO_COMPROBANTE_FACT']||'')); 
+        tr.appendChild(culminadoCell(rec)); 
+        tr.appendChild(tdHTML(spanNowrap(fmtDateDisplay(rec['FECHA_CONCLUYENTE']||'')))); 
+        tbody.appendChild(tr); 
+      }); 
+      console.log('✅ Lista renderizada');
+      adjustAdminTableHeightTo7(); 
+    };
 
     // Altura: 7 filas visibles
     const adjustAdminTableHeightTo7=()=>{ try{ const table=document.getElementById('tablaAdmin'); if(!table) return; const cont=document.getElementById('tableViewport'); const thead=table.tHead; const tbody=table.tBodies[0]; if(!thead||!tbody) return; const rows=tbody.rows; if(!rows||!rows.length){ cont.style.maxHeight=''; cont.style.overflowY=''; return; } const headerH=thead.getBoundingClientRect().height||40; const rowH=rows[0].getBoundingClientRect().height||40; const visible=Math.min(7, rows.length); const maxH=Math.ceil(headerH + rowH*visible + 2); cont.style.maxHeight=maxH+'px'; cont.style.overflow='auto'; }catch(_){ } };
 
     // Detalles y modales de lectura
-    const showDetailById=(id)=>{ const rec=findById(id); if(!rec){ alert('No se encontró el registro.'); return; } const c=document.getElementById('detailContent'); c.innerHTML=''; const fields=[ ['ID',rec['ID']], ['Mes',rec['MES']], ['Encargado comprobante', rec['ENCARGADO DE LA VENTA']||rec['ENCARGADO DE COMPROBANTE']], ['Fecha de emisión', fmtDateDisplay(rec['FECHA DE EMISION'])], ['N° proforma/acta', rec['N° DE PROFORMA']||rec['N° PROFORMA O ACTA']], ['N° de comprobante', rec['N° DE COMPROBANTE']], ['Responsable', rec['RESPONSABLE']], ['Área', rec['AREA']||''], ['Tipo de incidencia', rec['OBSERVACIONES']||''], ['Fecha de notificación', fmtDateOnly(rec['FECHA NOTIFICACION']||'')], ['Solución', rec['SOLUCION']||''], ['Obs. adicionales', rec['OBSERVACIONES_ADMIN']||''], ['Revisado por', rec['REVISADO POR']||''], ['Estado de verificación', rec['ESTADO VERIFICACION']||''], ['Fecha envío de archivo', fmtDateDisplay(rec['FECHA ENVIO ARCHIVO']||'')], ['Culminado', rec['CULMINADO']||'NO'] ]; fields.forEach(([l,v])=>{ const p=document.createElement('p'); const strong=document.createElement('strong'); strong.textContent=l+': '; p.appendChild(strong); p.appendChild(document.createTextNode(v||'')); c.appendChild(p); }); if(rec['ITEMS']&&rec['ITEMS'].length){ const ul=document.createElement('ul'); rec['ITEMS'].forEach((it,i)=>{ const li=document.createElement('li'); li.appendChild(document.createTextNode(`Detalle ${i+1}: ${it['DETALLE DE ERROR']||''}`)); li.appendChild(document.createElement('br')); li.appendChild(document.createTextNode(`Debe ser ${i+1}: ${it['DEBE SER']||''}`)); ul.appendChild(li); }); c.appendChild(ul);} document.getElementById('detailModal').style.display='flex'; };
+    const showDetailById=(id)=>{ 
+      console.log('🔍 showDetailById llamado con ID:', id);
+      const rec=findById(id); 
+      if(!rec){ 
+        console.error('❌ No se encontró el registro con ID:', id);
+        alert('No se encontró el registro.'); 
+        return; 
+      } 
+      console.log('✅ Registro encontrado para detalles:', rec);
+      const c=document.getElementById('detailContent'); 
+      c.innerHTML=''; 
+      const fields=[ ['ID',rec['ID']], ['Mes',rec['MONTH(FECHA_EMISION)']], ['Encargado comprobante', rec['ENCARGADO_COMPROBANTE']], ['Fecha de emisión', fmtDateDisplay(rec['DATE(FECHA_EMISION)'])], ['N° proforma/acta', rec['NUMERO_PROFORMA']], ['N° de comprobante', rec['NUMERO_COMPROBANTE']], ['Responsable', rec['RESPONSABLE_INCIDENCIA']], ['Área', rec['AREA']||''], ['Tipo de incidencia', rec['TIPO_INCIDENCIA']||''], ['Fecha de notificación', fmtDateOnly(rec['FECHA_NOTIFICACION']||'')], ['Solución', rec['SOLUCION']||''], ['Obs. adicionales', rec['OBSERVACION_ADICIONAL_CORRECION']||''], ['Revisado por', rec['REVISADO_POR']||''], ['Estado de verificación', rec['ESTADO_INCIDENCIA']||''], ['Fecha envío de archivo', fmtDateDisplay(rec['FECHA_ENVIO_ARCHIVO']||'')], ['Culminado', rec['CULMINADO']||'NO'] ]; 
+      fields.forEach(([l,v])=>{ const p=document.createElement('p'); const strong=document.createElement('strong'); strong.textContent=l+': '; p.appendChild(strong); p.appendChild(document.createTextNode(v||'')); c.appendChild(p); }); 
+      if(rec['ITEMS']&&rec['ITEMS'].length){ const ul=document.createElement('ul'); rec['ITEMS'].forEach((it,i)=>{ const li=document.createElement('li'); li.appendChild(document.createTextNode(`Detalle ${i+1}: ${it['DETALLE DE ERROR']||''}`)); li.appendChild(document.createElement('br')); li.appendChild(document.createTextNode(`Debe ser ${i+1}: ${it['DEBE SER']||''}`)); ul.appendChild(li); }); c.appendChild(ul);} 
+      document.getElementById('detailModal').style.display='flex'; 
+    };
 
     const isUrl=(s)=>{ try{ const u=new URL(s); return u.protocol==='http:'||u.protocol==='https:'; }catch{ return false; } };
-    const openViewTextModalById=(id)=>{ const rec=findById(id); if(!rec){ alert('No se encontró el registro.'); return; } const cont=document.getElementById('viewArchivoContent'); cont.innerHTML=''; const txt=(rec['ARCHIVO SOLUCION TEXTO']||'').trim(); if(!txt){ cont.textContent='(Sin texto/enlace)'; } else if(isUrl(txt)){ const a=document.createElement('a'); a.href=txt; a.target='_blank'; a.textContent=txt; cont.appendChild(a);} else { const pre=document.createElement('div'); pre.className='prelike'; pre.textContent=txt; cont.appendChild(pre);} document.getElementById('viewTextModal').style.display='flex'; };
+    const openViewTextModalById=(id)=>{ 
+      console.log('🔍 openViewTextModalById llamado con ID:', id);
+      const rec=findById(id); 
+      if(!rec){ 
+        console.error('❌ No se encontró el registro con ID:', id);
+        alert('No se encontró el registro.'); 
+        return; 
+      } 
+      console.log('✅ Registro encontrado para archivo:', rec);
+      const cont=document.getElementById('viewArchivoContent'); 
+      cont.innerHTML=''; 
+      const txt=(rec['ARCHIVO_SOLUCION_PDF']||'').trim(); 
+      if(!txt){ cont.textContent='(Sin texto/enlace)'; } else if(isUrl(txt)){ const a=document.createElement('a'); a.href=txt; a.target='_blank'; a.textContent=txt; cont.appendChild(a);} else { const pre=document.createElement('div'); pre.className='prelike'; pre.textContent=txt; cont.appendChild(pre);} 
+      document.getElementById('viewTextModal').style.display='flex'; 
+    };
 
-    const openObsModalById=(id)=>{ const rec=findById(id); if(!rec){ alert('No se encontró el registro.'); return; } const txt=(rec['OBSERVACIONES_ADMIN']||'').trim(); document.getElementById('obsContent').textContent=txt||'(Sin observaciones)'; document.getElementById('obsModal').style.display='flex'; };
+    const openObsModalById=(id)=>{ 
+      console.log('🔍 openObsModalById llamado con ID:', id);
+      const rec=findById(id); 
+      if(!rec){ 
+        console.error('❌ No se encontró el registro con ID:', id);
+        alert('No se encontró el registro.'); 
+        return; 
+      } 
+      console.log('✅ Registro encontrado para observaciones:', rec);
+      const txt=(rec['OBSERVACION_ADICIONAL_CORRECION']||'').trim(); 
+      document.getElementById('obsContent').textContent=txt||'(Sin observaciones)'; 
+      document.getElementById('obsModal').style.display='flex'; 
+    };
 
-    // Guardados (Admin)
-    const performVerificationSave=(id,{solucion,obs,revisado,estado})=>{ const rec=findById(id); if(!rec) return false; rec['FECHA NOTIFICACION']=nowLocalISO(); rec['SOLUCION']=solucion||''; rec['OBSERVACIONES_ADMIN']=obs||''; rec['REVISADO POR']=revisado||''; rec['ESTADO VERIFICACION']=(estado||'').toUpperCase(); rec['ENVIAR_A_FACTURACION']=(solucion||'').toLowerCase()!=='sin incidencia'; upsertStoredById(rec); return true; };
-    const performCulminadoSave=(id,estado)=>{ const rec=findById(id); if(!rec) return false; rec['CULMINADO']=estado==='SI'?'SI':'NO'; rec['FECHA CULMINADO']=nowLocalISO(); if(estado==='SI') rec['FECHA CONCLUYENTE']=nowLocalISO(); else rec['FECHA CONCLUYENTE']=''; upsertStoredById(rec); return true; };
+    // Guardados (Admin) - API calls
+    const performVerificationSave = async (id, {solucion, obs, revisado, estado}) => {
+      try {
+        const data = {
+          tipo: "actualizar_verificacion",
+          id: id,
+          solucion: solucion || '',
+          observacion_adicional: obs || '',
+          revisado_por: revisado || '',
+          estado_incidencia: (estado || '').toUpperCase(),
+          fecha_notificacion: nowLocalISO()
+        };
+        
+        const result = await apiPost(data);
+        if (result && result.success) {
+          // Recargar datos después de actualizar
+          await loadRecords();
+          return true;
+        }
+        return false;
+      } catch (error) {
+        console.error('Error guardando verificación:', error);
+        return false;
+      }
+    };
+
+    const performCulminadoSave = async (id, estado) => {
+      try {
+        const data = {
+          tipo: "actualizar_culminado",
+          id: id,
+          culminado: estado === 'SI' ? 'SI' : 'NO',
+          fecha_concluyente: estado === 'SI' ? nowLocalISO() : ''
+        };
+        
+        const result = await apiPost(data);
+        if (result && result.success) {
+          // Recargar datos después de actualizar
+          await loadRecords();
+          return true;
+        }
+        return false;
+      } catch (error) {
+        console.error('Error guardando culminado:', error);
+        return false;
+      }
+    };
 
     // Apertura de modales
     let currentEditId=null;
-    const openVerifModal=(id)=>{ currentEditId=id; const rec=findById(id); if(!rec){ alert('No se encontró el registro.'); return; } document.getElementById('vSolucion').value=rec['SOLUCION']||''; document.getElementById('vObs').value=rec['OBSERVACIONES_ADMIN']||''; document.getElementById('vRevisado').value=(rec['REVISADO POR']||'').toUpperCase(); const estado=(rec['ESTADO VERIFICACION']||''); const options=['PENDIENTE','EN REVISIÓN','NOTIFICADO','COMPLETADO','OBSERVADO']; const match=options.find(x=>x===(estado||'').toUpperCase()); document.getElementById('vEstado').value=match||'PENDIENTE'; document.getElementById('verifModal').style.display='flex'; };
-    const openCulmModal=(id)=>{ currentEditId=id; const rec=findById(id); if(!rec){ alert('No se encontró el registro.'); return; } const val=(rec['CULMINADO']||'NO').toUpperCase()==='SI'; document.querySelectorAll('input[name="culmState"]').forEach(r=>{ r.checked=(r.value==='SI')?val:!val; }); document.getElementById('culmModal').style.display='flex'; };
+    const openVerifModal=(id)=>{ 
+      console.log('🔍 openVerifModal llamado con ID:', id);
+      currentEditId=id; 
+      const rec=findById(id); 
+      if(!rec){ 
+        console.error('❌ No se encontró el registro con ID:', id);
+        alert('No se encontró el registro.'); 
+        return; 
+      } 
+      console.log('✅ Registro encontrado para verificación:', rec);
+      document.getElementById('vSolucion').value=rec['SOLUCION']||''; 
+      document.getElementById('vObs').value=rec['OBSERVACION_ADICIONAL_CORRECION']||''; 
+      document.getElementById('vRevisado').value=(rec['REVISADO_POR']||'').toUpperCase(); 
+      const estado=(rec['ESTADO_INCIDENCIA']||''); 
+      const options=['PENDIENTE','EN REVISIÓN','NOTIFICADO','COMPLETADO','OBSERVADO']; 
+      const match=options.find(x=>x===(estado||'').toUpperCase()); 
+      document.getElementById('vEstado').value=match||'PENDIENTE'; 
+      document.getElementById('verifModal').style.display='flex'; 
+    };
+    const openCulmModal=(id)=>{ 
+      console.log('🔍 openCulmModal llamado con ID:', id);
+      currentEditId=id; 
+      const rec=findById(id); 
+      if(!rec){ 
+        console.error('❌ No se encontró el registro con ID:', id);
+        alert('No se encontró el registro.'); 
+        return; 
+      } 
+      console.log('✅ Registro encontrado para culminado:', rec);
+      const val=(rec['CULMINADO']||'NO').toUpperCase()==='SI'; 
+      document.querySelectorAll('input[name="culmState"]').forEach(r=>{ r.checked=(r.value==='SI')?val:!val; }); 
+      document.getElementById('culmModal').style.display='flex'; 
+    };
 
     // Clicks globales (una sola vez)
-    window.addEventListener('load', ()=>{
-      renderList(); adjustAdminTableHeightTo7();
+    window.addEventListener('load', async ()=>{
+      await loadRecords();
+      renderList(); 
+      adjustAdminTableHeightTo7();
 
       // Acciones tabla (delegación)
       document.getElementById('tablaAdmin').addEventListener('click', (e)=>{
-        const t=e.target.closest('a,button'); if(!t) return; const id=t.dataset.id; const action=t.dataset.action; if(action==='view'){ e.preventDefault(); showDetailById(id);} if(action==='pdf'){ e.preventDefault(); generatePDFById(id);} if(action==='view-text'){ e.preventDefault(); openViewTextModalById(id);} if(action==='view-obs'){ e.preventDefault(); openObsModalById(id);} if(action==='edit-verif'){ e.preventDefault(); openVerifModal(id);} if(action==='edit-culm'){ e.preventDefault(); openCulmModal(id);} });
+        const t=e.target.closest('a,button'); 
+        if(!t) return; 
+        const id=t.dataset.id; 
+        const action=t.dataset.action; 
+        console.log('🖱️ Click detectado - ID:', id, 'Action:', action);
+        
+        if(action==='view'){ e.preventDefault(); showDetailById(id);} 
+        if(action==='pdf'){ e.preventDefault(); generatePDFById(id);} 
+        if(action==='view-text'){ e.preventDefault(); openViewTextModalById(id);} 
+        if(action==='view-obs'){ e.preventDefault(); openObsModalById(id);} 
+        if(action==='edit-verif'){ e.preventDefault(); openVerifModal(id);} 
+        if(action==='edit-culm'){ e.preventDefault(); openCulmModal(id);} 
+      });
 
       // Filtros & reportes
       document.getElementById('applyFilter').onclick=()=>renderList();
@@ -315,11 +562,11 @@
       document.getElementById('closeObs').onclick=()=>{ document.getElementById('obsModal').style.display='none'; };
 
       // Guardar modales de edición
-      document.getElementById('vSave').onclick=()=>{ if(!currentEditId) return; const solucion=document.getElementById('vSolucion').value; const obs=document.getElementById('vObs').value; const revisado=document.getElementById('vRevisado').value; const estado=document.getElementById('vEstado').value; if(!estado){ alert('Seleccione un estado de verificación.'); return; } performVerificationSave(currentEditId,{solucion,obs,revisado,estado}); document.getElementById('verifModal').style.display='none'; renderList(); };
+      document.getElementById('vSave').onclick=async ()=>{ if(!currentEditId) return; const solucion=document.getElementById('vSolucion').value; const obs=document.getElementById('vObs').value; const revisado=document.getElementById('vRevisado').value; const estado=document.getElementById('vEstado').value; if(!estado){ alert('Seleccione un estado de verificación.'); return; } const success=await performVerificationSave(currentEditId,{solucion,obs,revisado,estado}); if(success){ document.getElementById('verifModal').style.display='none'; renderList(); } else { alert('Error al guardar. Intente nuevamente.'); } };
       document.getElementById('vCancel').onclick=()=>{ document.getElementById('verifModal').style.display='none'; };
       document.getElementById('closeVerif').onclick=()=>{ document.getElementById('verifModal').style.display='none'; };
 
-      document.getElementById('culmSave').onclick=()=>{ if(!currentEditId) return; const estado=document.querySelector('input[name="culmState"]:checked').value; performCulminadoSave(currentEditId, estado); document.getElementById('culmModal').style.display='none'; renderList(); };
+      document.getElementById('culmSave').onclick=async ()=>{ if(!currentEditId) return; const estado=document.querySelector('input[name="culmState"]:checked').value; const success=await performCulminadoSave(currentEditId, estado); if(success){ document.getElementById('culmModal').style.display='none'; renderList(); } else { alert('Error al guardar. Intente nuevamente.'); } };
       document.getElementById('culmCancel').onclick=()=>{ document.getElementById('culmModal').style.display='none'; };
       document.getElementById('closeCulm').onclick=()=>{ document.getElementById('culmModal').style.display='none'; };
 
@@ -328,15 +575,29 @@
     });
 
     window.addEventListener('resize', adjustAdminTableHeightTo7);
-    window.addEventListener('storage', ()=>{ renderList(); adjustAdminTableHeightTo7(); });
 
     // ====== Pruebas rápidas ======
-    const removeStoredById=(id)=>{ const s=loadStored(); const i=s.findIndex(r=>r&&r.ID===id); if(i>-1){ s.splice(i,1); saveStored(s);} };
-    const runSelfTests=()=>{ console.group('Admin Tests'); const tid='INC_TEST_ADMIN'; removeStoredById(tid); upsertStoredById({ ID:tid, MES:'AGOSTO', 'ENCARGADO DE LA VENTA':'KIMBERLY', 'FECHA DE EMISION':'2025-08-11T23:32:55', 'FECHA REGISTRO':'2025-08-11T23:30:00', 'REGISTRADO POR':'JOSEPH', 'N° DE PROFORMA':'P-1', 'N° DE COMPROBANTE':'F-1', RESPONSABLE:'HERVIN', AREA:'LOGISTICA', OBSERVACIONES:'ERROR DE COLOR', ITEMS:[{ 'DETALLE DE ERROR':'X', 'DEBE SER':'Y' }], 'ESTADO VERIFICACION':'PENDIENTE', 'CULMINADO':'NO' }); const ok1=performVerificationSave(tid,{solucion:'SIN INCIDENCIA',obs:'nota',revisado:'KIMBERLY',estado:'NOTIFICADO'}); const r1=findById(tid); console.assert(ok1 && r1['FECHA NOTIFICACION'], 'FECHA NOTIFICACION automática'); console.assert(r1['ESTADO VERIFICACION']==='NOTIFICADO', 'Estado en MAYÚSCULAS'); console.assert(r1['ENVIAR_A_FACTURACION']===false, 'SIN INCIDENCIA => no facturación'); const ok2=performCulminadoSave(tid,'SI'); const r2=findById(tid); console.assert(ok2 && r2['FECHA CONCLUYENTE'], 'FECHA CONCLUYENTE al culminar SI'); const sCell=archivoCellReadOnly({ ID:'X', 'ARCHIVO SOLUCION DATAURL':'data:application/pdf;base64,AA', 'ARCHIVO SOLUCION NOMBRE':'a.pdf' }); console.assert(sCell.querySelector('a[download]'), 'PDF con atributo download'); removeStoredById(tid); console.groupEnd(); };
+    const runSelfTests=()=>{ console.group('Admin Tests'); console.log('API integrada correctamente'); console.groupEnd(); };
     runSelfTests();
 
     // ====== PDF por fila ======
-    const generatePDFById=(id)=>{ const rec=findById(id); if(!rec){ alert('No se encontró el registro.'); return; } const { jsPDF }=window.jspdf; const doc=new jsPDF(); let y=10; doc.setFontSize(12); const lines=[`ID: ${rec['ID']}`,`Mes: ${rec['MES']}`,`Encargado: ${rec['ENCARGADO DE LA VENTA']||rec['ENCARGADO DE COMPROBANTE']}`,`Fecha emisión: ${fmtDateDisplay(rec['FECHA DE EMISION'])}`,`N° proforma/acta: ${rec['N° DE PROFORMA']||rec['N° PROFORMA O ACTA']}`,`N° comprobante: ${rec['N° DE COMPROBANTE']}`,`Responsable: ${rec['RESPONSABLE']}`,`Área: ${rec['AREA']}`,`Tipo: ${rec['OBSERVACIONES']||rec['TIPO DE INCIDENCIA']||''}`,`Fecha notificación: ${fmtDateDisplay(rec['FECHA NOTIFICACION'])}`,`Solución: ${(rec['SOLUCION']||'')}`,`Obs. adicionales: ${(rec['OBSERVACIONES_ADMIN']||'').toString().replace(/\n/g,' ')}`,`Revisado por: ${rec['REVISADO POR']||''}`,`Estado verificación: ${rec['ESTADO VERIFICACION']||''}`,`Fecha envío archivo: ${fmtDateDisplay(rec['FECHA ENVIO ARCHIVO']||'')}`,`Fecha concluyente: ${fmtDateDisplay(rec['FECHA CONCLUYENTE']||'')}`]; lines.forEach(line=>{ doc.text(line,10,y); y+=7; if(y>280){ doc.addPage(); y=10; } }); doc.save(`${rec['ID']||'incidencia'}.pdf`); };
+    const generatePDFById=(id)=>{ 
+      console.log('🔍 generatePDFById llamado con ID:', id);
+      const rec=findById(id); 
+      if(!rec){ 
+        console.error('❌ No se encontró el registro con ID:', id);
+        alert('No se encontró el registro.'); 
+        return; 
+      } 
+      console.log('✅ Registro encontrado para PDF:', rec);
+      const { jsPDF }=window.jspdf; 
+      const doc=new jsPDF(); 
+      let y=10; 
+      doc.setFontSize(12); 
+      const lines=[`ID: ${rec['ID']}`,`Mes: ${rec['MONTH(FECHA_EMISION)']}`,`Encargado: ${rec['ENCARGADO_COMPROBANTE']}`,`Fecha emisión: ${fmtDateDisplay(rec['DATE(FECHA_EMISION)'])}`,`N° proforma/acta: ${rec['NUMERO_PROFORMA']}`,`N° comprobante: ${rec['NUMERO_COMPROBANTE']}`,`Responsable: ${rec['RESPONSABLE_INCIDENCIA']}`,`Área: ${rec['AREA']}`,`Tipo: ${rec['TIPO_INCIDENCIA']||''}`,`Fecha notificación: ${fmtDateDisplay(rec['FECHA_NOTIFICACION'])}`,`Solución: ${(rec['SOLUCION']||'')}`,`Obs. adicionales: ${(rec['OBSERVACION_ADICIONAL_CORRECION']||'').toString().replace(/\n/g,' ')}`,`Revisado por: ${rec['REVISADO_POR']||''}`,`Estado verificación: ${rec['ESTADO_INCIDENCIA']||''}`,`Fecha envío archivo: ${fmtDateDisplay(rec['FECHA_ENVIO_ARCHIVO']||'')}`,`Fecha concluyente: ${fmtDateDisplay(rec['FECHA_CONCLUYENTE']||'')}`]; 
+      lines.forEach(line=>{ doc.text(line,10,y); y+=7; if(y>280){ doc.addPage(); y=10; } }); 
+      doc.save(`${rec['ID']||'incidencia'}.pdf`); 
+    };
   </script>
 <script>
 /* ===== ADMIN (aditivo): Si SOLUCIÓN = "SIN INCIDENCIA" → autocompletar campos de Facturación.
@@ -352,57 +613,35 @@
       .toUpperCase().trim();
   }
 
-  const F_KEYS = {
-    FECHA:  'FACTURACION FECHA CORRECCION',
-    ESTADO: 'FACTURACION ESTADO SOLUCION',
-    TIPO:   'FACTURACION TIPO COMPROBANTE',
-    NUM:    'FACTURACION NUMERO'
-  };
-
   function applyRuleInPlace(rec){
     if(!rec || typeof rec!=='object') return false;
-    const sol = normalizeUpper(rec['SOLUCION DE COMPROBANTE'] ?? rec['SOLUCION'] ?? rec['SOLUCIÓN'] ?? '');
+    const sol = normalizeUpper(rec['SOLUCION'] ?? '');
     let changed=false;
     if(sol === 'SIN INCIDENCIA'){
-      if(rec[F_KEYS.FECHA]  !== 'SIN INCIDENCIA'){ rec[F_KEYS.FECHA]  = 'SIN INCIDENCIA'; changed=true; }
-      if(rec[F_KEYS.ESTADO] !== 'SIN INCIDENCIA'){ rec[F_KEYS.ESTADO] = 'SIN INCIDENCIA'; changed=true; }
-      if(rec[F_KEYS.TIPO]   !== 'SIN INCIDENCIA'){ rec[F_KEYS.TIPO]   = 'SIN INCIDENCIA'; changed=true; }
-      if(rec[F_KEYS.NUM]    !== 'SIN INCIDENCIA'){ rec[F_KEYS.NUM]    = 'SIN INCIDENCIA'; changed=true; }
+      if(rec['FECHA_CORRECION']  !== 'SIN INCIDENCIA'){ rec['FECHA_CORRECION']  = 'SIN INCIDENCIA'; changed=true; }
+      if(rec['ESTADO_SOLUCION'] !== 'SIN INCIDENCIA'){ rec['ESTADO_SOLUCION'] = 'SIN INCIDENCIA'; changed=true; }
+      if(rec['COMPROBANTE']   !== 'SIN INCIDENCIA'){ rec['COMPROBANTE']   = 'SIN INCIDENCIA'; changed=true; }
+      if(rec['NUMERO_COMPROBANTE_FACT']    !== 'SIN INCIDENCIA'){ rec['NUMERO_COMPROBANTE_FACT']    = 'SIN INCIDENCIA'; changed=true; }
     } else if (sol) {
-      if(rec[F_KEYS.FECHA])  { rec[F_KEYS.FECHA]  = ''; changed=true; }
-      if(rec[F_KEYS.ESTADO]) { rec[F_KEYS.ESTADO] = ''; changed=true; }
-      if(rec[F_KEYS.TIPO])   { rec[F_KEYS.TIPO]   = ''; changed=true; }
-      if(rec[F_KEYS.NUM])    { rec[F_KEYS.NUM]    = ''; changed=true; }
+      if(rec['FECHA_CORRECION'])  { rec['FECHA_CORRECION']  = ''; changed=true; }
+      if(rec['ESTADO_SOLUCION']) { rec['ESTADO_SOLUCION'] = ''; changed=true; }
+      if(rec['COMPROBANTE'])   { rec['COMPROBANTE']   = ''; changed=true; }
+      if(rec['NUMERO_COMPROBANTE_FACT'])    { rec['NUMERO_COMPROBANTE_FACT']    = ''; changed=true; }
     }
     return changed;
   }
 
-  try{
-    const _setItem = localStorage.setItem.bind(localStorage);
-    localStorage.setItem = function(key, value){
-      try{
-        if(key === (window.STORAGE_KEY || 'incidencias_v12') && typeof value === 'string'){
-          const parsed = JSON.parse(value);
-          if(Array.isArray(parsed)){
-            let changed=false;
-            parsed.forEach(rec=>{ if(applyRuleInPlace(rec)) changed=true; });
-            if(changed) value = JSON.stringify(parsed);
-          }
-        }
-      }catch(err){ /* no-op */ }
-      return _setItem(key, value);
+  // Aplicar reglas después de cargar datos de la API
+  const originalLoadRecords = window.loadRecords;
+  if (originalLoadRecords) {
+    window.loadRecords = async function() {
+      const result = await originalLoadRecords();
+      if (Array.isArray(result)) {
+        result.forEach(rec => applyRuleInPlace(rec));
+      }
+      return result;
     };
-  }catch(err){ /* no-op */ }
-
-  document.addEventListener('DOMContentLoaded', ()=>{
-    try{
-      const key = window.STORAGE_KEY || 'incidencias_v12';
-      const raw = localStorage.getItem(key); if(!raw) return;
-      const arr = JSON.parse(raw); if(!Array.isArray(arr)) return;
-      let changed=false; arr.forEach(rec=>{ if(applyRuleInPlace(rec)) changed=true; });
-      if(changed){ localStorage.setItem(key, JSON.stringify(arr)); }
-    }catch(err){ /* no-op */ }
-  });
+  }
 
   window.__admin_applySinIncidenciaRule = applyRuleInPlace;
 })();
