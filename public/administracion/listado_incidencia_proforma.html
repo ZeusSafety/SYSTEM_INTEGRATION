@@ -282,6 +282,28 @@
       }
     };
 
+    const apiPut = async (data, params = {}) => {
+      try {
+        const url = new URL(API_BASE_URL);
+        Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
+        
+        const response = await fetch(url, {
+          method: 'PUT',
+          headers: API_HEADERS,
+          body: JSON.stringify(data)
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        return await response.json();
+      } catch (error) {
+        console.error('Error en API PUT:', error);
+        return null;
+      }
+    };
+
     // ====== Data Management ======
     let allRecords = [];
     const loadRecords = async () => {
@@ -497,47 +519,63 @@
     // Guardados (Admin) - API calls
     const performVerificationSave = async (id, {solucion, obs, revisado, estado}) => {
       try {
+        console.log('🔄 Guardando verificación para ID:', id);
+        console.log('📊 Datos a enviar:', {solucion, obs, revisado, estado});
+        
         const data = {
-          tipo: "actualizar_verificacion",
-          id: id,
           solucion: solucion || '',
           observacion_adicional: obs || '',
           revisado_por: revisado || '',
-          estado_incidencia: (estado || '').toUpperCase(),
-          fecha_notificacion: nowLocalISO()
+          estado: (estado || '').toUpperCase(),
+          id: id
         };
         
-        const result = await apiPost(data);
-        if (result && result.success) {
+        const params = {
+          metodo: "verificacion"
+        };
+        
+        const result = await apiPut(data, params);
+        console.log('📤 Respuesta de API:', result);
+        
+        if (result) {
           // Recargar datos después de actualizar
           await loadRecords();
+          console.log('✅ Verificación guardada exitosamente');
           return true;
         }
         return false;
       } catch (error) {
-        console.error('Error guardando verificación:', error);
+        console.error('❌ Error guardando verificación:', error);
         return false;
       }
     };
 
     const performCulminadoSave = async (id, estado) => {
       try {
+        console.log('🔄 Guardando culminado para ID:', id);
+        console.log('📊 Estado a enviar:', estado);
+        
         const data = {
-          tipo: "actualizar_culminado",
-          id: id,
-          culminado: estado === 'SI' ? 'SI' : 'NO',
-          fecha_concluyente: estado === 'SI' ? nowLocalISO() : ''
+          culminado: estado === 'SI' ? 'Si' : 'No',
+          id: id
         };
         
-        const result = await apiPost(data);
-        if (result && result.success) {
+        const params = {
+          metodo: "culminado"
+        };
+        
+        const result = await apiPut(data, params);
+        console.log('📤 Respuesta de API:', result);
+        
+        if (result) {
           // Recargar datos después de actualizar
           await loadRecords();
+          console.log('✅ Culminado guardado exitosamente');
           return true;
         }
         return false;
       } catch (error) {
-        console.error('Error guardando culminado:', error);
+        console.error('❌ Error guardando culminado:', error);
         return false;
       }
     };
