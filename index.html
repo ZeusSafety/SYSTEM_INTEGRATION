@@ -1,82 +1,105 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ZEUS SAFETY - Sistema de Integración</title>
-    <link rel="stylesheet" href="css/styles.css">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-</head>
-<body>
-    <!-- Header -->
-    <header class="header">
-        <div class="logo-container">
-            <img src="https://eliascarmin.github.io/Mi_Portafolio/IMG/Logo%20de%20Zeus.png" alt="ZEUS SAFETY Logo" class="logo">
-        </div>
-    </header>
-
-    <!-- Main Content -->
-    <main class="main-content">
-        <div class="cards-grid">
-            <!-- Row 1 -->
-            <div class="card">
-                <div class="card-content">
-                    <i class="fas fa-shield-alt card-icon"></i>
-                    <h3 class="card-title">GERENCIA</h3>
-                    <p class="card-subtitle">Gestión general y reportes ejecutivos</p>
-                </div>
-            </div>
-
-            <div class="card">
-                <a href="administracion.html" class="card-link">
-                <div class="card-content">
-                    <i class="fas fa-user-shield card-icon"></i>
-                    <h3 class="card-title">ADMINISTRACIÓN</h3>
-                    <p class="card-subtitle">Control de usuarios, permisos y finanzas</p>
-                </div>
-                </a>
-            </div>
-
-            <div class="card">
-                <a href="importacion.html" class="card-link">
-                    <div class="card-content">
-                        <i class="fas fa-ship card-icon"></i>
-                        <h3 class="card-title">IMPORTACIÓN</h3>
-                        <p class="card-subtitle">Seguimiento de despachos y órdenes</p>
-                    </div>
-                </a>
-            </div>
-
-            <div class="card">
-                <a href="logistica.html" class="card-link">
-                    <div class="card-content">
-                        <i class="fas fa-truck card-icon"></i>
-                        <h3 class="card-title">LOGÍSTICA</h3>
-                        <p class="card-subtitle">Inventarios, almacenes y distribución</p>
-                    </div>
-                </a>
-            </div>
-
-            <div class="card">
-                <a href="ventas.html" class="card-link">
-                    <div class="card-content">
-                        <i class="fas fa-hard-hat card-icon"></i>
-                        <h3 class="card-title">VENTAS</h3>
-                        <p class="card-subtitle">Gestión de pedidos y atención al cliente</p>
-                    </div>
-                </a>
-            </div>
-
-            <div class="card">
-                <div class="card-content">
-                    <i class="fas fa-exclamation-triangle card-icon"></i>
-                    <h3 class="card-title">MARKETING</h3>
-                    <p class="card-subtitle">Publicidad, redes sociales y campañas</p>
-                </div>
-            </div>
-        </div>
-    </main>
-
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="js/script.js"></script>
+</head>
+
+<style>
+    :root {
+        --azul-oscuro: #00264d;
+        --maiz-oscuro: #e2a30f;
+        --blanco: #ffffff;
+        --negro: #000000;
+        --gris-suave: #f4f4f4;
+    }
+
+    body {
+        background-color: var(--gris-suave);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        font-family: 'Segoe UI', sans-serif;
+    }
+
+    .login-card {
+        background-color: var(--blanco);
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        padding: 40px 30px;
+        width: 100%;
+        max-width: 400px;
+    }
+
+    .login-card img {
+        display: block;
+        margin: 0 auto 20px auto;
+        height: 60px;
+    }
+
+    .login-card h4 {
+        text-align: center;
+        color: var(--azul-oscuro);
+        margin-bottom: 30px;
+    }
+
+    .btn-login {
+        background-color: var(--maiz-oscuro);
+        border: none;
+        color: var(--negro);
+    }
+
+    .btn-login:hover {
+        background-color: #c98c0e;
+    }
+
+    .form-control:focus {
+        border-color: var(--maiz-oscuro);
+        box-shadow: 0 0 0 0.2rem rgba(226, 163, 15, 0.25);
+    }
+</style>
+<body>
+
+    <div class="login-card">
+        <img src="https://eliascarmin.github.io/Mi_Portafolio/IMG/Logo%20de%20Zeus.png" alt="Logo Zeus">
+
+        <form id="loginForm">
+            <div class="mb-3">
+                <label for="usuario" class="form-label">Usuario</label>
+                <input type="text" class="form-control" id="usuario" placeholder="Ingrese su usuario" required />
+            </div>
+            <div class="mb-3">
+                <label for="contrasena" class="form-label">Contraseña</label>
+                <input type="password" class="form-control" id="contrasena" placeholder="Ingrese su contraseña"
+                    required />
+            </div>
+            <div class="d-grid">
+                <button type="submit" class="btn btn-login">Ingresar</button>
+            </div>
+        </form>
+    </div>
 </body>
+
+
+<script>
+document.getElementById("loginForm").addEventListener("submit", function(e) {
+    e.preventDefault();
+    const usuario = document.getElementById("usuario").value;
+    const contrasena = document.getElementById("contrasena").value;
+
+    if (loginUser(usuario, contrasena)) {
+        window.location.href = "menu.html";
+    } else {
+        alert("Usuario o contraseña incorrectos");
+    }
+});
+</script>
+
+
 </html>

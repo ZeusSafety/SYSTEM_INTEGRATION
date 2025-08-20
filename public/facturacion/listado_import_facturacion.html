@@ -303,7 +303,7 @@
     }
 
     .table td:nth-child(12) {
-      /* Acciones */
+      /* Solución PDF */
       min-width: 120px;
     }
 
@@ -760,7 +760,7 @@
               <th>Canal</th>
               <th>Fecha Recepción</th>
               <th>Incidencias</th>
-              <th>Acciones</th>
+              <th>Solución PDF</th>
             </tr>
           </thead>
           <tbody>
@@ -954,10 +954,15 @@
             tr.appendChild(td);
           });
 
-          // Agregar celda de acciones
-          const tdAcciones = document.createElement('td');
-          tdAcciones.innerHTML = `<button class="btn-actualizar" onclick="abrirModalActualizar('${row.ID_IMPORTACIONES}', '${row.FECHA_RECEPCION || ''}', '${row.INCIDENCIAS || ''}')"><i class="fas fa-edit"></i> Actualizar</button>`;
-          tr.appendChild(tdAcciones);
+          // Agregar celda de Solución PDF (campo específico de solución proveniente de la API)
+          const tdPdf = document.createElement('td');
+          const urlPdfSolucion = row.SOLUCION_PDF_URL || row.PDF_SOLUCION_URL || row.SOLUCION_URL || '';
+          if (urlPdfSolucion && typeof urlPdfSolucion === 'string' && urlPdfSolucion.startsWith('http')) {
+            tdPdf.innerHTML = `<button class="btn-pdf" onclick="window.open('${urlPdfSolucion}','_blank')"><i class='fas fa-file-pdf'></i> Ver PDF</button>`;
+          } else {
+            tdPdf.textContent = '';
+          }
+          tr.appendChild(tdPdf);
 
           tbody.appendChild(tr);
         });
