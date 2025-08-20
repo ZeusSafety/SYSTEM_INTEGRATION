@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -29,7 +30,7 @@
 
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #e6e6e6 0%, #dddcdf 100%);
       min-height: 100vh;
       color: var(--negro);
       position: relative;
@@ -38,7 +39,7 @@
 
     .btn-back {
       position: fixed;
-      top: 30px;
+      top: 12%;
       left: 30px;
       background: linear-gradient(135deg, var(--maiz-oscuro), var(--maiz-claro));
       color: white;
@@ -77,7 +78,7 @@
       background: rgba(255, 255, 255, 0.95);
       border-radius: 20px;
       padding: 40px;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
       backdrop-filter: blur(10px);
       position: relative;
       overflow: hidden;
@@ -133,7 +134,7 @@
       border-radius: 16px;
       padding: 25px;
       margin-bottom: 30px;
-      box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
       border: 2px solid transparent;
       border-left: 6px solid var(--maiz-oscuro);
     }
@@ -199,6 +200,10 @@
       font-weight: 600;
       cursor: pointer;
       transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+      transition: all 0.3s ease;
       text-decoration: none;
       display: inline-flex;
       align-items: center;
@@ -226,7 +231,7 @@
       background: var(--blanco);
       border-radius: 16px;
       overflow: hidden;
-      box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
       border: 2px solid transparent;
       border-left: 6px solid var(--maiz-oscuro);
     }
@@ -257,7 +262,7 @@
       border-bottom: 3px solid var(--maiz-oscuro);
       font-weight: 700;
       box-shadow: 0 2px 8px rgba(0, 38, 77, 0.2);
-      text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
       text-transform: uppercase;
       padding: 16px 12px;
       letter-spacing: 1px;
@@ -271,31 +276,36 @@
       word-wrap: break-word;
       max-width: 200px;
     }
-    
+
     /* Estilos específicos para columnas importantes */
-    .table td:nth-child(4) { /* Productos */
+    .table td:nth-child(4) {
+      /* Productos */
       max-width: 250px;
       text-align: left;
     }
-    
-    .table td:nth-child(9) { /* Canal */
+
+    .table td:nth-child(9) {
+      /* Canal */
       min-width: 80px;
       font-weight: bold;
     }
-    
-    .table td:nth-child(10) { /* Fecha Recepción */
+
+    .table td:nth-child(10) {
+      /* Fecha Recepción */
       min-width: 130px;
     }
 
-    .table td:nth-child(11) { /* Incidencias */
+    .table td:nth-child(11) {
+      /* Incidencias */
       min-width: 120px;
     }
 
-    .table td:nth-child(12) { /* Acciones */
+    .table td:nth-child(12) {
+      /* Acciones */
       min-width: 100px;
     }
 
-    .table-striped > tbody > tr:nth-of-type(odd) {
+    .table-striped>tbody>tr:nth-of-type(odd) {
       background-color: var(--gris-suave);
     }
 
@@ -312,8 +322,13 @@
     }
 
     @keyframes resaltarFila {
-      0% { background: #ffe066; }
-      100% { background: #fffbe6; }
+      0% {
+        background: #ffe066;
+      }
+
+      100% {
+        background: #fffbe6;
+      }
     }
 
     .estado-transito {
@@ -365,7 +380,7 @@
       display: inline-block;
       box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
     }
-    
+
     /* Estilos para los canales */
     .canal-rojo {
       background: #dc3545 !important;
@@ -376,7 +391,7 @@
       display: inline-block;
       box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
     }
-    
+
     .canal-verde {
       background: #198754 !important;
       color: var(--blanco) !important;
@@ -386,7 +401,7 @@
       display: inline-block;
       box-shadow: 0 2px 8px rgba(25, 135, 84, 0.3);
     }
-    
+
     .canal-amarillo {
       background: #ffc107 !important;
       color: var(--negro) !important;
@@ -439,15 +454,15 @@
       z-index: 9999 !important;
       display: none;
     }
-    
+
     .modal.show {
       display: block !important;
     }
-    
+
     .modal-backdrop {
       z-index: 9998 !important;
     }
-    
+
     .modal-content {
       border-radius: 16px;
       border: none;
@@ -455,29 +470,29 @@
       overflow: hidden;
       position: relative;
     }
-    
+
     .modal-dialog {
       max-width: 800px;
       margin: 1.75rem auto;
     }
-    
+
     .modal-body {
       max-height: 70vh;
       overflow-y: auto;
       padding: 25px;
     }
-    
+
     /* Asegurar que los campos del modal no aparezcan fuera */
     .modal .form-control,
     .modal .form-select,
     .modal .form-label {
       display: block;
     }
-    
+
     /* Ocultar cualquier campo que no esté dentro del modal */
-    body > .form-control,
-    body > .form-select,
-    body > .form-label {
+    body>.form-control,
+    body>.form-select,
+    body>.form-label {
       display: none !important;
     }
 
@@ -499,14 +514,16 @@
       padding: 25px;
     }
 
-    .form-control, .form-select {
+    .form-control,
+    .form-select {
       border-radius: 8px;
       border: 2px solid #e9ecef;
       padding: 12px 15px;
       transition: all 0.3s ease;
     }
 
-    .form-control:focus, .form-select:focus {
+    .form-control:focus,
+    .form-select:focus {
       border-color: var(--maiz-oscuro);
       box-shadow: 0 0 0 0.2rem rgba(226, 163, 15, 0.25);
     }
@@ -551,19 +568,19 @@
       box-shadow: 0 2px 12px rgba(0, 38, 77, 0.1);
       overflow-x: auto;
     }
-    
+
     /* Asegurar que todas las columnas sean visibles */
     .table {
       min-width: 1400px;
     }
-    
+
     /* Hacer que las columnas Canal y Acciones sean más visibles */
     .table th:nth-child(9),
     .table td:nth-child(9) {
       min-width: 100px;
       white-space: nowrap;
     }
-    
+
     .table th:nth-child(12),
     .table td:nth-child(12) {
       min-width: 120px;
@@ -579,26 +596,26 @@
         margin-bottom: 20px;
         align-self: flex-start;
       }
-      
+
       .container {
         padding: 30px 20px;
         margin-top: 20px;
       }
-      
+
       .header h1 {
         font-size: 2rem;
       }
-      
+
       .filters-grid {
         grid-template-columns: 1fr;
         gap: 15px;
       }
-      
+
       .controls-section {
         flex-direction: column;
         align-items: stretch;
       }
-      
+
       .btn {
         justify-content: center;
       }
@@ -608,38 +625,136 @@
       body {
         padding: 10px;
       }
-      
+
       .container {
         padding: 25px 15px;
       }
-      
+
       .header h1 {
         font-size: 1.8rem;
       }
-      
+
       .header p {
         font-size: 1rem;
       }
-      
+
       .btn {
         padding: 10px 20px;
         font-size: 0.9rem;
+      }
+    }
+
+    header-logo {
+      display: flex;
+      align-items: center;
+    }
+
+    .header-logo img {
+      max-width: 150px;
+      object-fit: contain;
+      transition: transform 0.3s ease;
+    }
+
+    .header-logo img:hover {
+      transform: scale(1.05);
+    }
+
+    .header-title {
+      flex: 1;
+      text-align: center;
+      margin: 0 20px;
+    }
+
+    .header-spacer {
+      width: 150px;
+      /* Mismo ancho que el logo para mantener centrado el título */
+    }
+
+    .header-title h1 {
+      color: white;
+      font-weight: 700;
+      font-size: 28px;
+      margin: 0;
+      text-shadow: 0 2px 4px rgba(20, 33, 61, 0.1);
+    }
+
+    /* Header */
+    .header-container {
+      background: linear-gradient(135deg, #17375d 0%, #1e4d7a 100%);
+      box-shadow: 0 2px 20px rgba(25, 67, 158, 0.1);
+      padding: 20px 30px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+      width: 100vw;
+      margin-left: calc(-50vw + 50%);
+      margin-right: calc(-50vw + 50%);
+      margin-top: -20px;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .btn-volver {
+        padding: 10px 16px;
+        font-size: 14px;
+      }
+
+      .btn-listado-flotante {
+        bottom: 20px;
+        right: 20px;
+        padding: 12px 20px;
+        font-size: 14px;
+      }
+
+      .card {
+        margin-top: 20px;
+      }
+
+      .header-container {
+        flex-direction: column;
+        gap: 15px;
+        padding: 20px;
+        margin-left: calc(-50vw + 50%);
+        margin-right: calc(-50vw + 50%);
+        margin-top: -20px;
+      }
+
+      .header-title h1 {
+        font-size: 24px;
+      }
+
+      .header-logo img {
+        max-width: 120px;
+      }
+
+      .header-spacer {
+        display: none;
       }
     }
   </style>
 </head>
 
 <body>
-  <a href="../../importacion.html" class="btn-back">Volver al Menú</a>
 
+
+  <!-- Header con Logo y Título -->
+  <div class="header-container">
+    <div class="header-logo">
+      <img src="https://eliascarmin.github.io/Mi_Portafolio/IMG/logotipo%20de%20Zeus%20Safety%20en%20Positivo.png"
+        alt="Logo Zeus">
+    </div>
+    <div class="header-title">
+      <h1>LISTADO IMPORTACIONES</h1>
+    </div>
+    <div class="header-spacer"></div>
+  </div>
+  <a href="../../importacion.html" class="btn-back">Volver al Menú</a>
   <div class="container">
     <div class="header">
-      <h1><i class="fas fa-list-alt"></i> LISTADO IMPORTACIONES</h1>
-      <p>Gestión y Actualización de Registros de Importación</p>
-    </div>
-
-    <div class="logo-container">
-      <img src="https://eliascarmin.github.io/Mi_Portafolio/IMG/Logo%20de%20Zeus.png" alt="Logo Zeus">
+      <h2><i class="fas fa-list-alt"></i> Gestión y Actualización de Registros de Importación</h2>
     </div>
 
     <div class="filters-section">
@@ -666,7 +781,8 @@
 
     <div class="controls-section">
 
-      <button onclick="window.top.location.href='<?= ScriptApp.getService().getUrl() ?>?page=importaciones'" class="btn">
+      <button onclick="window.top.location.href='<?= ScriptApp.getService().getUrl() ?>?page=importaciones'"
+        class="btn">
         <i class="fas fa-plus-circle"></i> Nuevo Registro
       </button>
     </div>
@@ -716,7 +832,8 @@
             <div class="row g-3">
               <div class="col-md-6">
                 <label class="form-label">Fecha Registro</label>
-                <input type="text" class="form-control" id="upd_fecha_registro" readonly style="background-color: #f8f9fa;">
+                <input type="text" class="form-control" id="upd_fecha_registro" readonly
+                  style="background-color: #f8f9fa;">
               </div>
               <div class="col-md-6">
                 <label class="form-label">N° Despacho</label>
@@ -759,12 +876,12 @@
               </div>
               <div class="mb-3">
                 <label for="canal" class="form-label">Canal</label>
-                <select class="form-select" id="upd_canal" >
-                <option value="">Seleccione un canal</option>
-                <option value="ROJO" style="color:#dc3545;">ROJO</option>
-                <option value="VERDE" style="color:#198754;">VERDE</option>
-                <option value="AMARILLO" style="color:#ffc107;">AMARILLO</option>
-              </select>
+                <select class="form-select" id="upd_canal">
+                  <option value="">Seleccione un canal</option>
+                  <option value="ROJO" style="color:#dc3545;">ROJO</option>
+                  <option value="VERDE" style="color:#198754;">VERDE</option>
+                  <option value="AMARILLO" style="color:#ffc107;">AMARILLO</option>
+                </select>
               </div>
             </div>
           </form>
@@ -784,14 +901,14 @@
 
   <script>
     let registrosGlobal = [];
-    
+
     // Función para consumir la API
     async function obtenerDatosAPI() {
       const api = "https://importacionesvr01crud-2946605267.us-central1.run.app";
-      
+
       try {
         const response = await fetch(api);
-        
+
         if (response.status === 200) {
           const datos = await response.text();
           console.log("Datos extraídos correctamente");
@@ -809,11 +926,11 @@
     // Función para actualizar datos en la API
     async function actualizarDatosAPI(datos) {
       const api = "https://importacionesvr01crud-2946605267.us-central1.run.app";
-      
+
       try {
         console.log('Enviando petición PUT a:', api);
         console.log('Datos enviados:', JSON.stringify(datos, null, 2));
-        
+
         const response = await fetch(api, {
           method: 'PUT',
           headers: {
@@ -821,9 +938,9 @@
           },
           body: JSON.stringify(datos)
         });
-        
+
         console.log('Respuesta del servidor:', response.status, response.statusText);
-        
+
         if (response.status === 200) {
           const resultado = await response.text();
           console.log("Datos actualizados correctamente");
@@ -851,13 +968,13 @@
       tbody.innerHTML = '<tr><td colspan="12" class="text-center">Cargando...</td></tr>';
       // Guardar el último ID registrado en localStorage
       let ultimoId = localStorage.getItem('ultimoIdImportacion');
-      
-      const render = function(registros) {
+
+      const render = function (registros) {
         if (!Array.isArray(registros) || registros.length === 0) {
           tbody.innerHTML = '<tr><td colspan="12" class="text-center">Sin registros</td></tr>';
           return;
         }
-        
+
         // Ordenar para que el registro con el ID más alto (último) esté primero
         let idxNuevo = -1;
         if (registros.length > 1) {
@@ -868,7 +985,7 @@
             registros.unshift(nuevo);
           }
         }
-        
+
         tbody.innerHTML = '';
         registros.forEach(function (row, i) {
           const tr = document.createElement('tr');
@@ -876,7 +993,7 @@
           if (i === 0 && (String(row.ID_IMPORTACIONES) === String(ultimoId))) {
             tr.classList.add('fila-nueva');
           }
-          
+
           // Crear las celdas en el orden correcto
           const celdas = [
             row.FECHA_REGISTRO,
@@ -891,10 +1008,10 @@
             row.FECHA_RECEPCION,
             row.INCIDENCIAS
           ];
-          
+
           celdas.forEach(function (cell, idx) {
             const td = document.createElement('td');
-            
+
             if (idx === 3) { // Productos
               td.style.minWidth = '180px';
               td.style.maxWidth = '320px';
@@ -919,57 +1036,57 @@
               td.textContent = cell;
               td.style.fontWeight = 'bold';
               td.style.color = 'var(--azul-oscuro)';
-                           } else if (idx === 7) { // Estado
-               let estado = String(cell).toUpperCase();
-               if (estado === 'TRANSITO') {
-                 td.innerHTML = `<span class='estado-transito'>${cell}</span>`;
-               } else if (estado === 'PRODUCCION') {
-                 td.innerHTML = `<span class='estado-produccion'>${cell}</span>`;
-               } else if (estado === 'ETA') {
-                 td.innerHTML = `<span class='estado-eta'>${cell}</span>`;
-               } else {
-                 td.textContent = cell;
-               }
-             } else if (idx === 8) { // Canal
-               let canal = String(cell).toUpperCase();
-               if (canal === 'ROJO') {
-                 td.innerHTML = `<span class='canal-rojo'>${cell}</span>`;
-               } else if (canal === 'VERDE') {
-                 td.innerHTML = `<span class='canal-amarillo'>${cell}</span>`;
-               } else if (canal === 'AMARILLO') {
-                 td.innerHTML = `<span class='canal-amarillo'>${cell}</span>`;
-               } else {
-                 td.textContent = cell;
-               }
-             } else if (idx === 9) { // Fecha Recepción
-               if (cell && cell !== 'null' && cell !== '') {
-                 // Convertir formato de fecha si es necesario
-                 let fecha = cell;
-                 if (cell.includes('/')) {
-                   const partes = cell.split('/');
-                   if (partes.length === 3) {
-                     fecha = `${partes[2]}-${partes[1].padStart(2, '0')}-${partes[0].padStart(2, '0')}`;
-                   }
-                 }
-                 td.textContent = fecha;
-               } else {
-                 td.textContent = '';
-               }
-             } else if (idx === 10) { // Incidencias
-               let incidencia = String(cell).toUpperCase();
-               if (incidencia === 'SI') {
-                 td.innerHTML = `<span class='estado-incidencia-si'>${cell}</span>`;
-               } else if (incidencia === 'NO') {
-                 td.innerHTML = `<span class='estado-incidencia-no'>${cell}</span>`;
-               } else {
-                 td.textContent = cell || '';
-               }
-             } else {
-               td.textContent = cell;
-             }
+            } else if (idx === 7) { // Estado
+              let estado = String(cell).toUpperCase();
+              if (estado === 'TRANSITO') {
+                td.innerHTML = `<span class='estado-transito'>${cell}</span>`;
+              } else if (estado === 'PRODUCCION') {
+                td.innerHTML = `<span class='estado-produccion'>${cell}</span>`;
+              } else if (estado === 'ETA') {
+                td.innerHTML = `<span class='estado-eta'>${cell}</span>`;
+              } else {
+                td.textContent = cell;
+              }
+            } else if (idx === 8) { // Canal
+              let canal = String(cell).toUpperCase();
+              if (canal === 'ROJO') {
+                td.innerHTML = `<span class='canal-rojo'>${cell}</span>`;
+              } else if (canal === 'VERDE') {
+                td.innerHTML = `<span class='canal-amarillo'>${cell}</span>`;
+              } else if (canal === 'AMARILLO') {
+                td.innerHTML = `<span class='canal-amarillo'>${cell}</span>`;
+              } else {
+                td.textContent = cell;
+              }
+            } else if (idx === 9) { // Fecha Recepción
+              if (cell && cell !== 'null' && cell !== '') {
+                // Convertir formato de fecha si es necesario
+                let fecha = cell;
+                if (cell.includes('/')) {
+                  const partes = cell.split('/');
+                  if (partes.length === 3) {
+                    fecha = `${partes[2]}-${partes[1].padStart(2, '0')}-${partes[0].padStart(2, '0')}`;
+                  }
+                }
+                td.textContent = fecha;
+              } else {
+                td.textContent = '';
+              }
+            } else if (idx === 10) { // Incidencias
+              let incidencia = String(cell).toUpperCase();
+              if (incidencia === 'SI') {
+                td.innerHTML = `<span class='estado-incidencia-si'>${cell}</span>`;
+              } else if (incidencia === 'NO') {
+                td.innerHTML = `<span class='estado-incidencia-no'>${cell}</span>`;
+              } else {
+                td.textContent = cell || '';
+              }
+            } else {
+              td.textContent = cell;
+            }
             tr.appendChild(td);
           });
-          
+
           // Columna ACCIONES
           const tdAcciones = document.createElement('td');
           // Usar un enfoque más seguro para pasar los datos
@@ -977,7 +1094,7 @@
           const button = document.createElement('button');
           button.className = 'btn btn-warning';
           button.innerHTML = '<i class="fas fa-edit"></i> Actualizar';
-          button.onclick = function() {
+          button.onclick = function () {
             abrirModalActualizar(rowData);
           };
           tdAcciones.appendChild(button);
@@ -986,18 +1103,19 @@
           tbody.appendChild(tr);
         });
       };
-      
+
       if (filtrados && Array.isArray(filtrados)) {
+        document.getElementById('btnFiltrar').disabled = false;
         render(filtrados);
         return;
       }
-      
+
       // Deshabilitar el botón de filtro mientras carga
       document.getElementById('btnFiltrar').disabled = true;
-      
+
       // Consumir la API
       obtenerDatosAPI()
-        .then(function(datos) {
+        .then(function (datos) {
           let registros = [];
           try {
             // Intentar parsear como JSON
@@ -1007,16 +1125,18 @@
             console.log("Los datos no son JSON válido, procesando como texto");
             registros = [];
           }
-          
+
           if (Array.isArray(registros)) {
             registrosGlobal = registros;
           } else {
             registrosGlobal = [];
           }
           render(registrosGlobal);
+          document.getElementById('btnFiltrar').disabled = false;
         })
-        .catch(function(err) {
+        .catch(function (err) {
           tbody.innerHTML = '<tr><td colspan="12" class="text-danger">Error al cargar datos: ' + err.message + '</td></tr>';
+          document.getElementById('btnFiltrar').disabled = false;
         });
     }
 
@@ -1028,15 +1148,15 @@
     });
     window.onload = cargarTablaImportaciones;
 
-    document.getElementById('btnFiltrar').onclick = function() {
+    document.getElementById('btnFiltrar').onclick = function () {
       if (!Array.isArray(registrosGlobal) || registrosGlobal.length === 0) {
         return;
       }
       const fechaInicio = document.getElementById('filtroFechaInicio').value;
       const fechaFinal = document.getElementById('filtroFechaFinal').value;
       const despacho = document.getElementById('filtroDespacho').value.trim().toLowerCase();
-      
-      let filtrados = registrosGlobal.filter(function(row) {
+
+      let filtrados = registrosGlobal.filter(function (row) {
         // Fecha Registro
         let cumpleFecha = true;
         if (fechaInicio) {
@@ -1053,16 +1173,27 @@
             cumpleFecha = cumpleFecha && (fRow <= fechaFinal);
           }
         }
-        
+
         // N° Despacho
         let cumpleDespacho = true;
         if (despacho) {
-          cumpleDespacho = String(row.NUMERO_DESPACHO||'').toLowerCase().includes(despacho);
+          cumpleDespacho = String(row.NUMERO_DESPACHO || '').toLowerCase().includes(despacho);
         }
-        
+
         return cumpleFecha && cumpleDespacho;
       });
       cargarTablaImportaciones(filtrados);
+    };
+
+    document.getElementById('btnLimpiarFiltros').onclick = function () {
+      document.getElementById('filtroFechaInicio').value = '';
+      document.getElementById('filtroFechaFinal').value = '';
+      document.getElementById('filtroDespacho').value = '';
+      if (Array.isArray(registrosGlobal) && registrosGlobal.length > 0) {
+        cargarTablaImportaciones(registrosGlobal);
+      } else {
+        cargarTablaImportaciones();
+      }
     };
 
     function abrirModalActualizar(rowData) {
@@ -1078,14 +1209,14 @@
           row = rowData;
         }
         console.log('Datos parseados:', row);
-        
+
         // row: objeto con las propiedades de la API
         document.getElementById('upd_id').value = row.ID_IMPORTACIONES || '';
         document.getElementById('upd_fecha_registro').value = row.FECHA_REGISTRO || '';
         document.getElementById('upd_despacho').value = row.NUMERO_DESPACHO || '';
         document.getElementById('upd_redactado').value = row.RESPONSABLE || '';
         document.getElementById('upd_productos').value = row.PRODUCTOS || '';
-        
+
         // Convertir fecha de llegada de "dd/MM/yyyy" a "yyyy-MM-dd" para el input type="date"
         if (row.FECHA_LLEGADA_PRODUCTOS) {
           let fechaLlegada = row.FECHA_LLEGADA_PRODUCTOS;
@@ -1099,16 +1230,16 @@
         } else {
           document.getElementById('upd_fecha_llegada').value = '';
         }
-        
+
         document.getElementById('upd_tipo_carga').value = row.TIPO_CARGA || '';
         document.getElementById('upd_estado').value = row.ESTADO_IMPORTACION || '';
         document.getElementById('upd_canal').value = row.CANAL || '';
-        
+
         // Mostrar el modal usando Bootstrap
         const modalElement = document.getElementById('modalActualizar');
         const modal = new bootstrap.Modal(modalElement);
         modal.show();
-        
+
         console.log('Modal abierto correctamente');
       } catch (error) {
         console.error('Error al abrir modal:', error);
@@ -1117,17 +1248,17 @@
       }
     }
 
-    document.getElementById('btnGuardarActualizacion').onclick = function() {
+    document.getElementById('btnGuardarActualizacion').onclick = function () {
       const id = document.getElementById('upd_id').value;
       const fechaLlegada = document.getElementById('upd_fecha_llegada').value;
-      
+
       // Convertir fecha de llegada de "yyyy-MM-dd" a "yyyy-MM-dd" para MySQL
       let fechaLlegadaFormateada = '';
       if (fechaLlegada) {
         // Mantener el formato yyyy-MM-dd que es compatible con MySQL
         fechaLlegadaFormateada = fechaLlegada;
       }
-      
+
       const datos = {
         numero_despacho: document.getElementById('upd_despacho').value,
         responsable: document.getElementById('upd_redactado').value,
@@ -1138,29 +1269,29 @@
         canal: document.getElementById('upd_canal').value,
         id: parseInt(id) // Convertir a número
       };
-      
+
       // Validar que todos los campos requeridos estén llenos
       if (!datos.numero_despacho || !datos.responsable || !datos.productos || !datos.fecha_llegada_productos || !datos.tipo_carga || !datos.estado_importacion) {
         alert('Por favor complete todos los campos requeridos.');
         return;
       }
-      
+
       // Si el canal está vacío, establecer un valor por defecto
       if (!datos.canal) {
         datos.canal = '';
       }
-      
+
       // Validar que el ID esté presente
       if (!datos.id) {
         alert('Error: ID de importación no encontrado.');
         return;
       }
-      
+
       console.log('Datos a enviar:', datos);
-      
+
       // Usar la API para actualizar
       actualizarDatosAPI(datos)
-        .then(function(result) {
+        .then(function (result) {
           var modal = bootstrap.Modal.getInstance(document.getElementById('modalActualizar'));
           modal.hide();
           cargarTablaImportaciones();
@@ -1171,11 +1302,12 @@
             alert('Importación actualizada correctamente.');
           }
         })
-        .catch(function(err) {
+        .catch(function (err) {
           console.error('Error al actualizar:', err);
           alert('Error al actualizar: ' + (err.message || err));
         });
     };
   </script>
 </body>
+
 </html>
