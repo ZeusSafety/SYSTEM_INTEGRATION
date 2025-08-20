@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZEUS SAFETY - Sistema de Integración</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/script.js"></script>
+</head>
+
+<style>
+    .logout-btn {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 1000;
+        border-radius: 10px;
+        padding: 10px 20px;
+        font-weight: bold;
+    }
+
+    /* Contenedor usuario en header */
+    .user-info {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: #f8f9fa;
+        border: 2px solid #ccc;
+        border-radius: 15px;
+        /* Bordes ondulados */
+        padding: 8px 15px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: bold;
+        font-size: 14px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    }
+
+    .user-info i {
+        font-size: 18px;
+        color: #dc3545;
+        /* rojo estilo Bootstrap */
+    }
+
+    .user-info {
+        background: #f8f9fa;
+        border: 2px dashed #6c757d;
+        /* borde ondulado */
+        border-radius: 12px;
+        padding: 6px 12px;
+        font-weight: bold;
+        color: #333;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .user-info i {
+        font-size: 20px;
+        color: #007bff;
+    }
+</style>
+
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="logo-container">
+            <img src="https://eliascarmin.github.io/Mi_Portafolio/IMG/Logo%20de%20Zeus.png" alt="ZEUS SAFETY Logo"
+                class="logo">
+        </div>
+
+        <div id="user-info" class="user-info d-flex align-items-center">
+            <i class="fas fa-user-circle me-2"></i>
+            <span id="username-display">Usuario</span>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="cards-grid">
+            <!-- Row 1 -->
+            <div class="card" data-role="gerencia">
+                <div class="card-content">
+                    <i class="fas fa-shield-alt card-icon"></i>
+                    <h3 class="card-title">GERENCIA</h3>
+                    <p class="card-subtitle">Gestión general y reportes ejecutivos</p>
+                </div>
+            </div>
+
+            <div class="card" data-role="administracion">
+                <a href="administracion.html" class="card-link">
+                    <div class="card-content">
+                        <i class="fas fa-user-shield card-icon"></i>
+                        <h3 class="card-title">ADMINISTRACIÓN</h3>
+                        <p class="card-subtitle">Control de usuarios, permisos y finanzas</p>
+                    </div>
+                </a>
+            </div>
+
+            <div class="card" data-role="importacion">
+                <a href="importacion.html" class="card-link">
+                    <div class="card-content">
+                        <i class="fas fa-ship card-icon"></i>
+                        <h3 class="card-title">IMPORTACIÓN</h3>
+                        <p class="card-subtitle">Seguimiento de despachos y órdenes</p>
+                    </div>
+                </a>
+            </div>
+
+            <div class="card" data-role="logistica">
+                <a href="logistica.html" class="card-link">
+                    <div class="card-content">
+                        <i class="fas fa-truck card-icon"></i>
+                        <h3 class="card-title">LOGÍSTICA</h3>
+                        <p class="card-subtitle">Inventarios, almacenes y distribución</p>
+                    </div>
+                </a>
+            </div>
+
+            <div class="card" data-role="ventas">
+                <a href="ventas.html" class="card-link">
+                    <div class="card-content">
+                        <i class="fas fa-hard-hat card-icon"></i>
+                        <h3 class="card-title">VENTAS</h3>
+                        <p class="card-subtitle">Gestión de pedidos y atención al cliente</p>
+                    </div>
+                </a>
+            </div>
+
+            <div class="card" data-role="marketing">
+                <div class="card-content">
+                    <i class="fas fa-exclamation-triangle card-icon"></i>
+                    <h3 class="card-title">MARKETING</h3>
+                    <p class="card-subtitle">Publicidad, redes sociales y campañas</p>
+                </div>
+            </div>
+
+
+        </div>
+        <!-- botón logout -->
+        <button onclick="logoutUser()" class="btn btn-danger logout-btn">Cerrar sesión</button>
+    </main>
+</body>
+
+<script>
+    loadMenu(); // BORRA SI EN CASO QUIEREN USAR EL MENU DE TODAS LA AREAS, SINO SOLO ABRIRA EL LOGIN
+</script>
+
+</html>
