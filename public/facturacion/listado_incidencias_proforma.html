@@ -500,14 +500,14 @@
         console.log('📊 Datos a enviar:', {comprobante, numero, estado});
         
         const data = {
-          comprobante: comprobante || '',
-          numero_comprobante: numero || '',
+          numero_comprobante_solucion: numero || '',
           estado_solucion: (estado || '').toUpperCase(),
+          comprobante: comprobante || '',
           id: id
         };
         
         const params = {
-          metodo: "facturacion"
+          metodo: "comprobante"
         };
         
         const result = await apiPut(data, params);
