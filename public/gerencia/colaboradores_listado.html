@@ -701,44 +701,54 @@
         // Datos de prueba para permisos por módulo
         const mockPermisosData = {
             1: [
-                { MODULO: "Ventas", PERMISO: true },
-                { MODULO: "Logística", PERMISO: false },
-                { MODULO: "Importaciones", PERMISO: false },
-                { MODULO: "Administración", PERMISO: false },
-                { MODULO: "Marketing", PERMISO: false },
-                { MODULO: "Gerencia", PERMISO: false }
+                { NOMBRE: "VENTAS", ESTADO: "1" },
+                { NOMBRE: "LOGISTICA", ESTADO: "0" },
+                { NOMBRE: "IMPORTACION", ESTADO: "0" },
+                { NOMBRE: "ADMINISTRACION", ESTADO: "0" },
+                { NOMBRE: "MARKETING", ESTADO: "0" },
+                { NOMBRE: "GERENCIA", ESTADO: "0" },
+                { NOMBRE: "FACTURACION", ESTADO: "0" },
+                { NOMBRE: "SISTEMAS", ESTADO: "0" }
             ],
             2: [
-                { MODULO: "Ventas", PERMISO: false },
-                { MODULO: "Logística", PERMISO: true },
-                { MODULO: "Importaciones", PERMISO: false },
-                { MODULO: "Administración", PERMISO: false },
-                { MODULO: "Marketing", PERMISO: false },
-                { MODULO: "Gerencia", PERMISO: false }
+                { NOMBRE: "VENTAS", ESTADO: "0" },
+                { NOMBRE: "LOGISTICA", ESTADO: "1" },
+                { NOMBRE: "IMPORTACION", ESTADO: "0" },
+                { NOMBRE: "ADMINISTRACION", ESTADO: "0" },
+                { NOMBRE: "MARKETING", ESTADO: "0" },
+                { NOMBRE: "GERENCIA", ESTADO: "0" },
+                { NOMBRE: "FACTURACION", ESTADO: "0" },
+                { NOMBRE: "SISTEMAS", ESTADO: "0" }
             ],
             3: [
-                { MODULO: "Ventas", PERMISO: false },
-                { MODULO: "Logística", PERMISO: false },
-                { MODULO: "Importaciones", PERMISO: true },
-                { MODULO: "Administración", PERMISO: false },
-                { MODULO: "Marketing", PERMISO: false },
-                { MODULO: "Gerencia", PERMISO: false }
+                { NOMBRE: "VENTAS", ESTADO: "0" },
+                { NOMBRE: "LOGISTICA", ESTADO: "0" },
+                { NOMBRE: "IMPORTACION", ESTADO: "1" },
+                { NOMBRE: "ADMINISTRACION", ESTADO: "0" },
+                { NOMBRE: "MARKETING", ESTADO: "0" },
+                { NOMBRE: "GERENCIA", ESTADO: "0" },
+                { NOMBRE: "FACTURACION", ESTADO: "0" },
+                { NOMBRE: "SISTEMAS", ESTADO: "0" }
             ],
             4: [
-                { MODULO: "Ventas", PERMISO: false },
-                { MODULO: "Logística", PERMISO: false },
-                { MODULO: "Importaciones", PERMISO: false },
-                { MODULO: "Administración", PERMISO: true },
-                { MODULO: "Marketing", PERMISO: false },
-                { MODULO: "Gerencia", PERMISO: false }
+                { NOMBRE: "VENTAS", ESTADO: "0" },
+                { NOMBRE: "LOGISTICA", ESTADO: "0" },
+                { NOMBRE: "IMPORTACION", ESTADO: "0" },
+                { NOMBRE: "ADMINISTRACION", ESTADO: "1" },
+                { NOMBRE: "MARKETING", ESTADO: "0" },
+                { NOMBRE: "GERENCIA", ESTADO: "0" },
+                { NOMBRE: "FACTURACION", ESTADO: "0" },
+                { NOMBRE: "SISTEMAS", ESTADO: "0" }
             ],
             5: [
-                { MODULO: "Ventas", PERMISO: false },
-                { MODULO: "Logística", PERMISO: false },
-                { MODULO: "Importaciones", PERMISO: false },
-                { MODULO: "Administración", PERMISO: false },
-                { MODULO: "Marketing", PERMISO: true },
-                { MODULO: "Gerencia", PERMISO: false }
+                { NOMBRE: "VENTAS", ESTADO: "0" },
+                { NOMBRE: "LOGISTICA", ESTADO: "0" },
+                { NOMBRE: "IMPORTACION", ESTADO: "0" },
+                { NOMBRE: "ADMINISTRACION", ESTADO: "0" },
+                { NOMBRE: "MARKETING", ESTADO: "1" },
+                { NOMBRE: "GERENCIA", ESTADO: "0" },
+                { NOMBRE: "FACTURACION", ESTADO: "0" },
+                { NOMBRE: "SISTEMAS", ESTADO: "0" }
             ]
         };
 
@@ -989,17 +999,16 @@
             try {
                 // Llamada a la API para guardar información de usuario
                 const api = "https://colaboradores-2946605267.us-central1.run.app";
-                const metodo = "actualizar_credenciales";
+                const metodo = "credenciales";
                 
                 const data = {
-                    id: currentColaboradorId,
-                    USUARIO: username,
-                    CONTRASEÑA: password
+                    usuario: username,
+                    contrasena: password
                 };
 
                 console.log('Enviando datos de usuario:', data);
 
-                const response = await fetch(`${api}?metodo=${metodo}`, {
+                const response = await fetch(`${api}?metodo=${metodo}&id=${currentColaboradorId}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1037,37 +1046,82 @@
                 return;
             }
 
-            // Recopilar todos los permisos
-            const permisos = [];
+            // Crear objeto con todos los módulos requeridos por la API
+            const permisosData = {
+                MARKETING: 0,
+                IMPORTACION: 0,
+                SISTEMAS: 0,
+                FACTURACION: 0,
+                LOGISTICA: 0,
+                GERENCIA: 0,
+                ADMINISTRACION: 0,
+                VENTAS: 0
+            };
+
+            // Recopilar todos los permisos de la tabla
             const checkboxes = document.querySelectorAll('#permissionsTableBody input[type="checkbox"]');
             
-            checkboxes.forEach((checkbox, index) => {
-                const nombre = checkbox.closest('tr').cells[0].textContent;
-                const estado = checkbox.checked ? "1" : "0";
-                permisos.push({
-                    NOMBRE: nombre,
-                    ESTADO: estado
-                });
+            checkboxes.forEach((checkbox) => {
+                const nombre = checkbox.closest('tr').cells[0].textContent.trim();
+                const estado = checkbox.checked ? 1 : 0;
+                
+                // Mapear nombres de módulos a los nombres esperados por la API
+                let moduloKey = nombre.toUpperCase();
+                
+                // Ajustar nombres específicos según la API
+                switch (nombre.toUpperCase()) {
+                    case 'VENTAS':
+                        moduloKey = 'VENTAS';
+                        break;
+                    case 'LOGÍSTICA':
+                    case 'LOGISTICA':
+                        moduloKey = 'LOGISTICA';
+                        break;
+                    case 'IMPORTACIONES':
+                        moduloKey = 'IMPORTACION';
+                        break;
+                    case 'ADMINISTRACIÓN':
+                    case 'ADMINISTRACION':
+                        moduloKey = 'ADMINISTRACION';
+                        break;
+                    case 'MARKETING':
+                        moduloKey = 'MARKETING';
+                        break;
+                    case 'GERENCIA':
+                        moduloKey = 'GERENCIA';
+                        break;
+                    case 'FACTURACIÓN':
+                    case 'FACTURACION':
+                        moduloKey = 'FACTURACION';
+                        break;
+                    case 'SISTEMAS':
+                        moduloKey = 'SISTEMAS';
+                        break;
+                    default:
+                        moduloKey = nombre.toUpperCase();
+                }
+                
+                // Actualizar el estado en el objeto de permisos
+                if (permisosData.hasOwnProperty(moduloKey)) {
+                    permisosData[moduloKey] = estado;
+                }
             });
 
             try {
                 // Llamada a la API para guardar permisos
                 const api = "https://colaboradores-2946605267.us-central1.run.app";
-                const metodo = "actualizar_permisos";
+                const metodo = "modulos";
                 
-                const data = {
-                    id: currentColaboradorId,
-                    permisos: permisos
-                };
+                console.log('Enviando datos de permisos:', permisosData);
+                console.log('URL de la petición:', `${api}?metodo=${metodo}&id=${currentColaboradorId}`);
+                console.log('Body de la petición:', JSON.stringify(permisosData));
 
-                console.log('Enviando datos de permisos:', data);
-
-                const response = await fetch(`${api}?metodo=${metodo}`, {
+                const response = await fetch(`${api}?metodo=${metodo}&id=${currentColaboradorId}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify(data)
+                    body: JSON.stringify(permisosData)
                 });
 
                 console.log('Status de respuesta permisos:', response.status);
@@ -1079,6 +1133,13 @@
                     alert('Permisos guardados exitosamente');
                 } else {
                     console.error('Error en la respuesta de permisos:', response.status);
+                    // Intentar obtener más información del error
+                    try {
+                        const errorData = await response.text();
+                        console.error('Detalles del error:', errorData);
+                    } catch (e) {
+                        console.error('No se pudo obtener detalles del error');
+                    }
                     alert('Error al guardar los permisos. Por favor intente nuevamente.');
                 }
             } catch (error) {
