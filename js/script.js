@@ -50,29 +50,48 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
-// PARA EL LOGIN
+// LOGIN CON API
 
-// USUARIOS 
-const users = {
-    "joseph_log": {
-        password: "jplog01",
-        roles: ["importacion", "logistica"]
-    }
-};
+// API
+const API_BASE_URL = "https://colaboradores-2946605267.us-central1.run.app";
 
-// PARA ALMACENAR LOS USUARIOS LOGEADOS
-function loginUser(username, password) {
-    const user = users[username];
-    if (user && user.password === password) {
-        localStorage.setItem("loggedUser", username);
-        return true;
+// FUNCION PARA CONSUMIR LA API
+async function loginUser(username, password) {
+    try {
+        const response = await fetch(`${API_BASE_URL}?usuario=${encodeURIComponent(username)}&contrasena=${encodeURIComponent(password)}&metodo=login`);
+        
+        if (response.status === 200) {
+            const data = await response.text();
+            console.log("Respuesta de la API:", data);
+            
+            // Parsear la respuesta JSON
+            let userData;
+            try {
+                userData = JSON.parse(data);
+            } catch (e) {
+                console.error("Error al parsear JSON:", e);
+                return false;
+            }
+            
+            // Guardar datos del usuario en localStorage
+            localStorage.setItem("loggedUser", username);
+            localStorage.setItem("userRoles", JSON.stringify(userData));
+            
+            return true;
+        } else {
+            console.error("Error en la respuesta de la API:", response.status);
+            return false;
+        }
+    } catch (error) {
+        console.error("Error al conectar con la API:", error);
+        return false;
     }
-    return false;
 }
 
 // CERRAR SESION
 function logoutUser() {
     localStorage.removeItem("loggedUser");
+    localStorage.removeItem("userRoles");
     window.location.href = "index.html";
 }
 
@@ -84,14 +103,51 @@ function loadMenu() {
         return;
     }
 
-    const user = users[username];
-    const allowedRoles = user.roles;
+    const userRolesData = localStorage.getItem("userRoles");
+    if (!userRolesData) {
+        console.error("No se encontraron roles del usuario");
+        window.location.href = "index.html";
+        return;
+    }
+
+    let userRoles;
+    try {
+        userRoles = JSON.parse(userRolesData);
+    } catch (e) {
+        console.error("Error al parsear roles del usuario:", e);
+        window.location.href = "index.html";
+        return;
+    }
+
+    // Extraer los nombres de las secciones permitidas
+    const allowedSections = userRoles.map(role => role.NOMBRE);
+
+    console.log("Secciones permitidas:", allowedSections);
+
+    // Mapeo de nombres de secciones a roles de las tarjetas
+    const sectionToRoleMap = {
+        "MARKETING": "marketing",
+        "IMPORTACION": "importacion", 
+        "SISTEMAS": "sistemas",
+        "FACTURACION": "ventas",
+        "LOGISTICA": "logistica",
+        "GERENCIA": "gerencia",
+        "ADMINISTRACION": "administracion"
+    };
 
     // Selecciona todas las cards
     document.querySelectorAll(".card").forEach(card => {
-        const role = card.getAttribute("data-role"); 
-        if (!allowedRoles.includes(role)) {
-            card.style.display = "none"; 
+        const role = card.getAttribute("data-role");
+        
+        // Verificar si el rol de la tarjeta está en las secciones permitidas
+        const isAllowed = allowedSections.some(section => 
+            sectionToRoleMap[section] === role
+        );
+        
+        if (!isAllowed) {
+            card.style.display = "none";
+        } else {
+            card.style.display = "block";
         }
     });
 
