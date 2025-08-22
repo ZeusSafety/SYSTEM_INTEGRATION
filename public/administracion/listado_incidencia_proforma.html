@@ -426,7 +426,7 @@
         tr.appendChild(tdText(rec['REGISTRADO_POR']||'')); 
         tr.appendChild(tdText(getMonthName(rec['MONTH(FECHA_EMISION)'])||'')); 
         tr.appendChild(tdText(rec['ENCARGADO_COMPROBANTE']||'')); 
-        tr.appendChild(tdHTML(spanNowrap(fmtDateDisplay(rec['DATE(FECHA_EMISION)'])||''))); 
+        tr.appendChild(tdHTML(spanNowrap(fmtDateOnly(rec['DATE(FECHA_EMISION)'])||''))); 
         tr.appendChild(tdText(rec['NUMERO_PROFORMA']||'')); 
         tr.appendChild(tdText(rec['NUMERO_COMPROBANTE']||'')); 
         tr.appendChild(itemsCell(rec)); 
@@ -455,7 +455,7 @@
         tr.appendChild(tdHTML(spanNowrap(fmtDateDisplay(rec['FECHA_CORRECION'])||''))); 
         tr.appendChild(tdText(rec['ESTADO_SOLUCION']||'')); 
         tr.appendChild(tdText((rec['COMPROBANTE']||'').toString().toUpperCase())); 
-        tr.appendChild(tdText(rec['NUMERO_COMPROBANTE_FACT']||'')); 
+        tr.appendChild(tdText(rec['NUMERO_COMPROBANTE_SOLUCION']||'')); 
         tr.appendChild(culminadoCell(rec)); 
         tr.appendChild(tdHTML(spanNowrap(fmtDateDisplay(rec['FECHA_CONCLUYENTE']||'')))); 
         tbody.appendChild(tr); 
@@ -479,7 +479,7 @@
       console.log('✅ Registro encontrado para detalles:', rec);
       const c=document.getElementById('detailContent'); 
       c.innerHTML=''; 
-      const fields=[ ['ID',rec['ID']], ['Mes',getMonthName(rec['MONTH(FECHA_EMISION)'])], ['Encargado comprobante', rec['ENCARGADO_COMPROBANTE']], ['Fecha de emisión', fmtDateDisplay(rec['DATE(FECHA_EMISION)'])], ['N° proforma/acta', rec['NUMERO_PROFORMA']], ['N° de comprobante', rec['NUMERO_COMPROBANTE']], ['Responsable', rec['RESPONSABLE_INCIDENCIA']], ['Área', rec['AREA']||''], ['Tipo de incidencia', rec['TIPO_INCIDENCIA']||''], ['Fecha de notificación', fmtDateOnly(rec['FECHA_NOTIFICACION']||'')], ['Solución', rec['SOLUCION']||''], ['Obs. adicionales', rec['OBSERVACION_ADICIONAL_CORRECION']||''], ['Revisado por', rec['REVISADO_POR']||''], ['Estado de verificación', rec['ESTADO_INCIDENCIA']||''], ['Fecha envío de archivo', fmtDateDisplay(rec['FECHA_ENVIO_ARCHIVO']||'')], ['Culminado', rec['CULMINADO']||'NO'] ]; 
+      const fields=[ ['ID',rec['ID']], ['Mes',getMonthName(rec['MONTH(FECHA_EMISION)'])], ['Encargado comprobante', rec['ENCARGADO_COMPROBANTE']], ['Fecha de emisión', fmtDateOnly(rec['DATE(FECHA_EMISION)'])], ['N° proforma/acta', rec['NUMERO_PROFORMA']], ['N° de comprobante', rec['NUMERO_COMPROBANTE']], ['Responsable', rec['RESPONSABLE_INCIDENCIA']], ['Área', rec['AREA']||''], ['Tipo de incidencia', rec['TIPO_INCIDENCIA']||''], ['Fecha de notificación', fmtDateOnly(rec['FECHA_NOTIFICACION']||'')], ['Solución', rec['SOLUCION']||''], ['Obs. adicionales', rec['OBSERVACION_ADICIONAL_CORRECION']||''], ['Revisado por', rec['REVISADO_POR']||''], ['Estado de verificación', rec['ESTADO_INCIDENCIA']||''], ['Fecha envío de archivo', fmtDateDisplay(rec['FECHA_ENVIO_ARCHIVO']||'')], ['Culminado', rec['CULMINADO']||'NO'] ]; 
       fields.forEach(([l,v])=>{ const p=document.createElement('p'); const strong=document.createElement('strong'); strong.textContent=l+': '; p.appendChild(strong); p.appendChild(document.createTextNode(v||'')); c.appendChild(p); }); 
       if(rec['ITEMS']&&rec['ITEMS'].length){ const ul=document.createElement('ul'); rec['ITEMS'].forEach((it,i)=>{ const li=document.createElement('li'); li.appendChild(document.createTextNode(`Detalle ${i+1}: ${it['DETALLE DE ERROR']||''}`)); li.appendChild(document.createElement('br')); li.appendChild(document.createTextNode(`Debe ser ${i+1}: ${it['DEBE SER']||''}`)); ul.appendChild(li); }); c.appendChild(ul);} 
       document.getElementById('detailModal').style.display='flex'; 
@@ -686,7 +686,7 @@
       const doc=new jsPDF(); 
       let y=10; 
       doc.setFontSize(12); 
-      const lines=[`ID: ${rec['ID']}`,`Mes: ${getMonthName(rec['MONTH(FECHA_EMISION)'])}`,`Encargado: ${rec['ENCARGADO_COMPROBANTE']}`,`Fecha emisión: ${fmtDateDisplay(rec['DATE(FECHA_EMISION)'])}`,`N° proforma/acta: ${rec['NUMERO_PROFORMA']}`,`N° comprobante: ${rec['NUMERO_COMPROBANTE']}`,`Responsable: ${rec['RESPONSABLE_INCIDENCIA']}`,`Área: ${rec['AREA']}`,`Tipo: ${rec['TIPO_INCIDENCIA']||''}`,`Fecha notificación: ${fmtDateDisplay(rec['FECHA_NOTIFICACION'])}`,`Solución: ${(rec['SOLUCION']||'')}`,`Obs. adicionales: ${(rec['OBSERVACION_ADICIONAL_CORRECION']||'').toString().replace(/\n/g,' ')}`,`Revisado por: ${rec['REVISADO_POR']||''}`,`Estado verificación: ${rec['ESTADO_INCIDENCIA']||''}`,`Fecha envío archivo: ${fmtDateDisplay(rec['FECHA_ENVIO_ARCHIVO']||'')}`,`Fecha concluyente: ${fmtDateDisplay(rec['FECHA_CONCLUYENTE']||'')}`]; 
+      const lines=[`ID: ${rec['ID']}`,`Mes: ${getMonthName(rec['MONTH(FECHA_EMISION)'])}`,`Encargado: ${rec['ENCARGADO_COMPROBANTE']}`,`Fecha emisión: ${fmtDateOnly(rec['DATE(FECHA_EMISION)'])}`,`N° proforma/acta: ${rec['NUMERO_PROFORMA']}`,`N° comprobante: ${rec['NUMERO_COMPROBANTE']}`,`Responsable: ${rec['RESPONSABLE_INCIDENCIA']}`,`Área: ${rec['AREA']}`,`Tipo: ${rec['TIPO_INCIDENCIA']||''}`,`Fecha notificación: ${fmtDateDisplay(rec['FECHA_NOTIFICACION'])}`,`Solución: ${(rec['SOLUCION']||'')}`,`Obs. adicionales: ${(rec['OBSERVACION_ADICIONAL_CORRECION']||'').toString().replace(/\n/g,' ')}`,`Revisado por: ${rec['REVISADO_POR']||''}`,`Estado verificación: ${rec['ESTADO_INCIDENCIA']||''}`,`Fecha envío archivo: ${fmtDateDisplay(rec['FECHA_ENVIO_ARCHIVO']||'')}`,`Fecha concluyente: ${fmtDateDisplay(rec['FECHA_CONCLUYENTE']||'')}`]; 
       lines.forEach(line=>{ doc.text(line,10,y); y+=7; if(y>280){ doc.addPage(); y=10; } }); 
       doc.save(`${rec['ID']||'incidencia'}.pdf`); 
     };
@@ -713,12 +713,12 @@
       if(rec['FECHA_CORRECION']  !== 'SIN INCIDENCIA'){ rec['FECHA_CORRECION']  = 'SIN INCIDENCIA'; changed=true; }
       if(rec['ESTADO_SOLUCION'] !== 'SIN INCIDENCIA'){ rec['ESTADO_SOLUCION'] = 'SIN INCIDENCIA'; changed=true; }
       if(rec['COMPROBANTE']   !== 'SIN INCIDENCIA'){ rec['COMPROBANTE']   = 'SIN INCIDENCIA'; changed=true; }
-      if(rec['NUMERO_COMPROBANTE_FACT']    !== 'SIN INCIDENCIA'){ rec['NUMERO_COMPROBANTE_FACT']    = 'SIN INCIDENCIA'; changed=true; }
+      if(rec['NUMERO_COMPROBANTE_SOLUCION']    !== 'SIN INCIDENCIA'){ rec['NUMERO_COMPROBANTE_SOLUCION']    = 'SIN INCIDENCIA'; changed=true; }
     } else if (sol) {
       if(rec['FECHA_CORRECION'])  { rec['FECHA_CORRECION']  = ''; changed=true; }
       if(rec['ESTADO_SOLUCION']) { rec['ESTADO_SOLUCION'] = ''; changed=true; }
       if(rec['COMPROBANTE'])   { rec['COMPROBANTE']   = ''; changed=true; }
-      if(rec['NUMERO_COMPROBANTE_FACT'])    { rec['NUMERO_COMPROBANTE_FACT']    = ''; changed=true; }
+      if(rec['NUMERO_COMPROBANTE_SOLUCION'])    { rec['NUMERO_COMPROBANTE_SOLUCION']    = ''; changed=true; }
     }
     return changed;
   }
