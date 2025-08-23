@@ -31,7 +31,7 @@ async function subirArchivo() {
 
     // Enviar al Apps Script WebApp
     log("⏳ Enviando archivo al servidor...");
-    const response = await fetch("https://script.google.com/macros/s/AKfycbxJkAwjWVvwgZfLTRKQphxY7T2kMLNqVP8-hpjPOBhxMan6d51OaSqG93JpSpBK7LmO/exec", {
+    const response = await fetch("https://script.google.com/macros/s/AKfycbwEhJdsh5QYLLbk9uTIGRf2KvUJwZJAfN_GqPalwJBiN4MGHn5Yh9yMWV4-sBZZjvoc/exec", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
