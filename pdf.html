@@ -24,7 +24,7 @@ async function subirArchivo() {
   const base64 = await toBase64(file);
 
   // Enviar al Apps Script WebApp
-  const response = await fetch("TU_URL_WEBAPP", {
+  const response = await fetch("https://script.google.com/macros/s/AKfycbzViIF_LZuCMfv15-rmR68SzQ78RuY-2q2v4hDCKJ-rKmDPbaO4ePyOA-ECknvyAtSc/exec", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
