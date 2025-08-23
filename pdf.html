@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Subida de Archivos</title>
+</head>
+<body>
+  <h1>Subir archivo a Google Drive</h1>
+  <input type="file" id="archivo">
+  <button onclick="subirArchivo()">Subir</button>
+
+  <pre id="respuesta"></pre>
+
+<script>
+async function subirArchivo() {
+  const input = document.getElementById("archivo");
+  const file = input.files[0];
+  if (!file) {
+    alert("Selecciona un archivo primero");
+    return;
+  }
+
+  // Convertir a base64
+  const base64 = await toBase64(file);
+
+  // Enviar al Apps Script WebApp
+  const response = await fetch("TU_URL_WEBAPP", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      fileName: file.name,
+      mimeType: file.type,
+      fileContent: base64.split(",")[1] // quitamos encabezado
+    })
+  });
+
+  const result = await response.json();
+  document.getElementById("respuesta").textContent = JSON.stringify(result, null, 2);
+}
+
+function toBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+  });
+}
+</script>
+</body>
+</html>
