@@ -576,12 +576,69 @@
     </div>
 
     <script>
+        // Configuración de la API
+        const API_URL = "https://regularizacioncrud-2946605267.us-central1.run.app";
+        
         // Variables globales
         let comprobantes = [];
         const form = document.getElementById('regularizacionForm');
         const tabla = document.getElementById('tabla-body');
         const totalEfectivoSpan = document.getElementById('total_efectivo');
         const inputEfectivo = document.getElementById('efectivo');
+
+        // Función para generar ID único de regularización
+        function generarIdRegularizacion() {
+            const timestamp = Date.now();
+            const random = Math.floor(Math.random() * 10000);
+            return `REG_${timestamp}_${random}`;
+        }
+
+        // Función para mostrar notificaciones
+        function mostrarNotificacion(mensaje, tipo = 'info') {
+            const notificacion = document.createElement('div');
+            notificacion.className = `notificacion ${tipo}`;
+            notificacion.innerHTML = `
+                <i class="fas ${tipo === 'exito' ? 'fa-check-circle' : tipo === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i>
+                <span>${mensaje}</span>
+            `;
+            
+            document.body.appendChild(notificacion);
+            
+            setTimeout(() => {
+                notificacion.classList.add('mostrar');
+            }, 100);
+            
+            setTimeout(() => {
+                notificacion.classList.remove('mostrar');
+                setTimeout(() => {
+                    document.body.removeChild(notificacion);
+                }, 300);
+            }, 3000);
+        }
+
+        // Función para mostrar loading
+        function mostrarLoading(mostrar = true) {
+            let loading = document.getElementById('loading-overlay');
+            
+            if (mostrar) {
+                if (!loading) {
+                    loading = document.createElement('div');
+                    loading.id = 'loading-overlay';
+                    loading.innerHTML = `
+                        <div class="loading-spinner">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <p>Procesando...</p>
+                        </div>
+                    `;
+                    document.body.appendChild(loading);
+                }
+                loading.style.display = 'flex';
+            } else {
+                if (loading) {
+                    loading.style.display = 'none';
+                }
+            }
+        }
 
         // Función para agregar comprobante
         function agregarComprobante() {
@@ -593,22 +650,16 @@
             const observacionDetalle = document.getElementById('observacion_detalle').value;
             const estado = document.getElementById('estado').value;
 
-            // Validación
-            if (!comprobante || !monto || !asesor || !fechaRegularizacion) {
-                alert('Por favor, completa todos los campos obligatorios antes de añadir.');
-                return;
-            }
-
             // Crear objeto comprobante
             const nuevoComprobante = {
                 id: Date.now(),
-                comprobante: comprobante,
-                monto: parseFloat(monto),
-                medioPago: medioPago,
-                asesor: asesor,
-                fechaRegularizacion: fechaRegularizacion,
-                observacionDetalle: observacionDetalle,
-                estado: estado
+                comprobante: comprobante || 'Sin comprobante',
+                monto: parseFloat(monto) || 0,
+                medioPago: medioPago || 'No especificado',
+                asesor: asesor || 'No especificado',
+                fechaRegularizacion: fechaRegularizacion || new Date().toISOString().split('T')[0],
+                observacionDetalle: observacionDetalle || '',
+                estado: estado || 'VALIDO'
             };
 
             // Agregar a la lista
@@ -626,6 +677,8 @@
             document.getElementById('fecha_regularizacion').value = '';
             document.getElementById('observacion_detalle').value = '';
             document.getElementById('estado').value = 'VALIDO';
+            
+            mostrarNotificacion('Comprobante agregado correctamente', 'exito');
         }
 
         // Función para eliminar comprobante
@@ -633,6 +686,7 @@
             comprobantes = comprobantes.filter(c => c.id !== id);
             actualizarTabla();
             actualizarTotalEfectivo();
+            mostrarNotificacion('Comprobante eliminado', 'info');
         }
 
         // Función para actualizar tabla
@@ -723,38 +777,112 @@
             }
         }
 
+        // Función para enviar datos a la API
+        async function enviarRegularizacion(datos) {
+            try {
+                mostrarLoading(true);
+                
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    mode: 'cors',
+                    body: JSON.stringify(datos)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Error HTTP: ${response.status}`);
+                }
+
+                const resultado = await response.json();
+                return resultado;
+                
+            } catch (error) {
+                console.error('Error al enviar datos:', error);
+                
+                // Manejo específico para errores de CORS
+                if (error.message.includes('Failed to fetch') || error.message.includes('CORS')) {
+                    throw new Error('Error de conexión: La API no está disponible o hay problemas de CORS. Verifique la configuración del servidor.');
+                }
+                
+                throw error;
+            } finally {
+                mostrarLoading(false);
+            }
+        }
+
+        // Función para preparar datos para la API
+        function prepararDatosAPI() {
+            const nombre = document.getElementById('nombre_regularizacion').value;
+            const fecha = document.getElementById('fecha').value;
+            const efectivoIndicado = parseFloat(document.getElementById('efectivo').value) || 0;
+            const confirmacion = document.getElementById('confirmado').value;
+            const regularizacionPorcentaje = parseFloat(document.getElementById('regularizado').value) || 0;
+            const observaciones = document.getElementById('observaciones').value;
+
+            // Preparar detalle de comprobantes
+            const detalle = comprobantes.map(item => ({
+                comprobantes: item.comprobante,
+                monto: item.monto,
+                medio_de_pago: item.medioPago,
+                asesor: item.asesor,
+                fecha_regularizacion: item.fechaRegularizacion,
+                observacion: item.observacionDetalle,
+                validacion: item.estado
+            }));
+
+            return {
+                id_regularizacion: generarIdRegularizacion(),
+                nombre: nombre,
+                fecha: fecha,
+                observaciones: observaciones,
+                efectivo_indicado: efectivoIndicado,
+                confirmacion: confirmacion,
+                regularizacion_porcentaje: regularizacionPorcentaje,
+                detalle: detalle
+            };
+        }
+
         // Event listeners
         inputEfectivo.addEventListener('input', actualizarTotalEfectivo);
 
-        form.addEventListener('submit', function(event) {
+        form.addEventListener('submit', async function(event) {
             event.preventDefault();
             
+            // Única validación: debe haber al menos un comprobante
             if (comprobantes.length === 0) {
-                alert('Debe añadir al menos un comprobante antes de guardar.');
+                mostrarNotificacion('Debe añadir al menos un comprobante antes de guardar.', 'error');
                 return;
             }
 
-            // Aquí se enviarían los datos a la API
-            console.log('Datos del formulario:', {
-                nombre: document.getElementById('nombre_regularizacion').value,
-                fecha: document.getElementById('fecha').value,
-                efectivo: document.getElementById('efectivo').value,
-                confirmado: document.getElementById('confirmado').value,
-                regularizado: document.getElementById('regularizado').value,
-                observaciones: document.getElementById('observaciones').value,
-                comprobantes: comprobantes
-            });
-
-            alert('Regularización guardada correctamente (simulación)');
-            
-            // Limpiar formulario y tabla
-            form.reset();
-            comprobantes = [];
-            actualizarTabla();
-            actualizarTotalEfectivo();
+            try {
+                // Preparar datos para la API
+                const datosAPI = prepararDatosAPI();
+                
+                console.log('Enviando datos a la API:', datosAPI);
+                
+                // Enviar a la API
+                const resultado = await enviarRegularizacion(datosAPI);
+                
+                console.log('Respuesta de la API:', resultado);
+                
+                mostrarNotificacion('Regularización guardada correctamente en la base de datos', 'exito');
+                
+                // Limpiar formulario y tabla
+                form.reset();
+                comprobantes = [];
+                actualizarTabla();
+                actualizarTotalEfectivo();
+                
+            } catch (error) {
+                console.error('Error al guardar regularización:', error);
+                mostrarNotificacion(`Error al guardar: ${error.message}`, 'error');
+            }
         });
 
-        // Estilos adicionales para badges de estado
+        // Estilos adicionales para badges de estado y notificaciones
         const style = document.createElement('style');
         style.textContent = `
             .status-badge {
@@ -775,6 +903,89 @@
             .status-completed {
                 background-color: #dbeafe;
                 color: #1e40af;
+            }
+            
+            /* Estilos para notificaciones */
+            .notificacion {
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: var(--blanco);
+                border-radius: 8px;
+                padding: 15px 20px;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                z-index: 1000;
+                transform: translateX(100%);
+                transition: transform 0.3s ease;
+                max-width: 400px;
+            }
+            
+            .notificacion.mostrar {
+                transform: translateX(0);
+            }
+            
+            .notificacion.exito {
+                border-left: 4px solid var(--verde-exito);
+            }
+            
+            .notificacion.error {
+                border-left: 4px solid var(--rojo-error);
+            }
+            
+            .notificacion.info {
+                border-left: 4px solid var(--azul-claro);
+            }
+            
+            .notificacion i {
+                font-size: 1.2rem;
+            }
+            
+            .notificacion.exito i {
+                color: var(--verde-exito);
+            }
+            
+            .notificacion.error i {
+                color: var(--rojo-error);
+            }
+            
+            .notificacion.info i {
+                color: var(--azul-claro);
+            }
+            
+            /* Estilos para loading */
+            #loading-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.5);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 9999;
+            }
+            
+            .loading-spinner {
+                background: var(--blanco);
+                padding: 30px;
+                border-radius: 12px;
+                text-align: center;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            }
+            
+            .loading-spinner i {
+                font-size: 2rem;
+                color: var(--azul-claro);
+                margin-bottom: 10px;
+            }
+            
+            .loading-spinner p {
+                color: var(--gris-oscuro);
+                font-weight: 600;
             }
         `;
         document.head.appendChild(style);
