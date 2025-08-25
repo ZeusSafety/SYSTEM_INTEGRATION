@@ -98,6 +98,7 @@
             display: flex;
             align-items: center;
             gap: 10px;
+            justify-content: space-between;
         }
 
         .form-container {
@@ -418,6 +419,10 @@
         <div class="section-title">
             <i class="fas fa-plus-circle"></i>
             Nueva Regularización
+            <button type="button" class="btn btn-secondary" onclick="cargarConfiguracion()" style="margin-left: auto; font-size: 0.8rem; padding: 8px 16px;">
+                <i class="fas fa-sync-alt"></i>
+                Recargar Configuración
+            </button>
         </div>
 
         <form id="regularizacionForm" class="form-container">
@@ -473,31 +478,18 @@
                         <label for="monto" class="form-label">Monto *</label>
                         <input type="number" id="monto" name="monto" class="form-input" step="0.01">
                     </div>
-                    <div class="form-group">
-                        <label for="medio_pago" class="form-label">Medio de Pago</label>
-                        <select id="medio_pago" name="medio_pago" class="form-select">
-                            <option value="">Seleccione un medio de pago</option>
-                            <option value="Efectivo">Efectivo</option>
-                            <option value="Transferencia">Transferencia</option>
-                            <option value="Tarjeta">Tarjeta</option>
-                            <option value="Cheque">Cheque</option>
-                            <option value="PAYPAL">PAYPAL</option>
-                            <option value="Otro">Otro</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="asesor" class="form-label">Asesor *</label>
-                        <select id="asesor" name="asesor" class="form-select">
-                            <option value="">Seleccione un asesor</option>
-                            <option value="María González">María González</option>
-                            <option value="Carlos Ruiz">Carlos Ruiz</option>
-                            <option value="Ana Martínez">Ana Martínez</option>
-                            <option value="Luis Pérez">Luis Pérez</option>
-                            <option value="Patricia López">Patricia López</option>
-                            <option value="Roberto Silva">Roberto Silva</option>
-                            <option value="ZEUS">ZEUS</option>
-                        </select>
-                    </div>
+                                         <div class="form-group">
+                         <label for="medio_pago" class="form-label">Medio de Pago</label>
+                         <select id="medio_pago" name="medio_pago" class="form-select">
+                             <option value="">Cargando medios de pago...</option>
+                         </select>
+                     </div>
+                                         <div class="form-group">
+                         <label for="asesor" class="form-label">Asesor *</label>
+                         <select id="asesor" name="asesor" class="form-select">
+                             <option value="">Cargando asesores...</option>
+                         </select>
+                     </div>
                     <div class="form-group">
                         <label for="fecha_regularizacion" class="form-label">Fecha de Regularización *</label>
                         <input type="date" id="fecha_regularizacion" name="fecha_regularizacion" class="form-input">
@@ -578,9 +570,12 @@
     <script>
         // Configuración de la API
         const API_URL = "https://regularizacioncrud-2946605267.us-central1.run.app";
+        const CONFIG_API_URL = "https://productoscrud-2946605267.us-central1.run.app";
         
         // Variables globales
         let comprobantes = [];
+        let asesores = [];
+        let mediosPago = [];
         const form = document.getElementById('regularizacionForm');
         const tabla = document.getElementById('tabla-body');
         const totalEfectivoSpan = document.getElementById('total_efectivo');
@@ -591,6 +586,126 @@
             const timestamp = Date.now();
             const random = Math.floor(Math.random() * 10000);
             return `REG_${timestamp}_${random}`;
+        }
+
+        // Función para cargar configuración desde la API
+        async function cargarConfiguracion() {
+            try {
+                mostrarLoading(true);
+                
+                const response = await fetch(`${CONFIG_API_URL}?metodo=configuracion`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Error HTTP: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log('Datos de configuración recibidos:', data);
+
+                // Debug: mostrar todas las categorías disponibles
+                const categorias = [...new Set(data.map(item => item.CATEGORIA))];
+                console.log('Categorías disponibles:', categorias);
+                
+                // Debug: mostrar todos los estados disponibles
+                const estados = [...new Set(data.map(item => item.ESTADO))];
+                console.log('Estados disponibles:', estados);
+
+                // Filtrar por categorías
+                asesores = data.filter(item => item.CATEGORIA === 'ASESOR' && item.ESTADO === '1');
+                mediosPago = data.filter(item => item.CATEGORIA === 'FORMA_PAGO' && item.ESTADO === '1');
+                
+                console.log('Asesores filtrados:', asesores);
+                console.log('Medios de pago filtrados:', mediosPago);
+
+                // Poblar los combos
+                poblarComboAsesores();
+                poblarComboMediosPago();
+
+                mostrarNotificacion('Configuración cargada correctamente', 'exito');
+                
+            } catch (error) {
+                console.error('Error al cargar configuración:', error);
+                mostrarNotificacion('Error al cargar configuración. Usando valores por defecto.', 'error');
+                
+                // Usar valores por defecto en caso de error
+                usarValoresPorDefecto();
+            } finally {
+                mostrarLoading(false);
+            }
+        }
+
+        // Función para poblar combo de asesores
+        function poblarComboAsesores() {
+            const selectAsesor = document.getElementById('asesor');
+            selectAsesor.innerHTML = '<option value="">Seleccione un asesor</option>';
+            
+            asesores.forEach(asesor => {
+                const option = document.createElement('option');
+                option.value = asesor.NOMBRE;
+                option.textContent = asesor.NOMBRE;
+                selectAsesor.appendChild(option);
+            });
+        }
+
+        // Función para poblar combo de medios de pago
+        function poblarComboMediosPago() {
+            const selectMedioPago = document.getElementById('medio_pago');
+            selectMedioPago.innerHTML = '<option value="">Seleccione un medio de pago</option>';
+            
+            mediosPago.forEach(medio => {
+                const option = document.createElement('option');
+                option.value = medio.NOMBRE;
+                option.textContent = medio.NOMBRE;
+                selectMedioPago.appendChild(option);
+            });
+        }
+
+        // Función para usar valores por defecto
+        function usarValoresPorDefecto() {
+            // Valores por defecto para asesores
+            const asesoresDefault = [
+                'María González',
+                'Carlos Ruiz',
+                'Ana Martínez',
+                'Luis Pérez',
+                'Patricia López',
+                'Roberto Silva',
+                'ZEUS'
+            ];
+
+            // Valores por defecto para medios de pago
+            const mediosPagoDefault = [
+                'Efectivo',
+                'Transferencia',
+                'Tarjeta',
+                'Cheque',
+                'PAYPAL',
+                'Otro'
+            ];
+
+            // Poblar combos con valores por defecto
+            const selectAsesor = document.getElementById('asesor');
+            selectAsesor.innerHTML = '<option value="">Seleccione un asesor</option>';
+            asesoresDefault.forEach(asesor => {
+                const option = document.createElement('option');
+                option.value = asesor;
+                option.textContent = asesor;
+                selectAsesor.appendChild(option);
+            });
+
+            const selectMedioPago = document.getElementById('medio_pago');
+            selectMedioPago.innerHTML = '<option value="">Seleccione un medio de pago</option>';
+            mediosPagoDefault.forEach(medio => {
+                const option = document.createElement('option');
+                option.value = medio;
+                option.textContent = medio;
+                selectMedioPago.appendChild(option);
+            });
         }
 
         // Función para mostrar notificaciones
@@ -847,6 +962,11 @@
 
         // Event listeners
         inputEfectivo.addEventListener('input', actualizarTotalEfectivo);
+        
+        // Cargar configuración al iniciar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            cargarConfiguracion();
+        });
 
         form.addEventListener('submit', async function(event) {
             event.preventDefault();
