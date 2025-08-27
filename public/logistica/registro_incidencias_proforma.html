@@ -1474,18 +1474,20 @@
     document.getElementById('closeDetail').onclick = () => { document.getElementById('detailModal').style.display = 'none'; };
 
     let CURRENT_EDIT_ID = null;
-    const openArchivoModalById = (id) => { 
-      CURRENT_EDIT_ID = id; 
-      const rec = findById(id); 
-      if (!rec) { 
-        alert('No se encontró el registro.'); 
-        return; 
-      } 
-      document.getElementById('editArchivoTexto').value = String(rec.ARCHIVO_SOLUCION_PDF || ''); 
-      document.getElementById('editArchivoPDF').value = ''; 
-      document.getElementById('fileInfo').style.display = 'none';
-      document.getElementById('archivoModal').style.display = 'flex'; 
-    };
+         const openArchivoModalById = (id) => { 
+       CURRENT_EDIT_ID = id; 
+       const rec = findById(id); 
+       if (!rec) { 
+         alert('No se encontró el registro.'); 
+         return; 
+       } 
+       // Cargar el comentario de solución en el campo de texto
+       document.getElementById('editArchivoTexto').value = String(rec.TEXTO_SOLUCION_PDF || ''); 
+       // Limpiar el campo de archivo PDF
+       document.getElementById('editArchivoPDF').value = ''; 
+       document.getElementById('fileInfo').style.display = 'none';
+       document.getElementById('archivoModal').style.display = 'flex'; 
+     };
     document.getElementById('closeArchivo').onclick = () => { document.getElementById('archivoModal').style.display = 'none'; };
          document.getElementById('clearArchivo').onclick = async () => { 
        if (!CURRENT_EDIT_ID) return; 
