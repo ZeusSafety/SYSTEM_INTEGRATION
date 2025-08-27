@@ -16,7 +16,9 @@
       --amarillo:#ffc107; --naranja:#ff9800; --celeste:#17a2b8; --verde-suave:#4caf50;
     }
     body{ font-family:Arial, sans-serif; margin:0; background:var(--gris); color:#000; }
-    header.titulo-principal{ background:var(--azul); color:#fff; font-weight:bold; padding:10px 15px; border-radius:5px 5px 0 0; text-align:left; }
+    header.titulo-principal{ background:var(--azul); color:#fff; padding:10px 15px; border-radius:5px 5px 0 0; }
+    .header-content { display: flex; align-items: center; justify-content: center; position: relative; }
+    .header-logo { height: 50px; position: absolute; left: 0; }
 
     .container{ max-width:1400px; margin:0 auto; padding:1rem; }
     .card{ background:#fff; border-radius:8px; box-shadow:0 6px 18px rgba(18,38,63,.08); margin-bottom:1.25rem; overflow:hidden; }
@@ -64,7 +66,7 @@
     /* 7: N° proforma/acta | 8: N° comprobante | 9: Ítems | 10: Tipo */
     #tablaFact th:nth-child(7), #tablaFact td:nth-child(7){ text-align:center; }
     #tablaFact th:nth-child(8), #tablaFact td:nth-child(8){ text-align:center; }
-    #tablaFact th:nth-child(9), #tablaFact td:nth-child(9){ text-align:center; }
+    #tablaFact th:nth-child(9), #tablaFact td:nth-child(9){ text-align:center; min-width: 150px; }
     #tablaFact th:nth-child(10), #tablaFact td:nth-child(10){ text-align:center; text-transform:uppercase; }
     /* 12: Solución (texto) */
     #tablaFact th:nth-child(12), #tablaFact td:nth-child(12){ text-align:center; text-transform:uppercase; }
@@ -87,7 +89,12 @@
   </style>
 </head>
 <body>
-  <header class="titulo-principal">Área de Facturación: Listado de incidencia de comprobantes y actas</header>
+  <header class="titulo-principal">
+    <div class="header-content">
+      <img src="https://eliascarmin.github.io/Mi_Portafolio/IMG/logotipo%20de%20Zeus%20Safety%20en%20Positivo.png" alt="Logo Zeus" class="header-logo">
+      <h1>Área de Facturación: Listado de incidencia de comprobantes y actas</h1>
+    </div>
+  </header>
 
   <div class="container">
     <div class="card">
@@ -169,6 +176,15 @@
     <div class="modal-content">
       <button class="modal-close" id="closeDetail" aria-label="Cerrar">&times;</button>
       <div id="detailContent"></div>
+    </div>
+  </div>
+  
+  <!-- Modal para Obs. adicionales -->
+  <div id="obsModal" class="modal" role="dialog" aria-modal="true">
+    <div class="modal-content" style="max-width: 600px;">
+      <button class="modal-close" id="closeObsModal" aria-label="Cerrar">&times;</button>
+      <h3 style="margin-top: 0;">Observaciones Adicionales</h3>
+      <div id="obsContent" class="prelike" style="margin-top: 1rem; padding: 1rem; background: #f8f9fa; border-radius: 6px;"></div>
     </div>
   </div>
 
@@ -350,22 +366,38 @@
       const td=document.createElement('td'); 
       td.style.textAlign='center';
       
+      // Contenedor para los botones
+      const container = document.createElement('div');
+      container.style.display = 'flex';
+      container.style.justifyContent = 'center';
+      container.style.alignItems = 'center';
+      container.style.gap = '15px'; // Aumentar separación
+      
       // Crear ojo para ver detalles
       const eye=document.createElement('a'); 
       eye.href='#'; 
-      eye.textContent='👁️'; 
+      eye.innerHTML = '👁️'; // Usar solo el icono
+      eye.title = 'Ver detalles';
       eye.dataset.action='view'; 
       eye.dataset.id=rec.ID;
-      eye.style.marginRight='10px';
+      eye.style.fontSize = '1.2rem';
       
       // Crear enlace PDF
       const pdf=document.createElement('a'); 
       pdf.href='#'; 
-      pdf.textContent='PDF'; 
-      pdf.dataset.action='pdf'; 
+      pdf.textContent = 'PDF'; // Solo texto PDF
+      pdf.dataset.action='pdf';
       pdf.dataset.id=rec.ID;
+      pdf.style.textDecoration = 'none';
+      pdf.style.color = '#279FF5';
+      pdf.style.fontWeight = '600';
       
-      td.append(eye, pdf); 
+      // Agregar elementos al contenedor
+      container.appendChild(eye);
+      container.appendChild(pdf);
+      
+      // Agregar contenedor a la celda
+      td.appendChild(container);
       return td; 
     };
 
@@ -412,6 +444,38 @@
       return td; 
     };
 
+    // Celda de Obs. adicionales con botón de ojo
+    const obsCell = (rec) => {
+      const td = document.createElement('td');
+      const obsContent = (rec['OBSERVACION_ADICIONAL_CORRECION'] || '').trim();
+      
+      if (obsContent) {
+        const obsContainer = document.createElement('div');
+        obsContainer.style.display = 'flex';
+        obsContainer.style.alignItems = 'center';
+        obsContainer.style.justifyContent = 'center';
+        
+        // Botón de ojo
+        const eyeBtn = document.createElement('a');
+        eyeBtn.href = '#';
+        eyeBtn.innerHTML = '👁️';
+        eyeBtn.title = 'Ver observaciones completas';
+        eyeBtn.style.textDecoration = 'none';
+        eyeBtn.style.fontSize = '1.2rem';
+        eyeBtn.onclick = (e) => {
+          e.preventDefault();
+          document.getElementById('obsContent').textContent = obsContent;
+          document.getElementById('obsModal').style.display = 'flex';
+        };
+        
+        obsContainer.appendChild(eyeBtn);
+        td.appendChild(obsContainer);
+      } else {
+        td.textContent = '—';
+      }
+      return td;
+    };
+
     // ====== Filtros & render ======
     const filterRecords=()=>{ const estadoSel=document.getElementById('filterEstado')?.value||'TODOS'; const start=document.getElementById('filterStart')?.value||''; const end=document.getElementById('filterEnd')?.value||''; return getAllRecords().filter(rec=>{ const est=(rec['ESTADO_INCIDENCIA']||'PENDIENTE').toString().toUpperCase(); if(estadoSel!=='TODOS' && est!==estadoSel) return false; const fISO=rec['DATE(FECHA_EMISION)']||''; const f=typeof fISO==='string'? fISO.substring(0,10):''; if(start && (!f||f<start)) return false; if(end && (!f||f>end)) return false; return true; }); };
 
@@ -424,33 +488,49 @@
       
       filteredRecords.forEach(rec=>{ 
         console.log('📋 Renderizando registro ID:', rec['ID'], 'Campos disponibles:', Object.keys(rec));
-        const tr=document.createElement('tr'); 
-        tr.appendChild(tdText(rec['ID']||'')); 
-        tr.appendChild(tdHTML(spanNowrap(fmtDateDisplay(rec['FECHA_REGISTRO'])||''))); 
-        tr.appendChild(tdText(rec['REGISTRADO_POR']||'')); 
-        tr.appendChild(tdText(getMonthName(rec['MONTH(FECHA_EMISION)'])||'')); 
-        tr.appendChild(tdText(rec['ENCARGADO_COMPROBANTE']||'')); 
-        tr.appendChild(tdHTML(spanNowrap(fmtDateDisplay(rec['DATE(FECHA_EMISION)'])||''))); 
-        tr.appendChild(tdText(rec['NUMERO_PROFORMA']||'')); 
-        tr.appendChild(tdText(rec['NUMERO_COMPROBANTE']||'')); 
-        tr.appendChild(itemsCell(rec)); 
-        const tipo=(rec['TIPO_INCIDENCIA']||''); 
-        tr.appendChild(tdText(tipo?String(tipo).toUpperCase():'')); 
-        tr.appendChild(tdHTML(spanNowrap(fmtDateDisplay(rec['FECHA_NOTIFICACION'])||''))); 
-        tr.appendChild(tdHTML(spanNowrap((rec['SOLUCION']||'').toString().toUpperCase()))); 
-        tr.appendChild(tdText((rec['OBSERVACION_ADICIONAL_CORRECION']||'').trim())); 
-        tr.appendChild(tdText((rec['REVISADO_POR']||'').toString().toUpperCase())); 
-        { const tdV=document.createElement('td'); const est=(rec['ESTADO_INCIDENCIA']||'').toUpperCase(); const badge=document.createElement('span'); badge.className=`badge ${badgeVerifClass(est)}`; badge.textContent=est||''; tdV.appendChild(badge); tr.appendChild(tdV); } 
-        tr.appendChild(tdHTML(spanNowrap(fmtDateDisplay(rec['FECHA_ENVIO_ARCHIVO'])||''))); 
-        tr.appendChild(archivoCellReadOnly(rec)); 
-        tr.appendChild(tdHTML(spanNowrap(fmtDateDisplay(rec['FECHA_CORRECION'])||''))); 
-        tr.appendChild(tdText(rec['COMPROBANTE']||'')); 
-        tr.appendChild(tdText(rec['NUMERO_COMPROBANTE_SOLUCION']||'')); 
-        tr.appendChild(estadoSolCell(rec)); 
-        tr.appendChild(tdText((rec['CULMINADO']||'NO').toUpperCase())); 
-        tr.appendChild(tdHTML(spanNowrap(fmtDateDisplay(rec['FECHA_CONCLUYENTE']||'')))); 
-        tbody.appendChild(tr); 
-      }); 
+        const tr=document.createElement('tr');
+        // Detectar si la solución es SIN INCIDENCIA
+        const solucionSinIncidencia = (rec['SOLUCION']||'').toString().trim().toUpperCase() === 'SIN INCIDENCIA';
+
+        tr.appendChild(tdText(rec['ID']||''));
+        tr.appendChild(tdHTML(spanNowrap(fmtDateDisplay(rec['FECHA_REGISTRO'])||'')));
+        tr.appendChild(tdText(rec['REGISTRADO_POR']||''));
+  tr.appendChild(tdText((getMonthName(rec['MONTH(FECHA_EMISION)'])||'').toUpperCase()));
+        tr.appendChild(tdText(rec['ENCARGADO_COMPROBANTE']||''));
+        tr.appendChild(tdHTML(spanNowrap(fmtDateDisplay(rec['DATE(FECHA_EMISION)'])||'')));
+        tr.appendChild(tdText(rec['NUMERO_PROFORMA']||''));
+        tr.appendChild(tdText(rec['NUMERO_COMPROBANTE']||''));
+        tr.appendChild(itemsCell(rec));
+        const tipo=(rec['TIPO_INCIDENCIA']||'');
+        tr.appendChild(tdText(tipo?String(tipo).toUpperCase():''));
+        tr.appendChild(tdHTML(spanNowrap(fmtDateDisplay(rec['FECHA_NOTIFICACION'])||'')));
+        tr.appendChild(tdHTML(spanNowrap((rec['SOLUCION']||'').toString().toUpperCase())));
+        tr.appendChild(obsCell(rec));
+        tr.appendChild(tdText((rec['REVISADO_POR']||'').toString().toUpperCase()));
+        { const tdV=document.createElement('td'); const est=(rec['ESTADO_INCIDENCIA']||'').toUpperCase(); const badge=document.createElement('span'); badge.className=`badge ${badgeVerifClass(est)}`; badge.textContent=est||''; tdV.appendChild(badge); tr.appendChild(tdV); }
+        tr.appendChild(tdHTML(spanNowrap(fmtDateDisplay(rec['FECHA_ENVIO_ARCHIVO'])||'')));
+        tr.appendChild(archivoCellReadOnly(rec));
+
+        // FECHA DE CORRECCIÓN
+        const tdFechaCor = tdHTML(spanNowrap(fmtDateDisplay(rec['FECHA_CORRECION'])||''));
+        if(solucionSinIncidencia) tdFechaCor.style.background = 'rgba(255,0,0,0.18)';
+        tr.appendChild(tdFechaCor);
+
+        // COMPROBANTE
+  const tdComprobante = tdText((rec['COMPROBANTE']||'').toUpperCase());
+        if(solucionSinIncidencia) tdComprobante.style.background = 'rgba(255,0,0,0.18)';
+        tr.appendChild(tdComprobante);
+
+        // N° DE COMPROBANTE
+        const tdNumComprobante = tdText(rec['NUMERO_COMPROBANTE_SOLUCION']||'');
+        if(solucionSinIncidencia) tdNumComprobante.style.background = 'rgba(255,0,0,0.18)';
+        tr.appendChild(tdNumComprobante);
+
+        tr.appendChild(estadoSolCell(rec));
+        tr.appendChild(tdText((rec['CULMINADO']||'NO').toUpperCase()));
+        tr.appendChild(tdHTML(spanNowrap(fmtDateDisplay(rec['FECHA_CONCLUYENTE']||''))));
+        tbody.appendChild(tr);
+      });
       console.log('✅ Lista renderizada');
       adjustTableHeightToRows(10); 
     };
@@ -580,6 +660,7 @@
       // Cerrar modales de lectura
       document.getElementById('closeDetail').onclick=()=>{ document.getElementById('detailModal').style.display='none'; };
       document.getElementById('closeViewText').onclick=()=>{ document.getElementById('viewTextModal').style.display='none'; };
+      document.getElementById('closeObsModal').onclick=()=>{ document.getElementById('obsModal').style.display='none'; };
 
       // Guardar modales de edición
       document.getElementById('saveEstadoSol').onclick=async ()=>{ if(!currentEditId) return; const comprobante=document.getElementById('fTipoComprobante').value; const numero=document.getElementById('fNumeroComprobante').value; const estado=document.getElementById('fEstadoSolucion').value; if(!comprobante && !numero && !estado){ alert('Complete al menos un campo.'); return; } const success=await performEstadoSolucionSave(currentEditId,{comprobante,numero,estado}); if(success){ document.getElementById('estadoSolModal').style.display='none'; renderList(); } else { alert('Error al guardar. Intente nuevamente.'); } };
