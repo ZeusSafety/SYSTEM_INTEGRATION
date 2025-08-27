@@ -722,10 +722,10 @@
                 <option>LIZETH</option>
               </select>
             </div>
-            <div class="form-group">
-              <label for="fechaEmision">Fecha de emisión *</label>
-              <input type="datetime-local" id="fechaEmision" required />
-            </div>
+                         <div class="form-group">
+               <label for="fechaEmision">Fecha de emisión *</label>
+               <input type="date" id="fechaEmision" required />
+             </div>
             <div class="form-group">
               <label for="responsable">Responsable incidencia *</label>
               <select id="responsable" required>
@@ -868,10 +868,10 @@
                 <th>Obs. adicionales</th>
                 <th>Revisado por</th>
                 <th>Estado de verificación</th>
-                <th>Fecha envío de archivo</th>
-                <th>Archivo de solución</th>
-                <th>Culminado</th>
-                <th>Fecha concluyente</th>
+                                 <th>Fecha envío de archivo</th>
+                 <th>Archivo de solución</th>
+                 <th>Culminado</th>
+                 <th>Fecha concluyente</th>
               </tr>
             </thead>
             <tbody></tbody>
@@ -892,13 +892,13 @@
   <div id="archivoModal" class="modal" role="dialog" aria-modal="true">
     <div class="modal-content">
       <button class="modal-close" id="closeArchivo" aria-label="Cerrar">&times;</button>
-      <h3 style="margin-top:0">Actualizar envío y archivo de solución</h3>
+             <h3 style="margin-top:0">Actualizar archivo y comentario de solución</h3>
       <p class="muted">Fecha y hora de envío: <strong>se registrará automáticamente al guardar</strong>.</p>
       
-      <div class="form-group">
-        <label for="editArchivoTexto">Texto/enlace del archivo (opcional)</label>
-        <input type="url" id="editArchivoTexto" placeholder="Enlace público o nota" />
-      </div>
+             <div class="form-group">
+         <label for="editArchivoTexto">Comentario de solución (opcional)</label>
+         <textarea id="editArchivoTexto" placeholder="Ingrese comentario o nota sobre la solución" rows="3"></textarea>
+       </div>
       
       <div class="form-group">
         <label for="editArchivoPDF">Cargar PDF (opcional)</label>
@@ -926,7 +926,7 @@
   <div id="viewTextModal" class="modal" role="dialog" aria-modal="true">
     <div class="modal-content">
       <button class="modal-close" id="closeViewText" aria-label="Cerrar">&times;</button>
-      <h3 style="margin-top:0">Archivo de solución — texto/enlace</h3>
+             <h3 style="margin-top:0">Contenido de solución</h3>
       <div id="viewArchivoContent"></div>
     </div>
   </div>
@@ -1223,37 +1223,59 @@
       return td;
     };
 
-    const archivoCell = (rec) => {
-      const td = document.createElement('td');
-      const box = document.createElement('div');
-      box.className = 'cell-actions';
+         const archivoCell = (rec) => {
+       const td = document.createElement('td');
+       const box = document.createElement('div');
+       box.className = 'cell-actions';
 
-      const recordId = rec.ID || rec.id || rec.Id;
-      console.log('Asignando ID en archivoCell:', recordId, 'Tipo:', typeof recordId);
+       const recordId = rec.ID || rec.id || rec.Id;
+       console.log('Asignando ID en archivoCell:', recordId, 'Tipo:', typeof recordId);
 
-      const hasText = !!String(rec.ARCHIVO_SOLUCION_PDF || '').trim();
-      if (hasText) {
-        const a = document.createElement('a');
-        a.href = '#';
-        a.textContent = 'Ver';
-        a.className = 'icon-btn';
-        a.dataset.action = 'view-text';
-        a.dataset.id = recordId;
-        box.appendChild(a);
-      }
-      if (!box.children.length) {
-        box.appendChild(document.createTextNode('—'));
-      }
-      const btn = document.createElement('button');
-      btn.className = 'btn btn-ghost';
-      btn.textContent = 'Editar';
-      btn.dataset.action = 'edit-file';
-      btn.dataset.id = recordId;
-      box.appendChild(document.createTextNode(' '));
-      box.appendChild(btn);
-      td.appendChild(box);
-      return td;
-    };
+       const hasArchivo = !!String(rec.ARCHIVO_SOLUCION_PDF || '').trim();
+       const hasTexto = !!String(rec.TEXTO_SOLUCION_PDF || '').trim();
+
+       // Botón Editar (siempre visible)
+       const btnEditar = document.createElement('button');
+       btnEditar.className = 'btn btn-ghost';
+       btnEditar.textContent = 'Editar';
+       btnEditar.dataset.action = 'edit-file';
+       btnEditar.dataset.id = recordId;
+       box.appendChild(btnEditar);
+
+       // Botón Ver PDF (solo si hay archivo)
+       if (hasArchivo) {
+         box.appendChild(document.createTextNode(' '));
+         const btnPDF = document.createElement('a');
+         btnPDF.href = '#';
+         btnPDF.textContent = '📄';
+         btnPDF.className = 'icon-btn';
+         btnPDF.title = 'Ver PDF';
+         btnPDF.dataset.action = 'view-pdf';
+         btnPDF.dataset.id = recordId;
+         box.appendChild(btnPDF);
+       }
+
+       // Botón Ver Comentario (solo si hay texto)
+       if (hasTexto) {
+         box.appendChild(document.createTextNode(' '));
+         const btnComentario = document.createElement('a');
+         btnComentario.href = '#';
+         btnComentario.textContent = '👁️';
+         btnComentario.className = 'icon-btn';
+         btnComentario.title = 'Ver comentario';
+         btnComentario.dataset.action = 'view-comentario';
+         btnComentario.dataset.id = recordId;
+         box.appendChild(btnComentario);
+       }
+
+       // Si no hay nada, mostrar guión
+       if (!hasArchivo && !hasTexto) {
+         box.appendChild(document.createTextNode(' —'));
+       }
+
+       td.appendChild(box);
+       return td;
+     };
 
     function renderList() {
       const tbody = document.querySelector('#tablaIncidencias tbody'); tbody.innerHTML = '';
@@ -1304,10 +1326,10 @@
         tr.appendChild(tdObs);
         tr.appendChild(tdText(rec.REVISADO_POR));
         const est = String(rec.ESTADO_INCIDENCIA || '').toUpperCase(); const badge = document.createElement('span'); badge.className = `badge ${badgeClass(est)}`; badge.textContent = est; tr.appendChild(tdHTML(badge));
-        tr.appendChild(tdHTML(spanNowrap(fmtDateDisplay(rec.FECHA_ENVIO_ARCHIVO) || '')));
-        tr.appendChild(archivoCell(rec));
-        tr.appendChild(tdText(rec.CULMINADO || 'NO'));
-        tr.appendChild(tdHTML(spanNowrap(fmtDateDisplay(rec.FECHA_CONCLUYENTE) || '')));
+                 tr.appendChild(tdHTML(spanNowrap(fmtDateDisplay(rec.FECHA_ENVIO_ARCHIVO) || '')));
+         tr.appendChild(archivoCell(rec));
+         tr.appendChild(tdText(rec.CULMINADO || 'NO'));
+         tr.appendChild(tdHTML(spanNowrap(fmtDateDisplay(rec.FECHA_CONCLUYENTE) || '')));
         tbody.appendChild(tr);
       });
 
@@ -1333,11 +1355,21 @@
           console.log('Abriendo modal de archivo para ID:', id);
           openArchivoModalById(id);
         }
-        if (action === 'view-text') {
-          e.preventDefault();
-          console.log('Abriendo modal de texto para ID:', id);
-          openViewTextModalById(id);
-        }
+                 if (action === 'view-text') {
+           e.preventDefault();
+           console.log('Abriendo modal de texto para ID:', id);
+           openViewTextModalById(id);
+         }
+         if (action === 'view-pdf') {
+           e.preventDefault();
+           console.log('Abriendo PDF para ID:', id);
+           openPDFById(id);
+         }
+         if (action === 'view-comentario') {
+           e.preventDefault();
+           console.log('Abriendo comentario para ID:', id);
+           openComentarioById(id);
+         }
         if (action === 'view-obs-log') {
           e.preventDefault();
           console.log('Abriendo modal de observaciones para ID:', id);
@@ -1475,17 +1507,41 @@
           }
         }
         
-        // Siempre intentar actualizar el registro, incluso si falló el envío del PDF
-        const updateData = { 
-          ARCHIVO_SOLUCION_PDF: archivoUrl, 
-          FECHA_ENVIO_ARCHIVO: nowLocalISO() 
-        }; 
-        
-        console.log('Datos a actualizar:', updateData);
-        
-                 try {
+                 // Siempre intentar actualizar el registro, incluso si falló el envío del PDF
+         const updateData = { 
+           ARCHIVO_SOLUCION_PDF: archivoUrl, 
+           FECHA_ENVIO_ARCHIVO: nowLocalISO() 
+         }; 
+         
+         console.log('Datos a actualizar:', updateData);
+         
+         try {
            console.log('Actualizando registro con datos:', updateData);
            await updateRecord(CURRENT_EDIT_ID, updateData); 
+           
+                                   // Si hay texto, guardarlo usando la API con método solucion_texto
+             if (txt && txt.trim()) {
+               try {
+                 console.log('Guardando texto de solución...');
+                 const textoResponse = await fetch(`${API_BASE_URL}?metodo=solucion_texto`, {
+                   method: 'PUT',
+                   headers: { "Content-Type": "application/json" },
+                   body: JSON.stringify({
+                     texto_solucion_pdf: txt.trim(),
+                     id: CURRENT_EDIT_ID
+                   })
+                 });
+                 
+                 if (textoResponse.ok) {
+                   console.log('Texto de solución guardado exitosamente');
+                 } else {
+                   console.error('Error al guardar texto de solución:', await textoResponse.text());
+                 }
+               } catch (textoError) {
+                 console.error('Error al guardar texto de solución:', textoError);
+                 // No mostrar error al usuario si falla el guardado del texto
+               }
+             } 
            
            // Cerrar modal y recargar datos
            document.getElementById('archivoModal').style.display = 'none'; 
@@ -1527,11 +1583,188 @@
     const openViewTextModalById = (id) => { const rec = findById(id); if (!rec) { alert('No se encontró el registro.'); return; } const cont = document.getElementById('viewArchivoContent'); cont.innerHTML = ''; const txt = String(rec.ARCHIVO_SOLUCION_PDF || '').trim(); if (!txt) { cont.textContent = '(Sin texto/enlace)'; } else if (/^https?:\/\//i.test(txt)) { const a = document.createElement('a'); a.href = txt; a.target = '_blank'; a.textContent = txt; cont.appendChild(a); } else { const pre = document.createElement('div'); pre.className = 'prelike'; pre.textContent = txt; cont.appendChild(pre); } document.getElementById('viewTextModal').style.display = 'flex'; };
     document.getElementById('closeViewText').onclick = () => { document.getElementById('viewTextModal').style.display = 'none'; };
 
-    const openObsModalById_Log = (id) => { const rec = findById(id); if (!rec) { alert('No se encontró el registro.'); return; } const cont = document.getElementById('viewArchivoContent'); cont.innerHTML = ''; const pre = document.createElement('div'); pre.className = 'prelike'; pre.textContent = String(rec.OBSERVACION_ADICIONAL_CORRECION || '').trim() || '(Sin observaciones)'; cont.appendChild(pre); document.getElementById('viewTextModal').style.display = 'flex'; };
+         const openObsModalById_Log = (id) => { const rec = findById(id); if (!rec) { alert('No se encontró el registro.'); return; } const cont = document.getElementById('viewArchivoContent'); cont.innerHTML = ''; const pre = document.createElement('div'); pre.className = 'prelike'; pre.textContent = String(rec.OBSERVACION_ADICIONAL_CORRECION || '').trim() || '(Sin observaciones)'; cont.appendChild(pre); document.getElementById('viewTextModal').style.display = 'flex'; };
 
-    async function generatePDFById(id) { const rec = findById(id); if (!rec) { alert('No se encontró el registro.'); return; } const { jsPDF } = window.jspdf; const doc = new jsPDF(); const lines = [`ID: ${rec.ID}`, `Fecha registro: ${fmtDateDisplay(rec.FECHA_REGISTRO)}`, `Registrado por: ${rec.REGISTRADO_POR}`, `Mes: ${getMonthName(rec['MONTH(FECHA_EMISION)'] || rec.MONTH_FECHA_EMISION)}`, `Encargado: ${rec.ENCARGADO_COMPROBANTE}`, `Fecha de emisión: ${fmtDateOnly(rec['DATE(FECHA_EMISION)'] || rec.DATE_FECHA_EMISION)}`, `N° proforma/acta: ${rec.NUMERO_PROFORMA}`, `N° comprobante: ${rec.NUMERO_COMPROBANTE}`, `Responsable: ${rec.RESPONSABLE_INCIDENCIA}`, `Área: ${rec.AREA}`, `Tipo: ${rec.TIPO_INCIDENCIA}`, `Fecha notificación: ${fmtDateDisplay(rec.FECHA_NOTIFICACION)}`, `Solución: ${rec.SOLUCION}`, `Obs. adicionales: ${(rec.OBSERVACION_ADICIONAL_CORRECION || '').toString().replace(/\n/g, ' ')}`, `Revisado por: ${rec.REVISADO_POR}`, `Estado verificación: ${rec.ESTADO_INCIDENCIA}`, `Fecha envío archivo: ${fmtDateDisplay(rec.FECHA_ENVIO_ARCHIVO)}`, `Fecha concluyente: ${rec.FECHA_CONCLUYENTE ? fmtDateDisplay(rec.FECHA_CONCLUYENTE) : ''}`]; let y = 10; doc.setFontSize(12); lines.forEach(line => { doc.text(line, 10, y); y += 7; if (y > 280) { doc.addPage(); y = 10; } }); doc.save(`${rec.ID || 'incidencia'}.pdf`); }
+     // Función para abrir PDF
+     const openPDFById = (id) => {
+       const rec = findById(id);
+       if (!rec) {
+         alert('No se encontró el registro.');
+         return;
+       }
+       
+       const archivoUrl = String(rec.ARCHIVO_SOLUCION_PDF || '').trim();
+       if (!archivoUrl) {
+         alert('No hay archivo PDF disponible.');
+         return;
+       }
+       
+       // Si es una URL válida, abrir en nueva pestaña
+       if (/^https?:\/\//i.test(archivoUrl)) {
+         window.open(archivoUrl, '_blank');
+       } else {
+         // Si no es URL, mostrar en modal
+         const cont = document.getElementById('viewArchivoContent');
+         cont.innerHTML = '';
+         const pre = document.createElement('div');
+         pre.className = 'prelike';
+         pre.textContent = archivoUrl;
+         cont.appendChild(pre);
+         document.getElementById('viewTextModal').style.display = 'flex';
+       }
+     };
 
-    function exportFilteredCSV() { const list = filterRecords(); let csv = 'ID,FECHA_REGISTRO,REGISTRADO_POR,MONTH_FECHA_EMISION,ENCARGADO_COMPROBANTE,DATE_FECHA_EMISION,NUMERO_PROFORMA,NUMERO_COMPROBANTE,RESPONSABLE_INCIDENCIA,AREA,TIPO_INCIDENCIA,FECHA_NOTIFICACION,SOLUCION,OBSERVACION_ADICIONAL_CORRECION,REVISADO_POR,ESTADO_INCIDENCIA,FECHA_ENVIO_ARCHIVO,ARCHIVO_SOLUCION_PDF,ACTA_REALIZADA,CULMINADO,FECHA_CONCLUYENTE\n'; list.forEach(rec => { const row = [rec.ID || '', rec.FECHA_REGISTRO || '', rec.REGISTRADO_POR || '', getMonthName(rec['MONTH(FECHA_EMISION)'] || rec.MONTH_FECHA_EMISION) || '', rec.ENCARGADO_COMPROBANTE || '', rec['DATE(FECHA_EMISION)'] || rec.DATE_FECHA_EMISION || '', rec.NUMERO_PROFORMA || '', rec.NUMERO_COMPROBANTE || '', rec.RESPONSABLE_INCIDENCIA || '', rec.AREA || '', rec.TIPO_INCIDENCIA || '', rec.FECHA_NOTIFICACION || '', rec.SOLUCION || '', rec.OBSERVACION_ADICIONAL_CORRECION || '', rec.REVISADO_POR || '', rec.ESTADO_INCIDENCIA || '', rec.FECHA_ENVIO_ARCHIVO || '', rec.ARCHIVO_SOLUCION_PDF || '', rec.ACTA_REALIZADA || '', rec.CULMINADO || '', rec.FECHA_CONCLUYENTE || '']; csv += row.map(x => `"${String(x).replace(/"/g, '""')}"`).join(',') + '\n'; }); const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'incidencias_logistica.csv'; a.click(); URL.revokeObjectURL(url); }
+     // Función para abrir comentario
+     const openComentarioById = (id) => {
+       const rec = findById(id);
+       if (!rec) {
+         alert('No se encontró el registro.');
+         return;
+       }
+       
+       const comentario = String(rec.TEXTO_SOLUCION_PDF || '').trim();
+       if (!comentario) {
+         alert('No hay comentario disponible.');
+         return;
+       }
+       
+       const cont = document.getElementById('viewArchivoContent');
+       cont.innerHTML = '';
+       const pre = document.createElement('div');
+       pre.className = 'prelike';
+       pre.textContent = comentario;
+       cont.appendChild(pre);
+       document.getElementById('viewTextModal').style.display = 'flex';
+     };
+
+         async function generatePDFById(id) { 
+       const rec = findById(id); 
+       if (!rec) { 
+         alert('No se encontró el registro.'); 
+         return; 
+       } 
+       
+       try {
+         // Extraer datos de error/solución desde la API
+         console.log('Extrayendo datos de error/solución para ID:', id);
+         const errorResponse = await fetch(`${API_BASE_URL}?tipo=error_solucion&id=${id}`, {
+           method: 'GET',
+           headers: { "Content-Type": "application/json" }
+         });
+         
+         let errorSolucionData = [];
+         if (errorResponse.ok) {
+           errorSolucionData = await errorResponse.json();
+           console.log('Datos de error/solución obtenidos:', errorSolucionData);
+         } else {
+           console.error('Error al obtener datos de error/solución:', await errorResponse.text());
+         }
+         
+         const { jsPDF } = window.jspdf; 
+         const doc = new jsPDF(); 
+         
+         // Líneas básicas del registro
+         const lines = [
+           `ID: ${rec.ID}`, 
+           `Fecha registro: ${fmtDateDisplay(rec.FECHA_REGISTRO)}`, 
+           `Registrado por: ${rec.REGISTRADO_POR}`, 
+           `Mes: ${getMonthName(rec['MONTH(FECHA_EMISION)'] || rec.MONTH_FECHA_EMISION)}`, 
+           `Encargado: ${rec.ENCARGADO_COMPROBANTE}`, 
+           `Fecha de emisión: ${fmtDateOnly(rec['DATE(FECHA_EMISION)'] || rec.DATE_FECHA_EMISION)}`, 
+           `N° proforma/acta: ${rec.NUMERO_PROFORMA}`, 
+           `N° comprobante: ${rec.NUMERO_COMPROBANTE}`, 
+           `Responsable: ${rec.RESPONSABLE_INCIDENCIA}`, 
+           `Área: ${rec.AREA}`, 
+           `Tipo: ${rec.TIPO_INCIDENCIA}`, 
+           `Fecha notificación: ${fmtDateDisplay(rec.FECHA_NOTIFICACION)}`, 
+           `Solución: ${rec.SOLUCION}`, 
+           `Obs. adicionales: ${(rec.OBSERVACION_ADICIONAL_CORRECION || '').toString().replace(/\n/g, ' ')}`, 
+           `Revisado por: ${rec.REVISADO_POR}`, 
+           `Estado verificación: ${rec.ESTADO_INCIDENCIA}`, 
+           `Fecha envío archivo: ${fmtDateDisplay(rec.FECHA_ENVIO_ARCHIVO)}`, 
+           `Fecha concluyente: ${rec.FECHA_CONCLUYENTE ? fmtDateDisplay(rec.FECHA_CONCLUYENTE) : ''}`
+         ]; 
+         
+         let y = 10; 
+         doc.setFontSize(12); 
+         
+         // Agregar líneas básicas
+         lines.forEach(line => { 
+           doc.text(line, 10, y); 
+           y += 7; 
+           if (y > 280) { 
+             doc.addPage(); 
+             y = 10; 
+           } 
+         }); 
+         
+         // Agregar datos de error/solución si existen
+         if (errorSolucionData && errorSolucionData.length > 0) {
+           y += 10; // Espacio adicional
+           doc.setFontSize(14);
+           doc.text('DETALLES DE ERROR Y SOLUCIÓN:', 10, y);
+           y += 10;
+           doc.setFontSize(12);
+           
+           errorSolucionData.forEach((item, index) => {
+             if (y > 270) {
+               doc.addPage();
+               y = 10;
+             }
+             
+             doc.text(`Ítem ${index + 1}:`, 10, y);
+             y += 7;
+             doc.text(`  Error: ${item.ERROR_ || ''}`, 15, y);
+             y += 7;
+             doc.text(`  Solución: ${item.SOLUCION || ''}`, 15, y);
+             y += 10;
+           });
+         }
+         
+         doc.save(`${rec.ID || 'incidencia'}.pdf`); 
+       } catch (error) {
+         console.error('Error al generar PDF:', error);
+         alert('Error al generar el PDF: ' + error.message);
+       }
+     }
+
+         function exportFilteredCSV() { 
+       const list = filterRecords(); 
+       let csv = 'ID,FECHA_REGISTRO,REGISTRADO_POR,MONTH_FECHA_EMISION,ENCARGADO_COMPROBANTE,DATE_FECHA_EMISION,NUMERO_PROFORMA,NUMERO_COMPROBANTE,RESPONSABLE_INCIDENCIA,AREA,TIPO_INCIDENCIA,FECHA_NOTIFICACION,SOLUCION,OBSERVACION_ADICIONAL_CORRECION,REVISADO_POR,ESTADO_INCIDENCIA,FECHA_ENVIO_ARCHIVO,ARCHIVO_SOLUCION_PDF,ACTA_REALIZADA,CULMINADO,FECHA_CONCLUYENTE\n'; 
+       list.forEach(rec => { 
+         const row = [
+           rec.ID || '', 
+           rec.FECHA_REGISTRO || '', 
+           rec.REGISTRADO_POR || '', 
+           getMonthName(rec['MONTH(FECHA_EMISION)'] || rec.MONTH_FECHA_EMISION) || '', 
+           rec.ENCARGADO_COMPROBANTE || '', 
+           rec['DATE(FECHA_EMISION)'] || rec.DATE_FECHA_EMISION || '', 
+           rec.NUMERO_PROFORMA || '', 
+           rec.NUMERO_COMPROBANTE || '', 
+           rec.RESPONSABLE_INCIDENCIA || '', 
+           rec.AREA || '', 
+           rec.TIPO_INCIDENCIA || '', 
+           rec.FECHA_NOTIFICACION || '', 
+           rec.SOLUCION || '', 
+           rec.OBSERVACION_ADICIONAL_CORRECION || '', 
+           rec.REVISADO_POR || '', 
+           rec.ESTADO_INCIDENCIA || '', 
+           rec.FECHA_ENVIO_ARCHIVO || '', 
+           rec.ARCHIVO_SOLUCION_PDF || '', 
+           rec.ACTA_REALIZADA || '', 
+           rec.CULMINADO || '', 
+           rec.FECHA_CONCLUYENTE || ''
+         ]; 
+         csv += row.map(x => `"${String(x).replace(/"/g, '""')}"`).join(',') + '\n'; 
+       }); 
+       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' }); 
+       const url = URL.createObjectURL(blob); 
+       const a = document.createElement('a'); 
+       a.href = url; 
+       a.download = 'incidencias_logistica.csv'; 
+       a.click(); 
+       URL.revokeObjectURL(url); 
+     }
 
     async function generateReport() { const table = document.querySelector('#tablaIncidencias'); const canvas = await html2canvas(table); const img = canvas.toDataURL('image/png'); const { jsPDF } = window.jspdf; const pdf = new jsPDF({ orientation: 'landscape' }); const props = pdf.getImageProperties(img); const pdfW = pdf.internal.pageSize.getWidth(); const pdfH = (props.height * pdfW) / props.width; pdf.addImage(img, 'PNG', 0, 10, pdfW, pdfH); pdf.save('reporte_incidencias_logistica.pdf'); }
 
@@ -1619,8 +1852,8 @@
         }
       });
 
-      // Formatear la fecha para la API
-      const fechaFormateada = fechaEmision.replace('T', ' ') + ':00';
+             // Formatear la fecha para la API (solo fecha, sin hora)
+       const fechaFormateada = fechaEmision;
 
       try {
         const recordData = {
