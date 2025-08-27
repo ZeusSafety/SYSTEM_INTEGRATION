@@ -885,6 +885,7 @@
   <div id="detailModal" class="modal" role="dialog" aria-modal="true">
     <div class="modal-content">
       <button class="modal-close" id="closeDetail" aria-label="Cerrar">&times;</button>
+      <h3 style="margin-top:0; color: #17375d;">📋 Ítems de Error - Detalle</h3>
       <div id="detailContent"></div>
     </div>
   </div>
@@ -1353,7 +1354,91 @@
       const thH = table.tHead ? table.tHead.getBoundingClientRect().height : 40; const firstRow = table.tBodies[0]?.rows[0]; const rowH = firstRow ? firstRow.getBoundingClientRect().height : 40; const maxH = Math.round(thH + rowH * 10 + 2); wrapper.style.maxHeight = maxH + 'px'; wrapper.style.overflow = 'auto';
     }
 
-    function showDetailById(id) { const rec = findById(id); if (!rec) { alert('No se encontró el registro.'); return; } const c = document.getElementById('detailContent'); c.innerHTML = ''; const fields = [["ID", rec.ID], ["Fecha de registro", fmtDateDisplay(rec.FECHA_REGISTRO) || ''], ["Registrado por", rec.REGISTRADO_POR || ''], ["Mes", getMonthName(rec['MONTH(FECHA_EMISION)'] || rec.MONTH_FECHA_EMISION)], ["Encargado comprobante", rec.ENCARGADO_COMPROBANTE], ["Fecha de emisión", fmtDateOnly(rec['DATE(FECHA_EMISION)'] || rec.DATE_FECHA_EMISION)], ["N° proforma/acta", rec.NUMERO_PROFORMA], ["N° de comprobante", rec.NUMERO_COMPROBANTE], ["Responsable", rec.RESPONSABLE_INCIDENCIA], ["Área", rec.AREA || ''], ["Tipo de incidencia", rec.TIPO_INCIDENCIA || ''], ["Fecha de notificación", fmtDateOnly(rec.FECHA_NOTIFICACION || '')], ["Solución", rec.SOLUCION || ''], ["Obs. adicionales", rec.OBSERVACION_ADICIONAL_CORRECION || ''], ["Revisado por", rec.REVISADO_POR || ''], ["Estado de verificación", rec.ESTADO_INCIDENCIA || ''], ["Fecha envío de archivo", fmtDateDisplay(rec.FECHA_ENVIO_ARCHIVO || '')], ["Culminado", rec.CULMINADO || 'NO'], ["Fecha concluyente", fmtDateDisplay(rec.FECHA_CONCLUYENTE || '')]]; fields.forEach(([l, vv]) => { const p = document.createElement('p'); p.innerHTML = `<strong>${l}:</strong> ${vv || ''}`; c.appendChild(p); }); document.getElementById('detailModal').style.display = 'flex'; }
+    function showDetailById(id) { 
+      const rec = findById(id); 
+      if (!rec) { 
+        alert('No se encontró el registro.'); 
+        return; 
+      } 
+      
+      console.log('Registro completo para mostrar detalles:', rec);
+      
+      const c = document.getElementById('detailContent'); 
+      c.innerHTML = ''; 
+      
+      // Obtener los ítems de error del registro
+      let detalleItems = [];
+      
+      // Mostrar siempre el contenido de OBSERVACION_ADICIONAL_CORRECION si existe
+      if (rec.OBSERVACION_ADICIONAL_CORRECION) {
+        const obs = String(rec.OBSERVACION_ADICIONAL_CORRECION).trim();
+        console.log('Procesando OBSERVACION_ADICIONAL_CORRECION:', obs);
+        
+        // Crear un ítem con el texto de OBSERVACION_ADICIONAL_CORRECION
+        // y usar SOLUCION si está disponible
+        detalleItems = [{
+          error: obs,
+          solucion: rec.SOLUCION || ''
+        }];
+      }
+      
+      console.log('Ítems procesados:', detalleItems);
+      
+      // Si no hay ítems, mostrar mensaje
+      if (!detalleItems || detalleItems.length === 0) {
+        const p = document.createElement('p');
+        p.innerHTML = '<strong>No hay ítems de error registrados.</strong>';
+        c.appendChild(p);
+        
+        // Mostrar información de debug
+        const debugDiv = document.createElement('div');
+        debugDiv.style.marginTop = '20px';
+        debugDiv.style.padding = '10px';
+        debugDiv.style.backgroundColor = '#f0f0f0';
+        debugDiv.style.borderRadius = '5px';
+        debugDiv.style.fontSize = '12px';
+        debugDiv.innerHTML = `<strong>Debug:</strong> Campo DETALLE no encontrado o vacío. Campos disponibles: ${Object.keys(rec).join(', ')}`;
+        c.appendChild(debugDiv);
+      } else {
+        // Mostrar cada ítem de error
+        detalleItems.forEach((item, index) => {
+          const itemDiv = document.createElement('div');
+          itemDiv.style.marginBottom = '20px';
+          itemDiv.style.padding = '15px';
+          itemDiv.style.border = '1px solid #e0e0e0';
+          itemDiv.style.borderRadius = '8px';
+          itemDiv.style.backgroundColor = '#f9f9f9';
+          
+          const title = document.createElement('h4');
+          title.textContent = `Ítem ${index + 1}`;
+          title.style.margin = '0 0 10px 0';
+          title.style.color = '#17375d';
+          itemDiv.appendChild(title);
+          
+          // Manejar diferentes estructuras de datos
+          const errorText = item.error || item.detalle || item.detalle_error || item.text || '';
+          const solucionText = item.solucion || item.debe_ser || item.correccion || '';
+          
+          if (errorText && errorText.trim()) {
+            const errorP = document.createElement('p');
+            errorP.innerHTML = `<strong>Detalle del error:</strong><br>${errorText}`;
+            errorP.style.margin = '5px 0';
+            itemDiv.appendChild(errorP);
+          }
+          
+          if (solucionText && solucionText.trim()) {
+            const solP = document.createElement('p');
+            solP.innerHTML = `<strong>Debe ser:</strong><br>${solucionText}`;
+            solP.style.margin = '5px 0';
+            itemDiv.appendChild(solP);
+          }
+          
+          c.appendChild(itemDiv);
+        });
+      }
+      
+      document.getElementById('detailModal').style.display = 'flex'; 
+    }
     document.getElementById('closeDetail').onclick = () => { document.getElementById('detailModal').style.display = 'none'; };
 
     let CURRENT_EDIT_ID = null;
@@ -1529,7 +1614,135 @@
 
     const openObsModalById_Log = (id) => { const rec = findById(id); if (!rec) { alert('No se encontró el registro.'); return; } const cont = document.getElementById('viewArchivoContent'); cont.innerHTML = ''; const pre = document.createElement('div'); pre.className = 'prelike'; pre.textContent = String(rec.OBSERVACION_ADICIONAL_CORRECION || '').trim() || '(Sin observaciones)'; cont.appendChild(pre); document.getElementById('viewTextModal').style.display = 'flex'; };
 
-    async function generatePDFById(id) { const rec = findById(id); if (!rec) { alert('No se encontró el registro.'); return; } const { jsPDF } = window.jspdf; const doc = new jsPDF(); const lines = [`ID: ${rec.ID}`, `Fecha registro: ${fmtDateDisplay(rec.FECHA_REGISTRO)}`, `Registrado por: ${rec.REGISTRADO_POR}`, `Mes: ${getMonthName(rec['MONTH(FECHA_EMISION)'] || rec.MONTH_FECHA_EMISION)}`, `Encargado: ${rec.ENCARGADO_COMPROBANTE}`, `Fecha de emisión: ${fmtDateOnly(rec['DATE(FECHA_EMISION)'] || rec.DATE_FECHA_EMISION)}`, `N° proforma/acta: ${rec.NUMERO_PROFORMA}`, `N° comprobante: ${rec.NUMERO_COMPROBANTE}`, `Responsable: ${rec.RESPONSABLE_INCIDENCIA}`, `Área: ${rec.AREA}`, `Tipo: ${rec.TIPO_INCIDENCIA}`, `Fecha notificación: ${fmtDateDisplay(rec.FECHA_NOTIFICACION)}`, `Solución: ${rec.SOLUCION}`, `Obs. adicionales: ${(rec.OBSERVACION_ADICIONAL_CORRECION || '').toString().replace(/\n/g, ' ')}`, `Revisado por: ${rec.REVISADO_POR}`, `Estado verificación: ${rec.ESTADO_INCIDENCIA}`, `Fecha envío archivo: ${fmtDateDisplay(rec.FECHA_ENVIO_ARCHIVO)}`, `Fecha concluyente: ${rec.FECHA_CONCLUYENTE ? fmtDateDisplay(rec.FECHA_CONCLUYENTE) : ''}`]; let y = 10; doc.setFontSize(12); lines.forEach(line => { doc.text(line, 10, y); y += 7; if (y > 280) { doc.addPage(); y = 10; } }); doc.save(`${rec.ID || 'incidencia'}.pdf`); }
+    async function generatePDFById(id) { 
+      const rec = findById(id); 
+      if (!rec) { 
+        alert('No se encontró el registro.'); 
+        return; 
+      } 
+      
+      const { jsPDF } = window.jspdf; 
+      const doc = new jsPDF(); 
+      
+             // Obtener los ítems de error del registro
+       let detalleItems = [];
+       
+       // Buscar el campo de detalle en diferentes posibles nombres
+       const detalleField = rec.DETALLE || rec.detalle || rec.DETALLE_ITEMS || rec.detalle_items;
+       
+       if (detalleField) {
+         try {
+           if (typeof detalleField === 'string') {
+             // Intentar parsear como JSON
+             if (detalleField.trim().startsWith('[') || detalleField.trim().startsWith('{')) {
+               detalleItems = JSON.parse(detalleField);
+             } else {
+               // Si no es JSON válido, crear un item con el texto como está
+               detalleItems = [{ error: detalleField, solucion: '' }];
+             }
+           } else if (Array.isArray(detalleField)) {
+             detalleItems = detalleField;
+           } else if (typeof detalleField === 'object') {
+             detalleItems = [detalleField];
+           }
+         } catch (e) {
+           console.log('Error al parsear campo de detalle:', e);
+           // Si no se puede parsear, crear un item con el texto como está
+           detalleItems = [{ error: String(detalleField), solucion: '' }];
+         }
+       }
+      
+      // Configurar el PDF
+      let y = 10;
+      doc.setFontSize(16);
+      doc.setFont(undefined, 'bold');
+      doc.text('Ítems de Error - Incidencia', 10, y);
+      y += 10;
+      
+      doc.setFontSize(12);
+      doc.setFont(undefined, 'normal');
+      doc.text(`ID de Incidencia: ${rec.ID}`, 10, y);
+      y += 8;
+      doc.text(`Fecha de Registro: ${fmtDateDisplay(rec.FECHA_REGISTRO)}`, 10, y);
+      y += 8;
+      doc.text(`N° Proforma/Acta: ${rec.NUMERO_PROFORMA}`, 10, y);
+      y += 8;
+      doc.text(`N° Comprobante: ${rec.NUMERO_COMPROBANTE}`, 10, y);
+      y += 15;
+      
+      // Si no hay ítems, mostrar mensaje
+      if (!detalleItems || detalleItems.length === 0) {
+        doc.setFontSize(12);
+        doc.text('No hay ítems de error registrados.', 10, y);
+      } else {
+        // Mostrar cada ítem de error
+        detalleItems.forEach((item, index) => {
+          // Verificar si necesitamos nueva página
+          if (y > 250) {
+            doc.addPage();
+            y = 10;
+          }
+          
+          // Título del ítem
+          doc.setFontSize(14);
+          doc.setFont(undefined, 'bold');
+          doc.text(`Ítem ${index + 1}`, 10, y);
+          y += 8;
+          
+                     // Manejar diferentes estructuras de datos
+           const errorText = item.error || item.detalle || item.detalle_error || item.text || '';
+           const solucionText = item.solucion || item.debe_ser || item.correccion || '';
+           
+           // Detalle del error
+           if (errorText && errorText.trim()) {
+             doc.setFontSize(12);
+             doc.setFont(undefined, 'bold');
+             doc.text('Detalle del error:', 15, y);
+             y += 6;
+             
+             doc.setFont(undefined, 'normal');
+             const errorLines = doc.splitTextToSize(errorText, 180);
+             errorLines.forEach(line => {
+               if (y > 280) {
+                 doc.addPage();
+                 y = 10;
+               }
+               doc.text(line, 20, y);
+               y += 5;
+             });
+             y += 5;
+           }
+           
+           // Debe ser
+           if (solucionText && solucionText.trim()) {
+             doc.setFontSize(12);
+             doc.setFont(undefined, 'bold');
+             doc.text('Debe ser:', 15, y);
+             y += 6;
+             
+             doc.setFont(undefined, 'normal');
+             const solLines = doc.splitTextToSize(solucionText, 180);
+             solLines.forEach(line => {
+               if (y > 280) {
+                 doc.addPage();
+                 y = 10;
+               }
+               doc.text(line, 20, y);
+               y += 5;
+             });
+             y += 10;
+           }
+          
+          // Línea separadora
+          if (index < detalleItems.length - 1) {
+            doc.line(10, y, 200, y);
+            y += 10;
+          }
+        });
+      }
+      
+      doc.save(`items_error_incidencia_${rec.ID || 'incidencia'}.pdf`); 
+    }
 
     function exportFilteredCSV() { const list = filterRecords(); let csv = 'ID,FECHA_REGISTRO,REGISTRADO_POR,MONTH_FECHA_EMISION,ENCARGADO_COMPROBANTE,DATE_FECHA_EMISION,NUMERO_PROFORMA,NUMERO_COMPROBANTE,RESPONSABLE_INCIDENCIA,AREA,TIPO_INCIDENCIA,FECHA_NOTIFICACION,SOLUCION,OBSERVACION_ADICIONAL_CORRECION,REVISADO_POR,ESTADO_INCIDENCIA,FECHA_ENVIO_ARCHIVO,ARCHIVO_SOLUCION_PDF,ACTA_REALIZADA,CULMINADO,FECHA_CONCLUYENTE\n'; list.forEach(rec => { const row = [rec.ID || '', rec.FECHA_REGISTRO || '', rec.REGISTRADO_POR || '', getMonthName(rec['MONTH(FECHA_EMISION)'] || rec.MONTH_FECHA_EMISION) || '', rec.ENCARGADO_COMPROBANTE || '', rec['DATE(FECHA_EMISION)'] || rec.DATE_FECHA_EMISION || '', rec.NUMERO_PROFORMA || '', rec.NUMERO_COMPROBANTE || '', rec.RESPONSABLE_INCIDENCIA || '', rec.AREA || '', rec.TIPO_INCIDENCIA || '', rec.FECHA_NOTIFICACION || '', rec.SOLUCION || '', rec.OBSERVACION_ADICIONAL_CORRECION || '', rec.REVISADO_POR || '', rec.ESTADO_INCIDENCIA || '', rec.FECHA_ENVIO_ARCHIVO || '', rec.ARCHIVO_SOLUCION_PDF || '', rec.ACTA_REALIZADA || '', rec.CULMINADO || '', rec.FECHA_CONCLUYENTE || '']; csv += row.map(x => `"${String(x).replace(/"/g, '""')}"`).join(',') + '\n'; }); const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'incidencias_logistica.csv'; a.click(); URL.revokeObjectURL(url); }
 
@@ -1623,6 +1836,10 @@
       const fechaFormateada = fechaEmision.replace('T', ' ') + ':00';
 
       try {
+        // Incrustar los ítems en observación como fallback para listados que no devuelven DETALLE
+        const detalleJson = JSON.stringify(detalle);
+        const observacionMerged = (obsDetalle ? String(obsDetalle).trim() + "\n\n" : "") + `[DETALLE_ITEMS_JSON] ${detalleJson}`;
+
         const recordData = {
           fecha_emision: fechaFormateada,
           encargado_comprobante: encargado,
@@ -1632,7 +1849,7 @@
           numero_proforma: proforma,
           numero_comprobante: comprobante,
           tipo_incidencia: tipo,
-          observacion: obsDetalle,
+          observacion: observacionMerged,
           detalle: detalle
         };
 
