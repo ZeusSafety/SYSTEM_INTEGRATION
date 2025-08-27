@@ -420,46 +420,66 @@
       
       filteredRecords.forEach(rec=>{ 
         console.log('📋 Renderizando registro ID:', rec['ID'], 'Campos disponibles:', Object.keys(rec));
-        const tr=document.createElement('tr'); 
-        tr.appendChild(tdText(rec['ID']||'')); 
-        tr.appendChild(tdHTML(spanNowrap(fmtDateDisplay(rec['FECHA_REGISTRO'])||''))); 
-        tr.appendChild(tdText(rec['REGISTRADO_POR']||'')); 
-        tr.appendChild(tdText(getMonthName(rec['MONTH(FECHA_EMISION)'])||'')); 
-        tr.appendChild(tdText(rec['ENCARGADO_COMPROBANTE']||'')); 
-        tr.appendChild(tdHTML(spanNowrap(fmtDateOnly(rec['DATE(FECHA_EMISION)'])||''))); 
-        tr.appendChild(tdText(rec['NUMERO_PROFORMA']||'')); 
-        tr.appendChild(tdText(rec['NUMERO_COMPROBANTE']||'')); 
-        tr.appendChild(itemsCell(rec)); 
-        tr.appendChild(tdText(rec['RESPONSABLE_INCIDENCIA']||'')); 
-        tr.appendChild(tdText(rec['AREA']||'')); 
-        const tipo=(rec['TIPO_INCIDENCIA']||''); 
-        tr.appendChild(tdText(tipo?String(tipo).toUpperCase():'')); 
-        tr.appendChild(tdHTML(spanNowrap(fmtDateDisplay(rec['FECHA_NOTIFICACION'])||''))); 
-        tr.appendChild(tdHTML(spanNowrap((rec['SOLUCION']||'').toString().toUpperCase()))); 
-        const obsTd=document.createElement('td'); 
-        const txt=(rec['OBSERVACION_ADICIONAL_CORRECION']||'').trim(); 
-        if(txt){ 
-          const a=document.createElement('a'); 
-          a.href='#'; 
-          a.textContent='👁️'; 
-          a.dataset.action='view-obs'; 
-          a.dataset.id=rec.ID; 
-          obsTd.style.textAlign='center'; 
+        const tr=document.createElement('tr');
+        // Detectar si la solución es SIN INCIDENCIA
+        const solucionSinIncidencia = (rec['SOLUCION']||'').toString().trim().toUpperCase() === 'SIN INCIDENCIA';
+
+        tr.appendChild(tdText(rec['ID']||''));
+        tr.appendChild(tdHTML(spanNowrap(fmtDateDisplay(rec['FECHA_REGISTRO'])||'')));
+        tr.appendChild(tdText(rec['REGISTRADO_POR']||''));
+        tr.appendChild(tdText(getMonthName(rec['MONTH(FECHA_EMISION)'])||''));
+        tr.appendChild(tdText(rec['ENCARGADO_COMPROBANTE']||''));
+        tr.appendChild(tdHTML(spanNowrap(fmtDateOnly(rec['DATE(FECHA_EMISION)'])||'')));
+        tr.appendChild(tdText(rec['NUMERO_PROFORMA']||''));
+        tr.appendChild(tdText(rec['NUMERO_COMPROBANTE']||''));
+        tr.appendChild(itemsCell(rec));
+        tr.appendChild(tdText(rec['RESPONSABLE_INCIDENCIA']||''));
+        tr.appendChild(tdText(rec['AREA']||''));
+        const tipo=(rec['TIPO_INCIDENCIA']||'');
+        tr.appendChild(tdText(tipo?String(tipo).toUpperCase():''));
+        tr.appendChild(tdHTML(spanNowrap(fmtDateDisplay(rec['FECHA_NOTIFICACION'])||'')));
+        tr.appendChild(tdHTML(spanNowrap((rec['SOLUCION']||'').toString().toUpperCase())));
+        const obsTd=document.createElement('td');
+        const txt=(rec['OBSERVACION_ADICIONAL_CORRECION']||'').trim();
+        if(txt){
+          const a=document.createElement('a');
+          a.href='#';
+          a.textContent='👁️';
+          a.dataset.action='view-obs';
+          a.dataset.id=rec.ID;
+          obsTd.style.textAlign='center';
           obsTd.appendChild(a);
-        } else obsTd.textContent='—'; 
-        tr.appendChild(obsTd); 
-        tr.appendChild(tdText((rec['REVISADO_POR']||'').toString().toUpperCase())); 
-        tr.appendChild(estadoCell(rec)); 
-        tr.appendChild(tdHTML(spanNowrap(fmtDateDisplay(rec['FECHA_ENVIO_ARCHIVO'])||''))); 
-        tr.appendChild(archivoCellReadOnly(rec)); 
-        tr.appendChild(tdHTML(spanNowrap(fmtDateDisplay(rec['FECHA_CORRECION'])||''))); 
-        tr.appendChild(tdText(rec['ESTADO_SOLUCION']||'')); 
-        tr.appendChild(tdText((rec['COMPROBANTE']||'').toString().toUpperCase())); 
-        tr.appendChild(tdText(rec['NUMERO_COMPROBANTE_SOLUCION']||'')); 
-        tr.appendChild(culminadoCell(rec)); 
-        tr.appendChild(tdHTML(spanNowrap(fmtDateDisplay(rec['FECHA_CONCLUYENTE']||'')))); 
-        tbody.appendChild(tr); 
-      }); 
+        } else obsTd.textContent='—';
+        tr.appendChild(obsTd);
+        tr.appendChild(tdText((rec['REVISADO_POR']||'').toString().toUpperCase()));
+        tr.appendChild(estadoCell(rec));
+        tr.appendChild(tdHTML(spanNowrap(fmtDateDisplay(rec['FECHA_ENVIO_ARCHIVO'])||'')));
+        tr.appendChild(archivoCellReadOnly(rec));
+
+        // FECHA DE CORRECCIÓN
+        const tdFechaCor = tdHTML(spanNowrap(fmtDateDisplay(rec['FECHA_CORRECION'])||''));
+        if(solucionSinIncidencia) tdFechaCor.style.background = 'rgba(255,0,0,0.18)';
+        tr.appendChild(tdFechaCor);
+
+        // ESTADO DE LA SOLUCIÓN
+        const tdEstadoSol = tdText(rec['ESTADO_SOLUCION']||'');
+        if(solucionSinIncidencia) tdEstadoSol.style.background = 'rgba(255,0,0,0.18)';
+        tr.appendChild(tdEstadoSol);
+
+        // COMPROBANTE
+        const tdComprobante = tdText((rec['COMPROBANTE']||'').toString().toUpperCase());
+        if(solucionSinIncidencia) tdComprobante.style.background = 'rgba(255,0,0,0.18)';
+        tr.appendChild(tdComprobante);
+
+        // N° DE COMPROBANTE (Fact.)
+        const tdNumComprobante = tdText(rec['NUMERO_COMPROBANTE_SOLUCION']||'');
+        if(solucionSinIncidencia) tdNumComprobante.style.background = 'rgba(255,0,0,0.18)';
+        tr.appendChild(tdNumComprobante);
+
+        tr.appendChild(culminadoCell(rec));
+        tr.appendChild(tdHTML(spanNowrap(fmtDateDisplay(rec['FECHA_CONCLUYENTE']||''))));
+        tbody.appendChild(tr);
+      });
       console.log('✅ Lista renderizada');
       adjustAdminTableHeightTo7(); 
     };
