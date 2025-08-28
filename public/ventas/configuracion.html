@@ -781,20 +781,32 @@
             editandoAsesor = null;
             document.getElementById('nombreAsesor').value = '';
             document.getElementById('estadoAsesor').value = '1';
+            
+            // Restaurar el texto del botón para nuevo asesor
+            const submitBtn = document.querySelector('#formAsesor button[type="submit"]');
+            submitBtn.innerHTML = '<i class="fas fa-save"></i> Guardar Asesor';
         }
 
         function ocultarFormularioAsesor() {
             document.getElementById('formAsesor').style.display = 'none';
             editandoAsesor = null;
+            
+            // Restaurar el texto del botón
+            const submitBtn = document.querySelector('#formAsesor button[type="submit"]');
+            submitBtn.innerHTML = '<i class="fas fa-save"></i> Guardar Asesor';
         }
 
         function editarAsesor(id) {
-            const asesor = asesores.find(a => a.ID === id);
+            const asesor = asesores.find(a => a.ID == id);
             if (asesor) {
                 editandoAsesor = id;
                 document.getElementById('nombreAsesor').value = asesor.NOMBRE;
                 document.getElementById('estadoAsesor').value = asesor.ESTADO;
                 document.getElementById('formAsesor').style.display = 'block';
+                
+                // Cambiar el texto del botón para indicar que estamos editando
+                const submitBtn = document.querySelector('#formAsesor button[type="submit"]');
+                submitBtn.innerHTML = '<i class="fas fa-save"></i> Actualizar Asesor';
             }
         }
 
@@ -803,14 +815,13 @@
                 try {
                     mostrarLoading(true);
                     
-                    const response = await fetch(`${API_URL}?metodo=eliminar`, {
-                        method: 'POST',
+                    const response = await fetch(`${API_URL}?metodo=eliminar_configuracion`, {
+                        method: 'PUT',
                         headers: {
                             'Content-Type': 'application/json'
                         },
                         body: JSON.stringify({
-                            id: id,
-                            categoria: 'ASESOR'
+                            id: id
                         })
                     });
 
@@ -836,20 +847,32 @@
             editandoFormaPago = null;
             document.getElementById('nombreFormaPago').value = '';
             document.getElementById('estadoFormaPago').value = '1';
+            
+            // Restaurar el texto del botón para nueva forma de pago
+            const submitBtn = document.querySelector('#formFormaPago button[type="submit"]');
+            submitBtn.innerHTML = '<i class="fas fa-save"></i> Guardar Forma de Pago';
         }
 
         function ocultarFormularioFormaPago() {
             document.getElementById('formFormaPago').style.display = 'none';
             editandoFormaPago = null;
+            
+            // Restaurar el texto del botón
+            const submitBtn = document.querySelector('#formFormaPago button[type="submit"]');
+            submitBtn.innerHTML = '<i class="fas fa-save"></i> Guardar Forma de Pago';
         }
 
         function editarFormaPago(id) {
-            const forma = formasPago.find(f => f.ID === id);
+            const forma = formasPago.find(f => f.ID == id);
             if (forma) {
                 editandoFormaPago = id;
                 document.getElementById('nombreFormaPago').value = forma.NOMBRE;
                 document.getElementById('estadoFormaPago').value = forma.ESTADO;
                 document.getElementById('formFormaPago').style.display = 'block';
+                
+                // Cambiar el texto del botón para indicar que estamos editando
+                const submitBtn = document.querySelector('#formFormaPago button[type="submit"]');
+                submitBtn.innerHTML = '<i class="fas fa-save"></i> Actualizar Forma de Pago';
             }
         }
 
@@ -858,14 +881,13 @@
                 try {
                     mostrarLoading(true);
                     
-                    const response = await fetch(`${API_URL}?metodo=eliminar`, {
-                        method: 'POST',
+                    const response = await fetch(`${API_URL}?metodo=eliminar_configuracion`, {
+                        method: 'PUT',
                         headers: {
                             'Content-Type': 'application/json'
                         },
                         body: JSON.stringify({
-                            id: id,
-                            categoria: 'FORMA_PAGO'
+                            id: id
                         })
                     });
 
@@ -900,29 +922,48 @@
             try {
                 mostrarLoading(true);
                 
-                const datos = {
-                    nombre: nombre,
-                    categoria: 'ASESOR',
-                    estado: estado
-                };
-
                 if (editandoAsesor) {
-                    datos.id = editandoAsesor;
+                    // Actualizar asesor existente
+                    const datos = {
+                        id: editandoAsesor,
+                        nombre: nombre
+                    };
+
+                    const response = await fetch(`${API_URL}?metodo=configuracion_edit`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(datos)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`Error HTTP: ${response.status}`);
+                    }
+
+                    mostrarNotificacion('Asesor actualizado correctamente', 'exito');
+                } else {
+                    // Crear nuevo asesor
+                    const datos = {
+                        nombre: nombre,
+                        categoria: 'ASESOR'
+                    };
+
+                    const response = await fetch(`${API_URL}?metodo=configuracion`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(datos)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`Error HTTP: ${response.status}`);
+                    }
+
+                    mostrarNotificacion('Asesor creado correctamente', 'exito');
                 }
-
-                const response = await fetch(`${API_URL}?metodo=${editandoAsesor ? 'actualizar' : 'crear'}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(datos)
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Error HTTP: ${response.status}`);
-                }
-
-                mostrarNotificacion(`Asesor ${editandoAsesor ? 'actualizado' : 'creado'} correctamente`, 'exito');
+                
                 ocultarFormularioAsesor();
                 cargarConfiguraciones();
                 
@@ -948,29 +989,48 @@
             try {
                 mostrarLoading(true);
                 
-                const datos = {
-                    nombre: nombre,
-                    categoria: 'FORMA_PAGO',
-                    estado: estado
-                };
-
                 if (editandoFormaPago) {
-                    datos.id = editandoFormaPago;
+                    // Actualizar forma de pago existente
+                    const datos = {
+                        id: editandoFormaPago,
+                        nombre: nombre
+                    };
+
+                    const response = await fetch(`${API_URL}?metodo=configuracion_edit`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(datos)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`Error HTTP: ${response.status}`);
+                    }
+
+                    mostrarNotificacion('Forma de pago actualizada correctamente', 'exito');
+                } else {
+                    // Crear nueva forma de pago
+                    const datos = {
+                        nombre: nombre,
+                        categoria: 'FORMA_PAGO'
+                    };
+
+                    const response = await fetch(`${API_URL}?metodo=configuracion`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(datos)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`Error HTTP: ${response.status}`);
+                    }
+
+                    mostrarNotificacion('Forma de pago creada correctamente', 'exito');
                 }
-
-                const response = await fetch(`${API_URL}?metodo=${editandoFormaPago ? 'actualizar' : 'crear'}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(datos)
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Error HTTP: ${response.status}`);
-                }
-
-                mostrarNotificacion(`Forma de pago ${editandoFormaPago ? 'actualizada' : 'creada'} correctamente`, 'exito');
+                
                 ocultarFormularioFormaPago();
                 cargarConfiguraciones();
                 
