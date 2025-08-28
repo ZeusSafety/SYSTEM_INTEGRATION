@@ -268,6 +268,22 @@
       }
     };
 
+    // API específica para obtener errores y soluciones
+    const getErrorSolucion = async (id) => {
+      try {
+        console.log('🔍 Obteniendo errores y soluciones para ID:', id);
+        const data = await apiGet({ 
+          tipo: "error_solucion", 
+          id: id 
+        });
+        console.log('📊 Datos de errores y soluciones recibidos:', data);
+        return Array.isArray(data) ? data : [];
+      } catch (error) {
+        console.error('❌ Error obteniendo errores y soluciones:', error);
+        return [];
+      }
+    };
+
     const apiPost = async (data) => {
       try {
         const response = await fetch(API_BASE_URL, {
@@ -539,7 +555,7 @@
     const adjustTableHeightToRows=(n)=>{ try{ const table=document.getElementById('tablaFact'); if(!table) return; const cont=document.getElementById('tableViewport'); const thead=table.tHead; const tbody=table.tBodies[0]; if(!thead||!tbody) return; const rows=tbody.rows; if(!rows||!rows.length){ cont.style.maxHeight=''; cont.style.overflow=''; return; } const headerH=thead.getBoundingClientRect().height||40; const rowH=rows[0].getBoundingClientRect().height||40; const visible=Math.min(n, rows.length); const maxH=Math.ceil(headerH + rowH*visible + 2); cont.style.maxHeight=maxH+'px'; cont.style.overflow='auto'; }catch(_){ } };
 
     // Detalles y modales de lectura
-    const showDetailById=(id)=>{ 
+    const showDetailById=async (id)=>{ 
       console.log('🔍 showDetailById llamado con ID:', id);
       const rec=findById(id); 
       if(!rec){ 
@@ -548,11 +564,56 @@
         return; 
       } 
       console.log('✅ Registro encontrado para detalles:', rec);
+      
+      // Obtener errores y soluciones desde la API
+      const erroresSoluciones = await getErrorSolucion(id);
+      console.log('📋 Errores y soluciones obtenidos:', erroresSoluciones);
+      
       const c=document.getElementById('detailContent'); 
       c.innerHTML=''; 
       const fields=[ ['ID',rec['ID']], ['Mes',getMonthName(rec['MONTH(FECHA_EMISION)'])], ['Encargado comprobante', rec['ENCARGADO_COMPROBANTE']], ['Fecha de emisión', fmtDateDisplay(rec['DATE(FECHA_EMISION)'])], ['N° proforma/acta', rec['NUMERO_PROFORMA']], ['N° de comprobante', rec['NUMERO_COMPROBANTE']], ['Tipo de incidencia', rec['TIPO_INCIDENCIA']||''], ['Fecha de notificación', fmtDateOnly(rec['FECHA_NOTIFICACION']||'')], ['Solución', rec['SOLUCION']||''], ['Obs. adicionales', rec['OBSERVACION_ADICIONAL_CORRECION']||''], ['Revisado por', rec['REVISADO_POR']||''], ['Estado de verificación', rec['ESTADO_INCIDENCIA']||''], ['Fecha envío de archivo', fmtDateDisplay(rec['FECHA_ENVIO_ARCHIVO']||'')], ['Fecha de corrección', fmtDateDisplay(rec['FECHA_CORRECION']||'')], ['Comprobante', rec['COMPROBANTE']||''], ['N° de comprobante', rec['NUMERO_COMPROBANTE_SOLUCION']||''], ['Estado de solución', rec['ESTADO_SOLUCION']||''], ['Culminado', rec['CULMINADO']||'NO'] ]; 
       fields.forEach(([l,v])=>{ const p=document.createElement('p'); const strong=document.createElement('strong'); strong.textContent=l+': '; p.appendChild(strong); p.appendChild(document.createTextNode(v||'')); c.appendChild(p); }); 
-      if(rec['ITEMS']&&rec['ITEMS'].length){ const ul=document.createElement('ul'); rec['ITEMS'].forEach((it,i)=>{ const li=document.createElement('li'); li.appendChild(document.createTextNode(`Detalle ${i+1}: ${it['DETALLE DE ERROR']||''}`)); li.appendChild(document.createElement('br')); li.appendChild(document.createTextNode(`Debe ser ${i+1}: ${it['DEBE SER']||''}`)); ul.appendChild(li); }); c.appendChild(ul);} 
+      
+      // Mostrar errores y soluciones desde la API
+      if(erroresSoluciones && erroresSoluciones.length > 0){
+        const ul=document.createElement('ul'); 
+        ul.style.marginTop = '1rem';
+        ul.style.paddingLeft = '1.5rem';
+        
+        erroresSoluciones.forEach((item,i)=>{
+          const li=document.createElement('li'); 
+          li.style.marginBottom = '0.5rem';
+          
+          const errorText = document.createElement('div');
+          errorText.style.fontWeight = 'bold';
+          errorText.style.color = '#d32f2f';
+          errorText.textContent = `Error ${i+1}: ${item['ERROR_'] || ''}`;
+          
+          const solucionText = document.createElement('div');
+          solucionText.style.marginTop = '0.25rem';
+          solucionText.style.color = '#1976d2';
+          solucionText.textContent = `Solución ${i+1}: ${item['SOLUCION'] || ''}`;
+          
+          li.appendChild(errorText);
+          li.appendChild(solucionText);
+          ul.appendChild(li);
+        }); 
+        c.appendChild(ul);
+      } else {
+        // Fallback a datos locales si no hay datos de la API
+        if(rec['ITEMS']&&rec['ITEMS'].length){ 
+          const ul=document.createElement('ul'); 
+          rec['ITEMS'].forEach((it,i)=>{ 
+            const li=document.createElement('li'); 
+            li.appendChild(document.createTextNode(`Detalle ${i+1}: ${it['DETALLE DE ERROR']||''}`)); 
+            li.appendChild(document.createElement('br')); 
+            li.appendChild(document.createTextNode(`Debe ser ${i+1}: ${it['DEBE SER']||''}`)); 
+            ul.appendChild(li); 
+          }); 
+          c.appendChild(ul);
+        }
+      }
+      
       document.getElementById('detailModal').style.display='flex'; 
     };
 
@@ -678,7 +739,7 @@
     runSelfTests();
 
     // ====== PDF por fila ======
-    const generatePDFById=(id)=>{ 
+    const generatePDFById=async (id)=>{ 
       console.log('🔍 generatePDFById llamado con ID:', id);
       const rec=findById(id); 
       if(!rec){ 
@@ -687,12 +748,82 @@
         return; 
       } 
       console.log('✅ Registro encontrado para PDF:', rec);
+      
+      // Obtener errores y soluciones desde la API
+      const erroresSoluciones = await getErrorSolucion(id);
+      console.log('📋 Errores y soluciones para PDF:', erroresSoluciones);
+      
       const { jsPDF }=window.jspdf; 
       const doc=new jsPDF(); 
       let y=10; 
       doc.setFontSize(12); 
+      
+      // Información básica del registro
       const lines=[`ID: ${rec['ID']}`,`Mes: ${getMonthName(rec['MONTH(FECHA_EMISION)'])}`,`Encargado: ${rec['ENCARGADO_COMPROBANTE']}`,`Fecha emisión: ${fmtDateDisplay(rec['DATE(FECHA_EMISION)'])}`,`N° proforma/acta: ${rec['NUMERO_PROFORMA']}`,`N° comprobante: ${rec['NUMERO_COMPROBANTE']}`,`Tipo: ${rec['TIPO_INCIDENCIA']||''}`,`Fecha notificación: ${fmtDateDisplay(rec['FECHA_NOTIFICACION'])}`,`Solución: ${(rec['SOLUCION']||'')}`,`Obs. adicionales: ${(rec['OBSERVACION_ADICIONAL_CORRECION']||'').toString().replace(/\n/g,' ')}`,`Revisado por: ${rec['REVISADO_POR']||''}`,`Estado verificación: ${rec['ESTADO_INCIDENCIA']||''}`,`Fecha envío archivo: ${fmtDateDisplay(rec['FECHA_ENVIO_ARCHIVO']||'')}`,`Fecha corrección: ${fmtDateDisplay(rec['FECHA_CORRECION']||'')}`,`Comprobante: ${rec['COMPROBANTE']||''}`,`N° Comprobante: ${rec['NUMERO_COMPROBANTE_SOLUCION']||''}`,`Estado solución: ${rec['ESTADO_SOLUCION']||''}`,`Culminado: ${rec['CULMINADO']||'NO'}`,`Fecha concluyente: ${fmtDateDisplay(rec['FECHA_CONCLUYENTE']||'')}` ]; 
-      lines.forEach(line=>{ doc.text(line,10,y); y+=7; if(y>280){ doc.addPage(); y=10; } }); 
+      
+      // Agregar líneas básicas
+      lines.forEach(line=>{ 
+        doc.text(line,10,y); 
+        y+=7; 
+        if(y>280){ 
+          doc.addPage(); 
+          y=10; 
+        } 
+      }); 
+      
+      // Agregar errores y soluciones desde la API
+      if(erroresSoluciones && erroresSoluciones.length > 0){
+        y+=5; // Espacio adicional
+        doc.setFontSize(14);
+        doc.setFont(undefined, 'bold');
+        doc.text('DETALLES DE ERRORES Y SOLUCIONES:', 10, y);
+        y+=8;
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'normal');
+        
+        erroresSoluciones.forEach((item, i) => {
+          const errorText = `Error ${i+1}: ${item['ERROR_'] || ''}`;
+          const solucionText = `Solución ${i+1}: ${item['SOLUCION'] || ''}`;
+          
+          // Verificar si necesitamos nueva página
+          if(y > 270){
+            doc.addPage();
+            y=10;
+          }
+          
+          doc.text(errorText, 15, y);
+          y+=6;
+          doc.text(solucionText, 15, y);
+          y+=8; // Espacio adicional entre items
+        });
+      } else {
+        // Fallback a datos locales si no hay datos de la API
+        if(rec['ITEMS']&&rec['ITEMS'].length){
+          y+=5;
+          doc.setFontSize(14);
+          doc.setFont(undefined, 'bold');
+          doc.text('DETALLES DE ERRORES:', 10, y);
+          y+=8;
+          doc.setFontSize(10);
+          doc.setFont(undefined, 'normal');
+          
+          rec['ITEMS'].forEach((it,i)=>{
+            const errorText = `Detalle ${i+1}: ${it['DETALLE DE ERROR']||''}`;
+            const debeSerText = `Debe ser ${i+1}: ${it['DEBE SER']||''}`;
+            
+            if(y > 270){
+              doc.addPage();
+              y=10;
+            }
+            
+            doc.text(errorText, 15, y);
+            y+=6;
+            doc.text(debeSerText, 15, y);
+            y+=8;
+          });
+        }
+      }
+      
       doc.save(`${rec['ID']||'incidencia'}.pdf`); 
     };
   </script>
