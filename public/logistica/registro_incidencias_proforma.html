@@ -893,14 +893,22 @@
   <div id="archivoModal" class="modal" role="dialog" aria-modal="true">
     <div class="modal-content">
       <button class="modal-close" id="closeArchivo" aria-label="Cerrar">&times;</button>
-             <h3 style="margin-top:0">Actualizar archivo y comentario de solución</h3>
+      <h3 style="margin-top:0">Actualizar archivo y comentario de solución</h3>
       <p class="muted">Fecha y hora de envío: <strong>se registrará automáticamente al guardar</strong>.</p>
       
-             <div class="form-group">
-         <label for="editArchivoTexto">Comentario de solución (opcional)</label>
-         <textarea id="editArchivoTexto" placeholder="Ingrese comentario o nota sobre la solución" rows="3"></textarea>
-       </div>
+      <!-- Sección de comentario -->
+      <div class="form-group">
+        <label for="editArchivoTexto">Comentario de solución (opcional)</label>
+        <textarea id="editArchivoTexto" placeholder="Ingrese comentario o nota sobre la solución" rows="3"></textarea>
+        <div style="margin-top: 10px;">
+          <button id="saveComentario" class="btn btn-primary">
+            <span id="saveComentarioText">Guardar comentario</span>
+            <span id="saveComentarioLoading" style="display:none;">⏳ Guardando...</span>
+          </button>
+        </div>
+      </div>
       
+      <!-- Sección de PDF -->
       <div class="form-group">
         <label for="editArchivoPDF">Cargar PDF (opcional)</label>
         <input type="file" id="editArchivoPDF" accept="application/pdf" />
@@ -911,15 +919,14 @@
         <div id="fileInfo" style="display:none; background:#f8f9fa; padding:8px; border-radius:4px; margin-top:8px;">
           <small>📄 Archivo seleccionado: <span id="fileName"></span></small>
         </div>
-      </div>
-      
-      <div class="cell-actions">
-        <button id="saveArchivo" class="btn btn-primary">
-          <span id="saveText">Guardar</span>
-          <span id="saveLoading" style="display:none;">⏳ Enviando...</span>
-        </button>
-        <button id="clearArchivo" class="btn btn-danger">Quitar archivo</button>
-        <button id="testAPI" class="btn btn-secondary" style="margin-left: 10px;">Probar API</button>
+        <div style="margin-top: 10px;">
+          <button id="savePDF" class="btn btn-primary">
+            <span id="savePDFText">Guardar PDF</span>
+            <span id="savePDFLoading" style="display:none;">⏳ Enviando...</span>
+          </button>
+          <button id="openPDF" class="btn btn-secondary" style="display:none;">Abrir PDF</button>
+          <button id="clearArchivo" class="btn btn-danger">Quitar archivo</button>
+        </div>
       </div>
     </div>
   </div>
@@ -1072,15 +1079,21 @@
       }
     }
 
-    async function updateRecord(id, recordData) {
-      try {
-        console.log('Actualizando registro ID:', id, 'con datos:', recordData);
-        
-        const response = await fetch(`${API_BASE_URL}/${id}`, {
-          method: 'PUT',
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(recordData)
-        });
+         async function updateRecord(id, recordData) {
+       try {
+         console.log('Actualizando registro ID:', id, 'con datos:', recordData);
+         
+         // Incluir el ID en el cuerpo de la petición según el formato esperado por la API
+         const dataWithId = {
+           ...recordData,
+           id: id
+         };
+         
+         const response = await fetch(`${API_BASE_URL}`, {
+           method: 'PUT',
+           headers: { "Content-Type": "application/json" },
+           body: JSON.stringify(dataWithId)
+         });
 
         console.log('Respuesta de actualización - Status:', response.status);
         console.log('Respuesta de actualización - Headers:', response.headers);
@@ -1127,12 +1140,13 @@
       }
     }
 
-    async function deleteRecord(id) {
-      try {
-        const response = await fetch(`${API_BASE_URL}/${id}`, {
-          method: 'DELETE',
-          headers: { "Content-Type": "application/json" }
-        });
+         async function deleteRecord(id) {
+       try {
+         const response = await fetch(`${API_BASE_URL}`, {
+           method: 'DELETE',
+           headers: { "Content-Type": "application/json" },
+           body: JSON.stringify({ id: id })
+         });
 
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
@@ -1486,6 +1500,17 @@
        // Limpiar el campo de archivo PDF
        document.getElementById('editArchivoPDF').value = ''; 
        document.getElementById('fileInfo').style.display = 'none';
+       
+       // Mostrar/ocultar botón "Abrir PDF" según si hay enlace disponible
+       const archivoUrl = String(rec.ARCHIVO_SOLUCION_PDF || '').trim();
+       const openPDFBtn = document.getElementById('openPDF');
+       if (archivoUrl && /^https?:\/\//i.test(archivoUrl)) {
+         openPDFBtn.style.display = 'inline-block';
+         openPDFBtn.onclick = () => window.open(archivoUrl, '_blank');
+       } else {
+         openPDFBtn.style.display = 'none';
+       }
+       
        document.getElementById('archivoModal').style.display = 'flex'; 
      };
     document.getElementById('closeArchivo').onclick = () => { document.getElementById('archivoModal').style.display = 'none'; };
@@ -1504,7 +1529,8 @@
          alert('❌ Error al remover el archivo: ' + error.message);
        } 
      };
-    document.getElementById('saveArchivo').onclick = async () => { 
+    // Función para guardar solo el comentario
+    document.getElementById('saveComentario').onclick = async () => { 
       if (!CURRENT_EDIT_ID) return; 
       const rec = findById(CURRENT_EDIT_ID); 
       if (!rec) { 
@@ -1513,152 +1539,194 @@
       } 
       
       const txt = String(document.getElementById('editArchivoTexto').value || '').trim(); 
-      const fileInput = document.getElementById('editArchivoPDF'); 
-      const file = fileInput.files && fileInput.files[0] ? fileInput.files[0] : null; 
       
       // Mostrar indicador de carga
-      const saveBtn = document.getElementById('saveArchivo');
-      const saveText = document.getElementById('saveText');
-      const saveLoading = document.getElementById('saveLoading');
+      const saveBtn = document.getElementById('saveComentario');
+      const saveText = document.getElementById('saveComentarioText');
+      const saveLoading = document.getElementById('saveComentarioLoading');
       
       saveBtn.disabled = true;
       saveText.style.display = 'none';
       saveLoading.style.display = 'inline';
       
       try { 
-        let archivoUrl = txt;
+        // Usar el método específico para guardar comentario
+        const data = {
+          id: CURRENT_EDIT_ID,
+          texto_solucion_pdf: txt
+        };
+        
+        console.log('Guardando comentario con método específico:', data);
+        
+        const response = await fetch(`${API_BASE_URL}?metodo=solucion_texto`, {
+          method: 'PUT',
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data)
+        });
+        
+        console.log('Respuesta de guardar comentario - Status:', response.status);
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Error response:', errorText);
+          throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+        }
+        
+        const result = await response.text();
+        console.log('Resultado de guardar comentario:', result);
+        
+        await fetchRecords(); // Recargar datos desde la API
+        renderList(); 
+        
+        alert('✅ Comentario guardado exitosamente.');
+        
+      } catch (error) { 
+        console.error('Error saving comment:', error); 
+        alert('❌ Error al guardar el comentario: ' + error.message);
+      } finally {
+        // Restaurar botón
+        saveBtn.disabled = false;
+        saveText.style.display = 'inline';
+        saveLoading.style.display = 'none';
+      }
+    };
+
+    // Función para guardar solo el PDF
+    document.getElementById('savePDF').onclick = async () => { 
+      if (!CURRENT_EDIT_ID) return; 
+      const rec = findById(CURRENT_EDIT_ID); 
+      if (!rec) { 
+        alert('No se encontró el registro.'); 
+        return; 
+      } 
+      
+      const fileInput = document.getElementById('editArchivoPDF'); 
+      const file = fileInput.files && fileInput.files[0] ? fileInput.files[0] : null; 
+      
+      if (!file) {
+        alert('Por favor seleccione un archivo PDF para guardar.');
+        return;
+      }
+      
+      // Mostrar indicador de carga
+      const saveBtn = document.getElementById('savePDF');
+      const saveText = document.getElementById('savePDFText');
+      const saveLoading = document.getElementById('savePDFLoading');
+      
+      saveBtn.disabled = true;
+      saveText.style.display = 'none';
+      saveLoading.style.display = 'inline';
+      
+      try { 
+        let archivoUrl = '';
         let pdfEnviado = false;
         let pdfError = null;
         
-        // Si hay un archivo PDF seleccionado, enviarlo a la API
-        if (file) {
-          console.log('Enviando archivo PDF a la API...');
+        console.log('Enviando archivo PDF a la API...');
+        
+        // Crear FormData para enviar el archivo
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        // URL de la API con el ID como parámetro
+        const apiUrl = `https://pdfdrive-2946605267.us-central1.run.app?id=${CURRENT_EDIT_ID}`;
+        
+        try {
+          const response = await fetch(apiUrl, {
+            method: 'POST',
+            body: formData
+          });
           
-          // Crear FormData para enviar el archivo
-          const formData = new FormData();
-          formData.append('file', file);
+          console.log('Respuesta de la API PDF - Status:', response.status);
+          console.log('Respuesta de la API PDF - Headers:', response.headers);
           
-          // URL de la API con el ID como parámetro
-          const apiUrl = `https://pdfdrive-2946605267.us-central1.run.app?id=${CURRENT_EDIT_ID}`;
-          
-          try {
-            const response = await fetch(apiUrl, {
-              method: 'POST',
-              body: formData
-            });
+          // Verificar si la respuesta es JSON válido
+          const contentType = response.headers.get('content-type');
+          if (contentType && contentType.includes('application/json')) {
+            const result = await response.json();
+            console.log('Respuesta de la API PDF:', result);
             
-            console.log('Respuesta de la API PDF - Status:', response.status);
-            console.log('Respuesta de la API PDF - Headers:', response.headers);
-            
-            // Verificar si la respuesta es JSON válido
-            const contentType = response.headers.get('content-type');
-            if (contentType && contentType.includes('application/json')) {
-              const result = await response.json();
-              console.log('Respuesta de la API PDF:', result);
-              
-              if (response.ok) {
-                // Si la API devuelve una URL, usarla
-                if (result.url || result.link) {
-                  archivoUrl = result.url || result.link;
-                  pdfEnviado = true;
-                } else if (result.status === 'ok' || result.status === 'success') {
-                  // Si el status es 'ok' o 'success', considerar exitoso
-                  archivoUrl = `Archivo PDF enviado exitosamente - ID: ${CURRENT_EDIT_ID}`;
-                  pdfEnviado = true;
-                } else {
-                  // Si hay un mensaje de error en la respuesta JSON
-                  throw new Error(`Error en la API: ${result.message || JSON.stringify(result)}`);
-                }
-              } else {
-                // Si el status HTTP no es 200, pero tenemos respuesta JSON
-                throw new Error(`Error HTTP: ${response.status} - ${result.message || JSON.stringify(result)}`);
-              }
-            } else {
-              // Si no es JSON, intentar leer como texto para debug
-              const textResponse = await response.text();
-              console.log('Respuesta no-JSON de la API:', textResponse);
-              
-              if (response.ok) {
-                // Si el status es 200, considerar que fue exitoso
+            if (response.ok) {
+              // Si la API devuelve una URL, usarla
+              if (result.url || result.link) {
+                archivoUrl = result.url || result.link;
+                pdfEnviado = true;
+              } else if (result.status === 'ok' || result.status === 'success') {
+                // Si el status es 'ok' o 'success', considerar exitoso
                 archivoUrl = `Archivo PDF enviado exitosamente - ID: ${CURRENT_EDIT_ID}`;
                 pdfEnviado = true;
               } else {
-                throw new Error(`Error HTTP: ${response.status} - Respuesta: ${textResponse}`);
+                // Si hay un mensaje de error en la respuesta JSON
+                throw new Error(`Error en la API: ${result.message || JSON.stringify(result)}`);
               }
+            } else {
+              // Si el status HTTP no es 200, pero tenemos respuesta JSON
+              throw new Error(`Error HTTP: ${response.status} - ${result.message || JSON.stringify(result)}`);
             }
+          } else {
+            // Si no es JSON, intentar leer como texto para debug
+            const textResponse = await response.text();
+            console.log('Respuesta no-JSON de la API:', textResponse);
             
-          } catch (apiError) {
-            console.error('Error al enviar archivo a la API:', apiError);
-            pdfError = apiError.message;
-            // Continuar con el proceso, pero marcar que hubo error
+            if (response.ok) {
+              // Si el status es 200, considerar que fue exitoso
+              archivoUrl = `Archivo PDF enviado exitosamente - ID: ${CURRENT_EDIT_ID}`;
+              pdfEnviado = true;
+            } else {
+              throw new Error(`Error HTTP: ${response.status} - Respuesta: ${textResponse}`);
+            }
+          }
+          
+        } catch (apiError) {
+          console.error('Error al enviar archivo a la API:', apiError);
+          pdfError = apiError.message;
+          // Continuar con el proceso, pero marcar que hubo error
+        }
+        
+        // Preparar datos para actualizar el registro
+        const updateData = { 
+          FECHA_ENVIO_ARCHIVO: nowLocalISO() 
+        }; 
+        
+        // Solo agregar archivo si se envió exitosamente
+        if (pdfEnviado) {
+          updateData.ARCHIVO_SOLUCION_PDF = archivoUrl;
+        }
+        
+        console.log('Datos a actualizar:', updateData);
+        
+        try {
+          console.log('Actualizando registro con datos:', updateData);
+          await updateRecord(CURRENT_EDIT_ID, updateData); 
+          
+          await fetchRecords(); // Recargar datos desde la API
+          renderList(); 
+          
+          console.log('Estado final - PDF enviado:', pdfEnviado, 'Error:', pdfError);
+          
+          // Mostrar mensaje apropiado
+          if (pdfEnviado) {
+            alert('✅ Archivo PDF enviado exitosamente a Google Drive y guardado en el registro.');
+            // Limpiar el campo de archivo
+            document.getElementById('editArchivoPDF').value = '';
+            document.getElementById('fileInfo').style.display = 'none';
+          } else if (pdfError) {
+            alert(`⚠️ El archivo PDF no se pudo enviar a Google Drive: ${pdfError}`);
+          } else {
+            alert('✅ Archivo PDF procesado y guardado en el registro.');
+          }
+        } catch (updateError) {
+          console.error('Error al actualizar registro:', updateError);
+          
+          // Solo mostrar error si realmente falló la actualización
+          if (!updateError.message.includes('Headers')) {
+            alert('❌ Error al guardar la información: ' + updateError.message);
           }
         }
         
-                 // Siempre intentar actualizar el registro, incluso si falló el envío del PDF
-         const updateData = { 
-           ARCHIVO_SOLUCION_PDF: archivoUrl, 
-           FECHA_ENVIO_ARCHIVO: nowLocalISO() 
-         }; 
-         
-         console.log('Datos a actualizar:', updateData);
-         
-         try {
-           console.log('Actualizando registro con datos:', updateData);
-           await updateRecord(CURRENT_EDIT_ID, updateData); 
-           
-                                   // Si hay texto, guardarlo usando la API con método solucion_texto
-             if (txt && txt.trim()) {
-               try {
-                 console.log('Guardando texto de solución...');
-                 const textoResponse = await fetch(`${API_BASE_URL}?metodo=solucion_texto`, {
-                   method: 'PUT',
-                   headers: { "Content-Type": "application/json" },
-                   body: JSON.stringify({
-                     texto_solucion_pdf: txt.trim(),
-                     id: CURRENT_EDIT_ID
-                   })
-                 });
-                 
-                 if (textoResponse.ok) {
-                   console.log('Texto de solución guardado exitosamente');
-                 } else {
-                   console.error('Error al guardar texto de solución:', await textoResponse.text());
-                 }
-               } catch (textoError) {
-                 console.error('Error al guardar texto de solución:', textoError);
-                 // No mostrar error al usuario si falla el guardado del texto
-               }
-             } 
-           
-           // Cerrar modal y recargar datos
-           document.getElementById('archivoModal').style.display = 'none'; 
-           await fetchRecords(); // Recargar datos desde la API
-           renderList(); 
-           
-           console.log('Estado final - PDF enviado:', pdfEnviado, 'Error:', pdfError);
-           
-           // Mostrar mensaje apropiado
-           if (file && pdfEnviado) {
-             alert('✅ Archivo PDF enviado exitosamente a Google Drive y guardado en el registro.');
-           } else if (file && !pdfEnviado && pdfError) {
-             alert(`⚠️ El archivo PDF no se pudo enviar a Google Drive, pero se guardó la información del registro.`);
-           } else if (file && !pdfEnviado) {
-             alert('✅ Archivo PDF procesado y guardado en el registro.');
-           } else {
-             alert('✅ Información guardada exitosamente.');
-           }
-         } catch (updateError) {
-           console.error('Error al actualizar registro:', updateError);
-           
-           // Solo mostrar error si realmente falló la actualización
-           if (!updateError.message.includes('Headers')) {
-             alert('❌ Error al guardar la información: ' + updateError.message);
-           }
-         }
-        
       } catch (error) { 
-        console.error('Error saving file:', error); 
-        alert('❌ Error al guardar la información: ' + error.message);
+        console.error('Error saving PDF:', error); 
+        alert('❌ Error al guardar el PDF: ' + error.message);
       } finally {
         // Restaurar botón
         saveBtn.disabled = false;
@@ -1987,122 +2055,7 @@
       }
     });
 
-    // Botón de prueba de API
-    document.getElementById('testAPI').addEventListener('click', async () => {
-      if (!CURRENT_EDIT_ID) {
-        alert('No hay un registro seleccionado para probar.');
-        return;
-      }
 
-      const testBtn = document.getElementById('testAPI');
-      const originalText = testBtn.textContent;
-      testBtn.disabled = true;
-      testBtn.textContent = 'Probando...';
-
-      try {
-        console.log('Probando API de PDF...');
-        
-        // Crear un archivo de prueba simple
-        const testContent = 'Este es un archivo de prueba para verificar la API de PDF.';
-        const testBlob = new Blob([testContent], { type: 'text/plain' });
-        const testFile = new File([testBlob], 'test.txt', { type: 'text/plain' });
-
-        // Crear FormData
-        const formData = new FormData();
-        formData.append('file', testFile);
-
-        // URL de la API con el ID como parámetro
-        const apiUrl = `https://pdfdrive-2946605267.us-central1.run.app?id=${CURRENT_EDIT_ID}`;
-
-        console.log('Enviando prueba a:', apiUrl);
-
-        const response = await fetch(apiUrl, {
-          method: 'POST',
-          body: formData
-        });
-
-        console.log('Respuesta de prueba - Status:', response.status);
-        console.log('Respuesta de prueba - Headers:', response.headers);
-
-        const contentType = response.headers.get('content-type');
-        let result;
-
-        if (contentType && contentType.includes('application/json')) {
-          result = await response.json();
-        } else {
-          result = await response.text();
-        }
-
-        console.log('Resultado de prueba:', result);
-
-        // Análisis detallado de la respuesta
-        let diagnosticMessage = `🔍 Diagnóstico de la API:\n\n`;
-        diagnosticMessage += `📊 Status: ${response.status}\n`;
-        diagnosticMessage += `📋 Content-Type: ${contentType || 'No especificado'}\n`;
-        diagnosticMessage += `🔗 URL: ${apiUrl}\n\n`;
-        
-        if (response.ok) {
-          diagnosticMessage += `✅ API funcionando correctamente!\n\n`;
-          
-          // Analizar la respuesta del Apps Script
-          if (typeof result === 'object' && result.status) {
-            if (result.status === 'ok' || result.status === 'success') {
-              diagnosticMessage += `🎉 Apps Script procesó el archivo exitosamente!\n`;
-              if (result.url) {
-                diagnosticMessage += `📁 Archivo guardado en: ${result.url}\n`;
-              }
-              if (result.fileName) {
-                diagnosticMessage += `📄 Nombre del archivo: ${result.fileName}\n`;
-              }
-              if (result.message) {
-                diagnosticMessage += `💬 Mensaje: ${result.message}\n`;
-              }
-            } else {
-              diagnosticMessage += `⚠️ Apps Script reportó estado: ${result.status}\n`;
-              if (result.message) {
-                diagnosticMessage += `💬 Mensaje: ${result.message}\n`;
-              }
-            }
-          } else {
-            diagnosticMessage += `📄 Respuesta completa:\n${JSON.stringify(result, null, 2)}`;
-          }
-        } else {
-          diagnosticMessage += `❌ Error en la API\n\n`;
-          diagnosticMessage += `📄 Respuesta:\n${result}\n\n`;
-          
-          // Sugerencias basadas en el error
-          if (response.status === 500) {
-            diagnosticMessage += `💡 Sugerencia: Error interno del servidor. Verifique la configuración de la API.`;
-          } else if (response.status === 404) {
-            diagnosticMessage += `💡 Sugerencia: Endpoint no encontrado. Verifique la URL de la API.`;
-          } else if (response.status === 400) {
-            diagnosticMessage += `💡 Sugerencia: Solicitud incorrecta. Verifique los parámetros enviados.`;
-          }
-        }
-
-        alert(diagnosticMessage);
-
-      } catch (error) {
-        console.error('Error en prueba de API:', error);
-        
-        let errorMessage = `❌ Error al probar la API:\n\n`;
-        errorMessage += `🔍 Tipo de error: ${error.name}\n`;
-        errorMessage += `📄 Mensaje: ${error.message}\n\n`;
-        
-        if (error.name === 'TypeError' && error.message.includes('fetch')) {
-          errorMessage += `💡 Sugerencia: Problema de conectividad. Verifique su conexión a internet.`;
-        } else if (error.message.includes('CORS')) {
-          errorMessage += `💡 Sugerencia: Error de CORS. La API no permite solicitudes desde este dominio.`;
-        } else if (error.message.includes('Headers')) {
-          errorMessage += `💡 Sugerencia: Error de configuración en el servidor. Contacte al administrador.`;
-        }
-        
-        alert(errorMessage);
-      } finally {
-        testBtn.disabled = false;
-        testBtn.textContent = originalText;
-      }
-    });
 
     // Inicial
     addItemRow();
