@@ -676,6 +676,11 @@
         let productData = {};
         let productosEnTabla = [];
         let configData = {};
+        
+        // Variables para búsqueda de clientes
+        let clienteSearchTimeout = null;
+        let clienteSearchCache = new Map(); // Cache para evitar búsquedas repetidas
+        let selectedClienteId = null; // ID del cliente seleccionado
 
         // Inicialización al cargar la página
         document.addEventListener('DOMContentLoaded', function() {
@@ -843,20 +848,6 @@
 
         // Función para cargar datos simulados
         function cargarDatosSimulados() {
-            // Clientes simulados
-            allClientes = [
-                "Empresa ABC S.A.C.",
-                "Constructora XYZ Ltda.",
-                "Minería del Sur S.A.",
-                "Industrias del Norte",
-                "Comercial Los Andes",
-                "Servicios Integrales S.A.",
-                "Construcciones Modernas",
-                "Minería Oro Verde",
-                "Industrias Metalúrgicas",
-                "Comercial El Sol"
-            ];
-
             // Cargar productos desde API
             cargarProductosDesdeAPI();
         }
@@ -931,6 +922,12 @@
         function setupEventListeners() {
             // Event listeners para sugerencias de clientes
             clientSearchInput.addEventListener('focus', function() {
+                if (this.value.trim()) {
+                    buscarClientes(this.value);
+                }
+            });
+
+            clientSearchInput.addEventListener('input', function() {
                 buscarClientes(this.value);
             });
 
@@ -956,32 +953,130 @@
             });
         }
 
-        // Función para buscar clientes
+        // Función para buscar clientes con debounce
         function buscarClientes(textoBusqueda) {
+            // Limpiar timeout anterior
+            if (clienteSearchTimeout) {
+                clearTimeout(clienteSearchTimeout);
+            }
+
+            // Limpiar sugerencias si no hay texto
+            if (!textoBusqueda || textoBusqueda.trim().length === 0) {
+                suggestionsClientList.innerHTML = '';
+                suggestionsClientList.classList.remove('show');
+                selectedClienteId = null;
+                return;
+            }
+
+            // Verificar cache primero
+            const cacheKey = textoBusqueda.toLowerCase().trim();
+            if (clienteSearchCache.has(cacheKey)) {
+                mostrarSugerenciasClientes(clienteSearchCache.get(cacheKey));
+                return;
+            }
+
+            // Mostrar indicador de carga
+            suggestionsClientList.innerHTML = `
+                <li style="color: var(--gris-medio); font-style: italic;">
+                    <i class="fas fa-spinner fa-spin"></i> Buscando clientes...
+                </li>
+            `;
+            suggestionsClientList.classList.add('show');
+
+            // Debounce: esperar 300ms antes de hacer la petición
+            clienteSearchTimeout = setTimeout(() => {
+                buscarClientesAPI(textoBusqueda);
+            }, 300);
+        }
+
+        // Función para buscar clientes en la API
+        async function buscarClientesAPI(textoBusqueda) {
+            try {
+                const api = "https://productoscrud-2946605267.us-central1.run.app";
+                const metodo = "cliente_busqueda";
+                const cliente = textoBusqueda.trim();
+
+                const response = await fetch(`${api}?metodo=${metodo}&cliente=${encodeURIComponent(cliente)}`);
+                
+                if (response.status === 200) {
+                    const data = await response.json();
+                    console.log('Clientes encontrados:', data);
+                    
+                    // Guardar en cache
+                    const cacheKey = textoBusqueda.toLowerCase().trim();
+                    clienteSearchCache.set(cacheKey, data);
+                    
+                    // Mostrar resultados
+                    mostrarSugerenciasClientes(data);
+                } else {
+                    console.error('Error en la búsqueda de clientes:', response.status);
+                    mostrarErrorBusqueda();
+                }
+            } catch (error) {
+                console.error('Error en la búsqueda de clientes:', error);
+                mostrarErrorBusqueda();
+            }
+        }
+
+        // Función para mostrar sugerencias de clientes
+        function mostrarSugerenciasClientes(clientes) {
             suggestionsClientList.innerHTML = '';
 
-            if (textoBusqueda.length > 0) {
-                const sugerenciasFiltradas = allClientes.filter(cliente =>
-                    cliente.toLowerCase().includes(textoBusqueda.toLowerCase())
-                );
-
-                if (sugerenciasFiltradas.length > 0) {
-                    sugerenciasFiltradas.forEach(cliente => {
-                        const listItem = document.createElement('li');
-                        listItem.textContent = cliente;
-                        listItem.addEventListener('click', function() {
-                            clientSearchInput.value = cliente;
-                            suggestionsClientList.classList.remove('show');
-                        });
-                        suggestionsClientList.appendChild(listItem);
-                    });
-                    suggestionsClientList.classList.add('show');
-                } else {
-                    suggestionsClientList.classList.remove('show');
-                }
-            } else {
-                suggestionsClientList.classList.remove('show');
+            if (!clientes || clientes.length === 0) {
+                suggestionsClientList.innerHTML = `
+                    <li style="color: var(--gris-medio); font-style: italic;">
+                        <i class="fas fa-search"></i> No se encontraron clientes
+                    </li>
+                `;
+                suggestionsClientList.classList.add('show');
+                return;
             }
+
+            // Limitar a máximo 10 resultados
+            const clientesLimitados = clientes.slice(0, 10);
+
+            clientesLimitados.forEach(cliente => {
+                const listItem = document.createElement('li');
+                
+                // Crear contenido con nombre del cliente
+                const nombreSpan = document.createElement('span');
+                nombreSpan.textContent = cliente.CLIENTE;
+                nombreSpan.style.fontWeight = '600';
+                
+                const idSpan = document.createElement('span');
+                idSpan.textContent = ` (ID: ${cliente.ID_CLIENTE})`;
+                idSpan.style.color = 'var(--gris-medio)';
+                idSpan.style.fontSize = '0.9em';
+                
+                listItem.appendChild(nombreSpan);
+                listItem.appendChild(idSpan);
+                
+                // Event listener para seleccionar cliente
+                listItem.addEventListener('click', function() {
+                    clientSearchInput.value = cliente.CLIENTE;
+                    selectedClienteId = cliente.ID_CLIENTE;
+                    suggestionsClientList.classList.remove('show');
+                    
+                    console.log('Cliente seleccionado:', {
+                        id: cliente.ID_CLIENTE,
+                        nombre: cliente.CLIENTE
+                    });
+                });
+                
+                suggestionsClientList.appendChild(listItem);
+            });
+
+            suggestionsClientList.classList.add('show');
+        }
+
+        // Función para mostrar error en la búsqueda
+        function mostrarErrorBusqueda() {
+            suggestionsClientList.innerHTML = `
+                <li style="color: var(--rojo-error); font-style: italic;">
+                    <i class="fas fa-exclamation-triangle"></i> Error al buscar clientes
+                </li>
+            `;
+            suggestionsClientList.classList.add('show');
         }
 
         // Función para buscar productos
@@ -1168,6 +1263,7 @@
                 ASESOR: document.getElementById('ASESOR').value,
                 CLASIFICACION: document.getElementById('CLASIFICACION').value,
                 CLIENTE: document.getElementById('CLIENTE').value,
+                ID_CLIENTE: selectedClienteId, // ID del cliente seleccionado
                 TIPO_COMPR: document.getElementById('TIPO_COMPR').value,
                 N_COMPR: document.getElementById('N_COMPR').value,
                 SALIDA_DE_PEDIDO: document.getElementById('SALIDA_DE_PEDIDO').value,
@@ -1190,6 +1286,10 @@
             document.getElementById('ventaForm').reset();
             productosEnTabla = [];
             actualizarTablaProductos();
+            
+            // Limpiar cache y variables de cliente
+            clienteSearchCache.clear();
+            selectedClienteId = null;
             
             // Restablecer valores por defecto
             document.getElementById('FECHA').valueAsDate = new Date();
