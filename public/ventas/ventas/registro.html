@@ -1,0 +1,1224 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registro de Ventas</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary-color: #F7C800;
+      --secondary-color: #10223f;
+      --accent-color: #333333;
+      --background-color: #0a1525;
+      --card-bg-color: rgba(25, 45, 75, 0.7);
+      --hover-color: #E6B800;
+      --box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      --transition: all 0.3s ease;
+      --text-color: #FFFFFF;
+      --glass-border: 1px solid rgba(255, 255, 255, 0.1);
+      --glass-bg: rgba(255, 255, 255, 0.05);
+      --glass-blur: 10px;
+      --neuro-shadow: 12px 12px 24px rgba(0, 0, 0, 0.4),
+        -12px -12px 24px rgba(255, 255, 255, 0.05);
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: var(--background-color);
+      color: var(--text-color);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background-image:
+        radial-gradient(circle at 10% 20%, rgba(247, 200, 0, 0.03) 0%, transparent 30%),
+        radial-gradient(circle at 90% 80%, rgba(255, 255, 255, 0.02) 0%, transparent 30%),
+        linear-gradient(135deg, #0a1525 0%, #10223f 100%);
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="none" stroke="rgba(16,34,63,0.03)" stroke-width="0.5"/></svg>');
+      opacity: 0.5;
+      z-index: 0;
+    }
+
+    .container {
+      max-width: 1100px;
+      width: 95%;
+      margin: 15px auto;
+      padding: 25px 40px;
+      background: var(--card-bg-color);
+      backdrop-filter: blur(var(--glass-blur));
+      -webkit-backdrop-filter: blur(var(--glass-blur));
+      border-radius: 25px;
+      box-shadow: var(--neuro-shadow);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      border: var(--glass-border);
+      z-index: 1;
+    }
+
+    .container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 150px;
+      height: 150px;
+      background: linear-gradient(135deg, var(--primary-color) 0%, transparent 100%);
+      opacity: 0.05;
+      border-radius: 0 0 0 150px;
+      z-index: 0;
+    }
+
+    h1 {
+      color: var(--text-color);
+      margin-bottom: 15px;
+      font-weight: 600;
+      position: relative;
+      padding-bottom: 10px;
+      font-size: 2rem;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    h1::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80px;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
+    }
+
+    h2 {
+      color: var(--primary-color);
+      border-bottom: 2px solid var(--primary-color);
+      padding-bottom: 10px;
+      margin-top: 30px;
+      margin-bottom: 20px;
+      font-size: 1.5rem;
+      display: flex;
+      align-items: center;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+    }
+
+    h2 i {
+      margin-right: 10px;
+      font-size: 1.2em;
+    }
+
+    .btn-volver {
+      background-color: var(--secondary-color);
+      color: var(--text-color);
+      border: none;
+      padding: 12px 20px;
+      border-radius: 12px;
+      cursor: pointer;
+      margin-bottom: 20px;
+      transition: var(--transition);
+      box-shadow: var(--neuro-shadow);
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: fit-content;
+    }
+
+    .btn-volver:hover {
+      background-color: var(--accent-color);
+      transform: translateY(-2px);
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      margin-bottom: 25px;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    .full-width {
+      grid-column: 1 / -1;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: var(--text-color);
+      font-size: 0.95rem;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      padding: 12px;
+      border: var(--glass-border);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-color);
+      font-family: inherit;
+      transition: var(--transition);
+      box-sizing: border-box;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 2px rgba(247, 200, 0, 0.2);
+    }
+
+    /* Estilos para las opciones de los select */
+    select option {
+      background-color: var(--secondary-color);
+      color: var(--text-color);
+      padding: 10px;
+    }
+
+    textarea {
+      height: 100px;
+      resize: vertical;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 25px;
+      background: var(--glass-bg);
+      border-radius: 15px;
+      overflow: hidden;
+      border: var(--glass-border);
+      backdrop-filter: blur(var(--glass-blur));
+      -webkit-backdrop-filter: blur(var(--glass-blur));
+    }
+
+    th,
+    td {
+      padding: 14px 12px;
+      text-align: left;
+      border-bottom: var(--glass-border);
+    }
+
+    th {
+      background: rgba(247, 200, 0, 0.1);
+      color: var(--primary-color);
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 0.85rem;
+      letter-spacing: 0.5px;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    section {
+      background: var(--glass-bg);
+      padding: 20px;
+      border-radius: 15px;
+      margin-bottom: 20px;
+      border: var(--glass-border);
+      backdrop-filter: blur(var(--glass-blur));
+      -webkit-backdrop-filter: blur(var(--glass-blur));
+    }
+
+    #agregarProducto {
+      background-color: var(--primary-color);
+      color: var(--secondary-color);
+      border: none;
+      padding: 12px 20px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: var(--transition);
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: var(--neuro-shadow);
+    }
+
+    #agregarProducto:hover {
+      background-color: var(--hover-color);
+      transform: translateY(-2px);
+    }
+
+    #productos-table button {
+      background-color: var(--accent-color);
+      color: var(--text-color);
+      border: none;
+      padding: 8px 15px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: var(--transition);
+      font-weight: 600;
+    }
+
+    #productos-table button:hover {
+      background-color: #444444;
+      transform: translateY(-2px);
+    }
+
+    .form-actions {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 30px;
+    }
+
+    button[type="submit"] {
+      background-color: var(--primary-color);
+      color: var(--secondary-color);
+      border: none;
+      padding: 15px 30px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: var(--transition);
+      box-shadow: var(--neuro-shadow);
+    }
+
+    button[type="submit"]:hover {
+      background-color: var(--hover-color);
+      transform: translateY(-2px);
+    }
+
+    button[type="reset"] {
+      background-color: var(--accent-color);
+      color: var(--text-color);
+      border: none;
+      padding: 15px 30px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: var(--transition);
+      box-shadow: var(--neuro-shadow);
+    }
+
+    button[type="reset"]:hover {
+      background-color: #444444;
+      transform: translateY(-2px);
+    }
+
+    .version-badge {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background-color: rgba(247, 200, 0, 0.2);
+      color: var(--primary-color);
+      padding: 5px 10px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: bold;
+    }
+
+    /* Animaciones para efectos de hover en los inputs */
+    @keyframes inputFocus {
+      0% {
+        box-shadow: 0 0 0 0 rgba(247, 200, 0, 0);
+      }
+
+      50% {
+        box-shadow: 0 0 0 3px rgba(247, 200, 0, 0.4);
+      }
+
+      100% {
+        box-shadow: 0 0 0 2px rgba(247, 200, 0, 0.2);
+      }
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      animation: inputFocus 0.3s forwards;
+    }
+
+    /* Estilos para el formulario de productos */
+    .producto-form {
+      background-color: rgba(247, 200, 0, 0.05);
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 25px;
+      border-left: 3px solid var(--primary-color);
+    }
+
+    .producto-form h3 {
+      color: var(--primary-color);
+      font-size: 1.1rem;
+      margin-top: 0;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+    }
+
+    .producto-form h3 i {
+      margin-right: 8px;
+    }
+
+    .btn-agregar {
+      background-color: var(--primary-color);
+      color: var(--accent-color);
+      border: none;
+      padding: 12px 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: var(--transition);
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: var(--box-shadow);
+      width: 100%;
+    }
+
+    .btn-agregar:hover {
+      background-color: var(--hover-color);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    #producto-total {
+      background-color: rgba(247, 200, 0, 0.1);
+      color: var(--primary-color);
+      font-weight: bold;
+    }
+
+    .input-group {
+      display: flex;
+      gap: 8px;
+    }
+
+    .input-group select {
+      flex: 0 0 40%;
+    }
+
+    .input-group input {
+      flex: 1;
+    }
+
+    /* Estilos para el botón de navegación */
+    .nav-button {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background-color: var(--primary-color);
+      color: var(--secondary-color);
+      border: none;
+      padding: 10px 15px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: var(--transition);
+      box-shadow: var(--neuro-shadow);
+    }
+
+    .nav-button:hover {
+      background-color: var(--hover-color);
+      transform: translateY(-2px);
+    }
+
+    /* Estilo para el total general */
+    .total-section {
+      background: var(--glass-bg);
+      padding: 20px;
+      border-radius: 15px;
+      margin-top: 20px;
+      margin-bottom: 20px;
+      border: var(--glass-border);
+      backdrop-filter: blur(var(--glass-blur));
+      -webkit-backdrop-filter: blur(var(--glass-blur));
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .total-label {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: var(--primary-color);
+    }
+
+    .total-amount {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: var(--text-color);
+      background: rgba(247, 200, 0, 0.1);
+      padding: 10px 20px;
+      border-radius: 8px;
+      min-width: 150px;
+      text-align: right;
+    }
+
+    /* Estilos sugerencias productos */
+    #suggestions li {
+      display: block;
+      cursor: pointer;
+      padding: 8px;
+      transition: var(--transition);
+    }
+    #suggestions li:hover {
+      background-color: var(--hover-color);
+      color: var(--background-color);
+    }
+
+    /* Estilos sugerencias clientes */
+    #suggestions-cliente li {
+      display: block;
+      cursor: pointer;
+      padding: 8px;
+      transition: var(--transition);
+    }
+    #suggestions-cliente li:hover {
+      background-color: var(--hover-color);
+      color: var(--background-color);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="particles" id="particles"></div>
+  <button class="nav-button" onclick="window.top.location.href='<?= ScriptApp.getService().getUrl() ?>?page=index'">
+    <i class="fas fa-arrow-left"></i> Volver al Inicio
+  </button>
+  <div class="version-badge">v1.0.0</div>
+  <div class="container">
+    <h1>Registro de Ventas</h1>
+
+    <form id="ventaForm">
+      <section class="section-ventas">
+        <h2><i class="fas fa-receipt"></i> Ventas (Cabecera del Pedido)</h2>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="FECHA">Fecha:</label>
+            <input type="date" id="FECHA" name="FECHA" required>
+          </div>
+          <div class="form-group">
+            <label for="ASESOR">Asesor:</label>
+            <select id="ASESOR" name="ASESOR" required>
+              <option value="">Seleccione un asesor</option>
+              </select>
+          </div>
+          <div class="form-group">
+            <label for="CLASIFICACION">Clasificación:</label>
+            <select id="CLASIFICACION" name="CLASIFICACION">
+              <option value="">Seleccione una clasificación</option>
+              </select>
+          </div>
+
+          <div class="form-group">
+            <label for="CLIENTE">Cliente:</label>
+            <input type="text" id="CLIENTE" onkeyup="buscarClientes(this.value)" placeholder="Cliente" required>
+            <ul id="suggestions-cliente"></ul>
+          </div>
+
+
+          <div class="form-group">
+            <label>Comprobante:</label>
+            <div class="input-group">
+              <select id="TIPO_COMPR" onchange="actualizarNComprobante()" name="TIPO_COMPR" required>
+                <option value="">Tipo</option>
+                <option value="FACTURA">FACTURA</option>
+                <option value="BOLETA">BOLETA</option>
+                <option value="PROFORMA">PROFORMA</option>
+              </select>
+              <input type="text" id="N_COMPR" name="N_COMPR" placeholder="Número" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="SALIDA_DE_PEDIDO">Salida de Pedido:</label>
+            <select id="SALIDA_DE_PEDIDO" name="SALIDA_DE_PEDIDO">
+              <option value="">Seleccione una salida</option>
+              </select>
+          </div>
+
+          <div class="form-group">
+            <label for="REGION">Región:</label>
+            <select id="REGION" name="REGION">
+              <option value="">Seleccione una región</option>
+              </select>
+          </div>
+
+          <div class="form-group">
+            <label for="DISTRITO">Distrito:</label>
+            <select id="DISTRITO" name="DISTRITO">
+              <option value="">Seleccione un distrito</option>
+              </select>
+          </div>
+
+          <div class="form-group">
+            <label for="LUGAR">Lugar:</label>
+            <select id="LUGAR" name="LUGAR">
+              <option value="">Seleccione un lugar</option>
+              </select>
+          </div>
+
+          <div class="form-group full-width">
+            <label for="OBSERVACIONES">Observaciones:</label>
+            <textarea id="OBSERVACIONES" name="OBSERVACIONES"></textarea>
+          </div>
+        </div>
+      </section>
+
+      <section class="section-productos">
+        <h2><i class="fas fa-box-open"></i> Detalle de Productos Vendidos</h2>
+
+        <div class="producto-form">
+          <h3><i class="fas fa-plus-circle"></i> Agregar Nuevo Producto</h3>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="producto-nombre">Producto:</label>
+              <input type="text" id="producto-nombre" onkeyup="buscarProductos(this.value)"
+                placeholder="Nombre del producto">
+              <ul id="suggestions"></ul>
+            </div>
+            <div class="form-group">
+              <label for="producto-codigo">Código:</label>
+              <input type="text" id="producto-codigo" placeholder="Código del producto" readonly>
+            </div>
+            <div class="form-group">
+              <label for="producto-cantidad">Cantidad:</label>
+              <input type="number" id="producto-cantidad" min="1" value="1" onkeyup="calcularTotal()"
+                onchange="calcularTotal()">
+            </div>
+
+            <div class="form-group">
+              <label for="producto-precio">Precio de Venta:</label>
+              <input type="number" id="producto-precio" step="0.01" onkeyup="calcularTotal()"
+                onchange="calcularTotal()">
+            </div>
+
+            <div class="form-group">
+              <label for="producto-total">Total:</label>
+              <input type="number" id="producto-total" value="0.00">
+            </div>
+            <div class="form-group">
+              <label>&nbsp;</label>
+              <button type="button" id="agregarProductoForm" onclick="agregarProductoALista()"
+                class="btn-agregar">
+                <i class="fas fa-plus"></i> Agregar a la lista
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <table id="productos-table">
+          <thead>
+            <tr>
+              <th>ID Detalle</th>
+              <th>N° Comprobante</th>
+              <th>Código</th>
+              <th>Producto</th>
+              <th>Cantidad</th>
+              <th>Precio Venta</th>
+              <th>IGV (18%)</th>
+              <th>Total</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="salesTableBody">
+            </tbody>
+        </table>
+      </section>
+
+      <div class="form-actions">
+        <button type="submit"><i class="fas fa-save"></i> Guardar Venta</button>
+        <button type="reset"><i class="fas fa-eraser"></i> Limpiar Formulario</button>
+      </div>
+    </form>
+
+    <div class="total-section">
+      <span class="total-label">Total General:</span>
+      <span class="total-amount">S/ <span id="total-general">0.00</span></span>
+    </div>
+  </div>
+</body>
+
+<script>
+
+  // Const para añadir los productos a la tabla
+  const salesTableBody = document.getElementById('salesTableBody');
+
+  // Const para la busqueda del Cliente
+  const clientSearchInput = document.getElementById('CLIENTE');
+  const suggestionsClientList = document.getElementById('suggestions-cliente');
+  let allClientes = []; // Variable para almacenar todos los Clientes
+
+  // Const para los campos calculados
+  const quantityInput = document.getElementById('producto-cantidad');
+  const priceInput = document.getElementById('producto-precio');
+  const totalInput = document.getElementById('producto-total');
+
+  // Const para la busqueda de productos con codigo
+  const productSearchInput = document.getElementById('producto-nombre');
+  const productCodeInput = document.getElementById('producto-codigo');
+  const suggestionsList = document.getElementById('suggestions');
+  let productData = {}; // Variable para almacenar productos-cod
+
+  // Const para determinar la inicializacion del comprobante
+  const comprobanteSelect = document.getElementById('TIPO_COMPR');
+  const nComprobanteInput = document.getElementById('N_COMPR');
+
+  let productosEnTabla = []; // Array para almacenar los productos agregados
+
+  document.addEventListener('DOMContentLoaded', function() {
+    // Obtener la lista de clientes al cargar la página
+    google.script.run.withSuccessHandler(cargarClientes).obtenerClientes();
+
+    // Obtener la lista de productos con sus códigos al cargar la página
+    google.script.run.withSuccessHandler(cargarProductosConCodigos).obtenerProductosConCodigos();
+
+    // Establecer fecha actual por defecto
+    document.getElementById('FECHA').valueAsDate = new Date();
+
+    // Cargar datos para los combobox
+    cargarComboboxes();
+
+    // Establecer valores por defecto
+    document.getElementById('REGION').value = 'Lima';
+    document.getElementById('TIPO_COMPR').value = 'FACTURA';
+    actualizarNComprobante();
+
+    setTimeout(function() {
+      const modalContent = document.querySelector('.container');
+      if (modalContent) {
+        modalContent.classList.add('show');
+      }
+    }, 100);
+
+    clientSearchInput.addEventListener('focus', function() {
+      buscarClientes(this.value);
+    });
+
+    clientSearchInput.addEventListener('blur', function() {
+      setTimeout(function() {
+        suggestionsClientList.innerHTML = '';
+      }, 200);
+    });
+
+    productSearchInput.addEventListener('focus', function() {
+      buscarProductos(this.value); // Mostrar sugerencias al enfocar si ya hay texto
+    });
+
+    productSearchInput.addEventListener('blur', function() {
+      setTimeout(function() {
+        suggestionsList.innerHTML = ''; // Limpiar sugerencias al perder el foco
+      }, 200); // Pequeño retraso para permitir el clic en una sugerencia
+    });
+  });
+
+  // Funcion para cargar los clientes
+  function cargarClientes(clientes) {
+  allClientes = clientes.map(c => c.nombre);
+}
+
+  // Funcion para cargar los productos con su cod
+  function cargarProductosConCodigos(data) {
+    productData = data; // Almacena producto como clave y código como valor
+  }
+
+  // Funcion para buscar clientes
+  function buscarClientes(textoBusquedaCli) {
+    suggestionsClientList.innerHTML = '';
+
+    if (textoBusquedaCli.length > 0) {
+      const sugerenciasFiltradas = allClientes.filter(cliente =>
+        cliente.toLowerCase().includes(textoBusquedaCli.toLowerCase())
+      );
+
+      if (sugerenciasFiltradas.length > 0) {
+        sugerenciasFiltradas.forEach(cliente => {
+          const listItemCli = document.createElement('li');
+          listItemCli.textContent = cliente;
+          listItemCli.addEventListener('click', function() {
+            clientSearchInput.value = cliente;
+            suggestionsClientList.innerHTML = ''; // Limpiar sugerencias después de seleccionar
+          });
+          suggestionsClientList.appendChild(listItemCli);
+        });
+      }
+    }
+  }
+
+  // Funcion para buscar productos
+  function buscarProductos(textoBusqueda) {
+    suggestionsList.innerHTML = '';
+
+    if (textoBusqueda.length > 0) {
+      const sugerenciasFiltradas = Object.keys(productData).filter(producto =>
+        producto.toLowerCase().includes(textoBusqueda.toLowerCase())
+      );
+
+      if (sugerenciasFiltradas.length > 0) {
+        sugerenciasFiltradas.forEach(producto => {
+          const listItem = document.createElement('li');
+          listItem.textContent = producto;
+          listItem.addEventListener('click', function() {
+            productSearchInput.value = producto;
+            productCodeInput.value = productData[producto];
+            suggestionsList.innerHTML = '';
+          });
+          suggestionsList.appendChild(listItem);
+        });
+      }
+    }
+  }
+
+  // Funcion para los campos calculados
+  function calcularTotal() {
+    const cantidad = parseFloat(quantityInput.value) || 0;
+    const precio = parseFloat(priceInput.value) || 0;
+    const subtotal = cantidad * precio;
+    const igv = subtotal * 0.18;
+    const total = subtotal + igv;
+    totalInput.value = total.toFixed(2);
+  }
+
+  // Función para cargar datos en los combobox desde Google Sheets
+  function cargarComboboxes() {
+    console.log('Iniciando carga de comboboxes...');
+    
+    // Cargar lugares desde la hoja "LUGAR"
+    google.script.run
+      .withSuccessHandler(function(lugares) {
+        console.log('Lugares cargados:', lugares);
+        if (!lugares || lugares.length === 0) {
+          console.error('No se recibieron lugares del servidor');
+          return;
+        }
+        llenarCombobox('LUGAR', lugares);
+      })
+      .withFailureHandler(function(error) {
+        console.error('Error al cargar lugares:', error);
+        handleError(error);
+      })
+      .obtenerLugares();
+
+    // Cargar asesores
+    google.script.run
+      .withSuccessHandler(function(asesores) {
+        console.log('Asesores cargados:', asesores);
+        if (!asesores || asesores.length === 0) {
+          console.error('No se recibieron asesores del servidor');
+          return;
+        }
+        llenarCombobox('ASESOR', asesores);
+      })
+      .withFailureHandler(function(error) {
+        console.error('Error al cargar asesores:', error);
+        handleError(error);
+      })
+      .obtenerAsesores();
+
+    // Cargar clasificaciones
+    google.script.run
+      .withSuccessHandler(function(clasificaciones) {
+        console.log('Clasificaciones cargadas:', clasificaciones);
+        if (!clasificaciones || clasificaciones.length === 0) {
+          console.error('No se recibieron clasificaciones del servidor');
+          return;
+        }
+        llenarCombobox('CLASIFICACION', clasificaciones);
+      })
+      .withFailureHandler(function(error) {
+        console.error('Error al cargar clasificaciones:', error);
+        handleError(error);
+      })
+      .obtenerClasificaciones();
+
+    // Cargar salidas de pedido
+    google.script.run
+      .withSuccessHandler(function(salidas) {
+        console.log('Salidas de pedido cargadas:', salidas);
+        if (!salidas || salidas.length === 0) {
+          console.error('No se recibieron salidas de pedido del servidor');
+          return;
+        }
+        llenarCombobox('SALIDA_DE_PEDIDO', salidas);
+      })
+      .withFailureHandler(function(error) {
+        console.error('Error al cargar salidas de pedido:', error);
+        handleError(error);
+      })
+      .obtenerSalidasPedido();
+
+    // Cargar distritos
+    google.script.run
+      .withSuccessHandler(function(distritos) {
+        console.log('Distritos cargados:', distritos);
+        if (!distritos || distritos.length === 0) {
+          console.error('No se recibieron distritos del servidor');
+          return;
+        }
+        llenarCombobox('DISTRITO', distritos);
+      })
+      .withFailureHandler(function(error) {
+        console.error('Error al cargar distritos:', error);
+        handleError(error);
+      })
+      .obtenerDistritos();
+
+    // Cargar regiones
+    google.script.run
+      .withSuccessHandler(function(regiones) {
+        console.log('Regiones cargadas:', regiones);
+        if (!regiones || regiones.length === 0) {
+          console.error('No se recibieron regiones del servidor');
+          return;
+        }
+        llenarCombobox('REGION', regiones);
+      })
+      .withFailureHandler(function(error) {
+        console.error('Error al cargar regiones:', error);
+        handleError(error);
+      })
+      .obtenerRegiones();
+  }
+
+  // Función para llenar un combobox con opciones
+  function llenarCombobox(id, opciones) {
+    console.log(`Llenando combobox ${id} con opciones:`, opciones);
+    
+    const select = document.getElementById(id);
+    if (!select) {
+      console.error(`No se encontró el elemento con id: ${id}`);
+      return;
+    }
+
+    // Mantener la primera opción (placeholder)
+    const primerOpcion = select.options[0];
+    select.innerHTML = '';
+    select.appendChild(primerOpcion);
+
+    // Verificar si opciones es un array
+    if (!Array.isArray(opciones)) {
+      console.error(`Las opciones para ${id} no son un array:`, opciones);
+      return;
+    }
+
+    // Verificar si el array está vacío
+    if (opciones.length === 0) {
+      console.warn(`El array de opciones para ${id} está vacío`);
+      return;
+    }
+
+    // Agregar las opciones del servidor
+    opciones.forEach((opcion, index) => {
+      console.log(`Procesando opción ${index + 1} para ${id}:`, opcion);
+      
+      const option = document.createElement('option');
+      
+      // Manejar diferentes formatos de datos
+      if (typeof opcion === 'object') {
+        // Si es un objeto, buscar propiedades comunes
+        const valor = opcion.id || opcion.valor || opcion.value || opcion.texto || opcion.nombre || opcion.label;
+        const texto = opcion.texto || opcion.nombre || opcion.label || valor;
+        
+        if (!valor) {
+          console.warn(`Opción ${index + 1} no tiene un valor válido:`, opcion);
+          return;
+        }
+        
+        option.value = valor;
+        option.textContent = texto;
+        
+        console.log(`Opción ${index + 1} procesada:`, {
+          value: option.value,
+          text: option.textContent
+        });
+      } else {
+        // Si es un valor simple (string, number)
+        option.value = opcion;
+        option.textContent = opcion;
+        console.log(`Opción ${index + 1} procesada (simple):`, {
+          value: option.value,
+          text: option.textContent
+        });
+      }
+      
+      option.style.backgroundColor = '#10223f'; // Color de fondo para las opciones
+      option.style.color = '#FFFFFF'; // Color del texto para las opciones
+      select.appendChild(option);
+    });
+
+    console.log(`Combobox ${id} llenado exitosamente con ${opciones.length} opciones`);
+  }
+
+  // Manejador de errores
+  function handleError(error) {
+    console.error('Error al cargar datos:', error);
+    let mensajeError = 'Ocurrió un error al cargar los datos. ';
+    
+    if (error && error.message) {
+      mensajeError += `Detalles: ${error.message}`;
+    } else if (typeof error === 'string') {
+      mensajeError += error;
+    } else {
+      mensajeError += 'Por favor, intente nuevamente.';
+    }
+    
+    alert(mensajeError);
+  }
+
+  // Funcion para inicializar el N° Comprobante
+  function actualizarNComprobante() {
+    const tipoComprobante = comprobanteSelect.value;
+    let baseComprobante = '';
+    if (tipoComprobante === 'FACTURA') {
+      baseComprobante = 'F ';
+    } else if (tipoComprobante === 'BOLETA') {
+      baseComprobante = 'B ';
+    } else if (tipoComprobante === 'PROFORMA') {
+      baseComprobante = 'P ';
+    }
+    nComprobanteInput.value = baseComprobante;
+  }
+
+  // Función para agregar producto a la lista en la tabla
+  function agregarProductoALista() {
+    const productoNombre = productSearchInput.value;
+    const productoCodigo = productCodeInput.value;
+    const cantidad = parseFloat(quantityInput.value);
+    const precioVenta = parseFloat(priceInput.value);
+    const subtotal = cantidad * precioVenta;
+    const igv = subtotal * 0.18;
+    const total = parseFloat(document.getElementById('producto-total').value);
+    const nComprobanteCabecera = document.getElementById('N_COMPR').value;
+
+    if (productoNombre && cantidad > 0 && precioVenta >= 0) {
+      const nuevoProducto = {
+        PRODUCTO: productoNombre,
+        CODIGO: productoCodigo,
+        CANTIDAD: cantidad,
+        PRECIO_VENTA: precioVenta.toFixed(2),
+        IGV: igv.toFixed(2),
+        TOTAL: total.toFixed(2)
+      };
+
+      productosEnTabla.push(nuevoProducto);
+      actualizarTablaProductos();
+    } else {
+      alert('Por favor, complete el nombre del producto, la cantidad y el precio.');
+    }
+  }
+
+  // Función para actualizar la tabla de productos
+  function actualizarTablaProductos() {
+    salesTableBody.innerHTML = '';
+    let totalGeneral = 0;
+    
+    productosEnTabla.forEach((producto, index) => {
+      const row = salesTableBody.insertRow();
+      row.insertCell().textContent = `DET_${2635 + index + 1}`; // Simula ID Detalle en la tabla
+      row.insertCell().textContent = document.getElementById('TIPO_COMPR').value + document.getElementById('N_COMPR').value;
+      row.insertCell().textContent = producto.CODIGO;
+      row.insertCell().textContent = producto.PRODUCTO;
+      row.insertCell().textContent = producto.CANTIDAD;
+      row.insertCell().textContent = producto.PRECIO_VENTA;
+      row.insertCell().textContent = producto.IGV;
+      row.insertCell().textContent = producto.TOTAL;
+      const accionesCell = row.insertCell();
+      const eliminarButton = document.createElement('button');
+      eliminarButton.classList.add('action-button', 'delete-button');
+      eliminarButton.innerHTML = '<i class="fas fa-trash-alt"></i> Eliminar';
+      eliminarButton.addEventListener('click', () => eliminarProductoDeLista(index));
+      accionesCell.appendChild(eliminarButton);
+      
+      totalGeneral += parseFloat(producto.TOTAL);
+    });
+
+    // Actualizar el total general
+    const totalGeneralElement = document.getElementById('total-general');
+    if (totalGeneralElement) {
+      totalGeneralElement.textContent = totalGeneral.toFixed(2);
+    }
+  }
+
+  // Función para eliminar un producto de la lista
+  function eliminarProductoDeLista(index) {
+    productosEnTabla.splice(index, 1);
+    actualizarTablaProductos();
+  }
+
+  // Función para limpiar el formulario de agregar producto
+  function limpiarFormularioProducto() {
+    quantityInput.value = '1';
+    priceInput.value = '';
+    totalInput.value = '0.00';
+  }
+
+  /**
+   * Genera un ID de venta autoincremental
+   */
+  function generarIdVenta() {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const ventasSheet = ss.getSheetByName(VENTAS_SHEET_NAME);
+    
+    if (!ventasSheet) {
+      throw new Error('No se encontró la hoja de ventas');
+    }
+    
+    const lastRow = ventasSheet.getLastRow();
+    if (lastRow <= 1) { // Solo hay encabezados o la hoja está vacía
+      return 1;
+    }
+    
+    // Buscar el último ID_VENTAS
+    const idColumn = ventasSheet.getRange(2, 8, lastRow - 1, 1).getValues(); // Columna H (ID_VENTAS)
+    let maxId = 0;
+    
+    for (let i = 0; i < idColumn.length; i++) {
+      const id = parseInt(idColumn[i][0]);
+      if (!isNaN(id) && id > maxId) {
+        maxId = id;
+      }
+    }
+    
+    return maxId + 1;
+  }
+
+  /**
+   * Genera un ID de pago con formato PAGO_XX
+   */
+  function generarIdPago() {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const pagosSheet = ss.getSheetByName(PAGOS_SHEET_NAME);
+    
+    if (!pagosSheet) {
+      throw new Error('No se encontró la hoja de pagos');
+    }
+    
+    const lastRow = pagosSheet.getLastRow();
+    if (lastRow <= 1) { // Solo hay encabezados o la hoja está vacía
+      return 'PAGO_01';
+    }
+    
+    // Buscar el último ID_PAGO
+    const idColumn = pagosSheet.getRange(2, 1, lastRow - 1, 1).getValues(); // Columna A (ID_PAGO)
+    let maxNum = 0;
+    
+    for (let i = 0; i < idColumn.length; i++) {
+      const id = idColumn[i][0];
+      if (typeof id === 'string' && id.startsWith('PAGO_')) {
+        const num = parseInt(id.substring(5));
+        if (!isNaN(num) && num > maxNum) {
+          maxNum = num;
+        }
+      }
+    }
+    
+    return 'PAGO_' + (maxNum + 1).toString().padStart(2, '0');
+  }
+
+  /**
+   * Genera un ID de detalle con formato DET_XXXX
+   */
+  function generarIdDetalle() {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const productosSheet = ss.getSheetByName(PRODUCTOS_SHEET_NAME);
+    
+    if (!productosSheet) {
+      throw new Error('No se encontró la hoja de productos');
+    }
+    
+    const lastRow = productosSheet.getLastRow();
+    if (lastRow <= 1) { // Solo hay encabezados o la hoja está vacía
+      return 'DET_0001';
+    }
+    
+    // Buscar el último ID_DETALLE
+    const idColumn = productosSheet.getRange(2, 1, lastRow - 1, 1).getValues(); // Columna A (ID_DETALLE)
+    let maxNum = 0;
+    
+    for (let i = 0; i < idColumn.length; i++) {
+      const id = idColumn[i][0];
+      if (typeof id === 'string' && id.startsWith('DET_')) {
+        const num = parseInt(id.substring(4));
+        if (!isNaN(num) && num > maxNum) {
+          maxNum = num;
+        }
+      }
+    }
+    
+    return 'DET_' + (maxNum + 1).toString().padStart(4, '0');
+  }
+
+  document.getElementById('ventaForm').addEventListener('submit', function(event) {
+    event.preventDefault(); // Evita el envío tradicional
+
+    // Recolectar los datos del formulario (cabecera)
+    const datosVenta = {
+      FECHA: document.getElementById('FECHA').value,
+      ASESOR: document.getElementById('ASESOR').value,
+      CLASIFICACION: document.getElementById('CLASIFICACION').value,
+      CLIENTE: document.getElementById('CLIENTE').value,
+      TIPO_COMPR: document.getElementById('TIPO_COMPR').value,
+      N_COMPR: document.getElementById('N_COMPR').value,
+      SALIDA_DE_PEDIDO: document.getElementById('SALIDA_DE_PEDIDO').value,
+      REGION: document.getElementById('REGION').value,
+      DISTRITO: document.getElementById('DISTRITO').value,
+      LUGAR: document.getElementById('LUGAR').value,
+      OBSERVACIONES: document.getElementById('OBSERVACIONES').value
+    };
+
+
+    // Recolectar los productos (detalle)
+    // productosEnTabla ya es el array de productos
+
+    // Datos de pago (puedes adaptarlo si tienes un formulario de pago)
+    const datosPago = {
+      COMPROBANTE: '',
+      TIPO_DE_PAGO: '',
+      FECHA_DE_PAGO: '',
+      REGULARIZADO: '',
+      CANCELADO: '',
+      ESTADO: ''
+    };
+
+    // Llama a tu función de Google Apps Script para guardar la venta
+    google.script.run
+      .withSuccessHandler(function(respuesta) {
+        alert('¡Venta guardada exitosamente!');
+        productosEnTabla = [];
+        actualizarTablaProductos();
+      })
+      .withFailureHandler(function(error) {
+        alert('Error al guardar la venta: ' + error.message);
+      })
+      .guardarVenta(datosVenta, productosEnTabla, datosPago);
+  });
+
+</script>
+
+</html>
