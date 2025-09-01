@@ -1400,7 +1400,7 @@
       const thH = table.tHead ? table.tHead.getBoundingClientRect().height : 40; const firstRow = table.tBodies[0]?.rows[0]; const rowH = firstRow ? firstRow.getBoundingClientRect().height : 40; const maxH = Math.round(thH + rowH * 10 + 2); wrapper.style.maxHeight = maxH + 'px'; wrapper.style.overflow = 'auto';
     }
 
-    function showDetailById(id) { 
+    async function showDetailById(id) { 
       const rec = findById(id); 
       if (!rec) { 
         alert('No se encontró el registro.'); 
@@ -1410,77 +1410,82 @@
       console.log('Registro completo para mostrar detalles:', rec);
       
       const c = document.getElementById('detailContent'); 
-      c.innerHTML = ''; 
+      c.innerHTML = '<p>⏳ Cargando detalles...</p>'; 
       
-      // Obtener los ítems de error del registro
-      let detalleItems = [];
-      
-      // Mostrar siempre el contenido de OBSERVACION_ADICIONAL_CORRECION si existe
-      if (rec.OBSERVACION_ADICIONAL_CORRECION) {
-        const obs = String(rec.OBSERVACION_ADICIONAL_CORRECION).trim();
-        console.log('Procesando OBSERVACION_ADICIONAL_CORRECION:', obs);
-        
-        // Crear un ítem con el texto de OBSERVACION_ADICIONAL_CORRECION
-        // y usar SOLUCION si está disponible
-        detalleItems = [{
-          error: obs,
-          solucion: rec.SOLUCION || ''
-        }];
-      }
-      
-      console.log('Ítems procesados:', detalleItems);
-      
-      // Si no hay ítems, mostrar mensaje
-      if (!detalleItems || detalleItems.length === 0) {
-        const p = document.createElement('p');
-        p.innerHTML = '<strong>No hay ítems de error registrados.</strong>';
-        c.appendChild(p);
-        
-        // Mostrar información de debug
-        const debugDiv = document.createElement('div');
-        debugDiv.style.marginTop = '20px';
-        debugDiv.style.padding = '10px';
-        debugDiv.style.backgroundColor = '#f0f0f0';
-        debugDiv.style.borderRadius = '5px';
-        debugDiv.style.fontSize = '12px';
-        debugDiv.innerHTML = `<strong>Debug:</strong> Campo DETALLE no encontrado o vacío. Campos disponibles: ${Object.keys(rec).join(', ')}`;
-        c.appendChild(debugDiv);
-      } else {
-        // Mostrar cada ítem de error
-        detalleItems.forEach((item, index) => {
-          const itemDiv = document.createElement('div');
-          itemDiv.style.marginBottom = '20px';
-          itemDiv.style.padding = '15px';
-          itemDiv.style.border = '1px solid #e0e0e0';
-          itemDiv.style.borderRadius = '8px';
-          itemDiv.style.backgroundColor = '#f9f9f9';
-          
-          const title = document.createElement('h4');
-          title.textContent = `Ítem ${index + 1}`;
-          title.style.margin = '0 0 10px 0';
-          title.style.color = '#17375d';
-          itemDiv.appendChild(title);
-          
-          // Manejar diferentes estructuras de datos
-          const errorText = item.error || item.detalle || item.detalle_error || item.text || '';
-          const solucionText = item.solucion || item.debe_ser || item.correccion || '';
-          
-          if (errorText && errorText.trim()) {
-            const errorP = document.createElement('p');
-            errorP.innerHTML = `<strong>Detalle del error:</strong><br>${errorText}`;
-            errorP.style.margin = '5px 0';
-            itemDiv.appendChild(errorP);
-          }
-          
-          if (solucionText && solucionText.trim()) {
-            const solP = document.createElement('p');
-            solP.innerHTML = `<strong>Debe ser:</strong><br>${solucionText}`;
-            solP.style.margin = '5px 0';
-            itemDiv.appendChild(solP);
-          }
-          
-          c.appendChild(itemDiv);
+      try {
+        // Extraer datos de error/solución desde la API (igual que en generatePDFById)
+        console.log('Extrayendo datos de error/solución para ID:', id);
+        const errorResponse = await fetch(`${API_BASE_URL}?tipo=error_solucion&id=${id}`, {
+          method: 'GET',
+          headers: { "Content-Type": "application/json" }
         });
+        
+        let detalleItems = [];
+        if (errorResponse.ok) {
+          detalleItems = await errorResponse.json();
+          console.log('Datos de error/solución obtenidos:', detalleItems);
+        } else {
+          console.error('Error al obtener datos de error/solución:', await errorResponse.text());
+        }
+        
+        // Limpiar el contenido
+        c.innerHTML = '';
+        
+        // Si no hay ítems, mostrar mensaje
+        if (!detalleItems || detalleItems.length === 0) {
+          const p = document.createElement('p');
+          p.innerHTML = '<strong>No hay ítems de error registrados.</strong>';
+          c.appendChild(p);
+          
+          // Mostrar información de debug
+          const debugDiv = document.createElement('div');
+          debugDiv.style.marginTop = '20px';
+          debugDiv.style.padding = '10px';
+          debugDiv.style.backgroundColor = '#f0f0f0';
+          debugDiv.style.borderRadius = '5px';
+          debugDiv.style.fontSize = '12px';
+          debugDiv.innerHTML = `<strong>Debug:</strong> No se encontraron datos de error/solución en la API. Campos disponibles en el registro: ${Object.keys(rec).join(', ')}`;
+          c.appendChild(debugDiv);
+        } else {
+          // Mostrar cada ítem de error
+          detalleItems.forEach((item, index) => {
+            const itemDiv = document.createElement('div');
+            itemDiv.style.marginBottom = '20px';
+            itemDiv.style.padding = '15px';
+            itemDiv.style.border = '1px solid #e0e0e0';
+            itemDiv.style.borderRadius = '8px';
+            itemDiv.style.backgroundColor = '#f9f9f9';
+            
+            const title = document.createElement('h4');
+            title.textContent = `Ítem ${index + 1}`;
+            title.style.margin = '0 0 10px 0';
+            title.style.color = '#17375d';
+            itemDiv.appendChild(title);
+            
+            // Usar los campos correctos de la API
+            const errorText = item.ERROR_ || item.ERROR || item.error || item.detalle || item.detalle_error || item.text || '';
+            const solucionText = item.SOLUCION || item.solucion || item.debe_ser || item.correccion || '';
+            
+            if (errorText && errorText.trim()) {
+              const errorP = document.createElement('p');
+              errorP.innerHTML = `<strong>Detalle del error:</strong><br>${errorText}`;
+              errorP.style.margin = '5px 0';
+              itemDiv.appendChild(errorP);
+            }
+            
+            if (solucionText && solucionText.trim()) {
+              const solP = document.createElement('p');
+              solP.innerHTML = `<strong>Debe ser:</strong><br>${solucionText}`;
+              solP.style.margin = '5px 0';
+              itemDiv.appendChild(solP);
+            }
+            
+            c.appendChild(itemDiv);
+          });
+        }
+      } catch (error) {
+        console.error('Error al cargar detalles:', error);
+        c.innerHTML = `<p style="color: red;"><strong>Error al cargar los detalles:</strong> ${error.message}</p>`;
       }
       
       document.getElementById('detailModal').style.display = 'flex'; 
