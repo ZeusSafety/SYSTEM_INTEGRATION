@@ -546,6 +546,14 @@
             </span>
         </div>
         
+        <!-- Botón para agregar colaborador -->
+        <div style="margin-bottom: 20px;">
+            <button class="btn btn-primary" onclick="openAddColaboradorModal()">
+                <i class="fas fa-plus"></i>
+                Agregar Colaborador
+            </button>
+        </div>
+        
         <div class="table-container">
             <table class="table" id="mainTable">
                 <thead>
@@ -639,6 +647,75 @@
                         </button>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Agregar Colaborador -->
+    <div id="addColaboradorModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">
+                    <i class="fas fa-user-plus"></i>
+                    Agregar Nuevo Colaborador
+                </h3>
+                <span class="close" onclick="closeAddColaboradorModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="addColaboradorForm">
+                    <div class="form-section">
+                        <div class="section-header">
+                            <i class="fas fa-user"></i>
+                            Información de Usuario
+                        </div>
+                        <div class="form-group">
+                            <label for="newUsername" class="form-label">Usuario</label>
+                            <input type="text" id="newUsername" name="newUsername" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="newPassword" class="form-label">Contraseña</label>
+                            <input type="password" id="newPassword" name="newPassword" class="form-input" required>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <div class="section-header">
+                            <i class="fas fa-info-circle"></i>
+                            Información Personal
+                        </div>
+                        <div class="form-group">
+                            <label for="newNombre" class="form-label">Nombre</label>
+                            <input type="text" id="newNombre" name="newNombre" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="newApellido" class="form-label">Apellido</label>
+                            <input type="text" id="newApellido" name="newApellido" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="newCorreo" class="form-label">Correo Electrónico</label>
+                            <input type="email" id="newCorreo" name="newCorreo" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="newFechaNacimiento" class="form-label">Fecha de Nacimiento</label>
+                            <input type="date" id="newFechaNacimiento" name="newFechaNacimiento" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="newArea" class="form-label">Área</label>
+                            <input type="text" id="newArea" name="newArea" class="form-input" required>
+                        </div>
+                    </div>
+
+                    <div class="btn-group" style="margin-top: 20px;">
+                        <button type="button" class="btn btn-secondary" onclick="closeAddColaboradorModal()">
+                            <i class="fas fa-times"></i>
+                            Cancelar
+                        </button>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-save"></i>
+                            Guardar Colaborador
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -1148,17 +1225,103 @@
             }
         }
 
+        // Función para abrir modal de agregar colaborador
+        function openAddColaboradorModal() {
+            document.getElementById('addColaboradorModal').classList.add('show');
+        }
+
+        // Función para cerrar modal de agregar colaborador
+        function closeAddColaboradorModal() {
+            document.getElementById('addColaboradorModal').classList.remove('show');
+            document.getElementById('addColaboradorForm').reset(); // Limpiar el formulario
+        }
+
+        // Función para agregar un nuevo colaborador
+        async function addColaborador() {
+            const form = document.getElementById('addColaboradorForm');
+            const formData = new FormData(form);
+            const newUsername = formData.get('newUsername');
+            const newPassword = formData.get('newPassword');
+            const newNombre = formData.get('newNombre');
+            const newApellido = formData.get('newApellido');
+            const newCorreo = formData.get('newCorreo');
+            const newFechaNacimiento = formData.get('newFechaNacimiento');
+            const newArea = formData.get('newArea');
+
+            if (!newUsername || !newPassword || !newNombre || !newApellido || !newCorreo || !newFechaNacimiento || !newArea) {
+                alert('Por favor complete todos los campos del formulario.');
+                return;
+            }
+
+            try {
+                const api = "https://colaboradores-2946605267.us-central1.run.app";
+                const metodo = "agregar";
+
+                const data = {
+                    usuario: newUsername,
+                    contrasena: newPassword,
+                    nombre: newNombre,
+                    apellido: newApellido,
+                    correo: newCorreo,
+                    fecha_nacimiento: newFechaNacimiento,
+                    area: newArea
+                };
+
+                console.log('Enviando datos de nuevo colaborador:', data);
+
+                const response = await fetch(`${api}?metodo=${metodo}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                console.log('Status de respuesta agregar colaborador:', response.status);
+
+                if (response.status === 200) {
+                    const result = await response.json();
+                    console.log('Respuesta de agregar colaborador:', result);
+                    alert('Colaborador agregado exitosamente.');
+                    closeAddColaboradorModal();
+                    loadColaboradoresData(); // Recargar la lista para mostrar el nuevo colaborador
+                } else {
+                    console.error('Error en la respuesta de agregar colaborador:', response.status);
+                    try {
+                        const errorData = await response.text();
+                        console.error('Detalles del error:', errorData);
+                    } catch (e) {
+                        console.error('No se pudo obtener detalles del error');
+                    }
+                    alert('Error al agregar el colaborador. Por favor intente nuevamente.');
+                }
+            } catch (error) {
+                console.error('Error agregando colaborador:', error);
+                alert('Error de conexión. Por favor intente nuevamente.');
+            }
+        }
+
         // Cerrar modal al hacer clic fuera de él
         window.onclick = function(event) {
             const modal = document.getElementById('permissionsModal');
             if (event.target === modal) {
                 closePermissionsModal();
             }
+            const addColaboradorModal = document.getElementById('addColaboradorModal');
+            if (event.target === addColaboradorModal) {
+                closeAddColaboradorModal();
+            }
         }
 
         // Cargar datos al iniciar la página
         document.addEventListener('DOMContentLoaded', function() {
             loadColaboradoresData();
+        });
+
+        // Manejar el envío del formulario de agregar colaborador
+        document.getElementById('addColaboradorForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            addColaborador();
         });
     </script>
 </body>
