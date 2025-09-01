@@ -1255,26 +1255,29 @@
 
             try {
                 const api = "https://colaboradores-2946605267.us-central1.run.app";
-                const metodo = "agregar";
+                const metodo = "insertar_colaborador";
 
                 const data = {
-                    usuario: newUsername,
-                    contrasena: newPassword,
                     nombre: newNombre,
                     apellido: newApellido,
-                    correo: newCorreo,
                     fecha_nacimiento: newFechaNacimiento,
-                    area: newArea
+                    area: newArea,
+                    correo: newCorreo,
+                    usuario: newUsername,
+                    contrasena: newPassword
                 };
 
                 console.log('Enviando datos de nuevo colaborador:', data);
+                console.log('URL de la petición:', api);
+                console.log('Método:', metodo);
 
-                const response = await fetch(`${api}?metodo=${metodo}`, {
+                const response = await fetch(api, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify(data)
+                    body: JSON.stringify(data),
+                    params: { metodo: metodo }
                 });
 
                 console.log('Status de respuesta agregar colaborador:', response.status);
