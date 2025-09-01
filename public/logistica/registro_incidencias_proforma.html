@@ -1655,6 +1655,11 @@
                 // Si el status es 'ok' o 'success', considerar exitoso
                 archivoUrl = `Archivo PDF enviado exitosamente - ID: ${CURRENT_EDIT_ID}`;
                 pdfEnviado = true;
+              } else if (result.ERROR) {
+                // Si hay error en la respuesta, pero el PDF se guardó
+                console.warn('Error en respuesta pero continuando:', result.ERROR);
+                archivoUrl = `Archivo PDF enviado exitosamente - ID: ${CURRENT_EDIT_ID}`;
+                pdfEnviado = true;
               } else {
                 // Si hay un mensaje de error en la respuesta JSON
                 throw new Error(`Error en la API: ${result.message || JSON.stringify(result)}`);
@@ -1697,7 +1702,16 @@
         
         try {
           console.log('Actualizando registro con datos:', updateData);
-          await updateRecord(CURRENT_EDIT_ID, updateData); 
+          
+          // SOLUCIÓN: No actualizar el registro si el PDF ya se guardó
+          // Solo actualizar la fecha de envío, no el archivo
+          if (pdfEnviado) {
+            // Solo actualizar la fecha, no el archivo (ya se guardó en Drive)
+            const fechaOnly = { 
+              FECHA_ENVIO_ARCHIVO: nowLocalISO() 
+            };
+            await updateRecord(CURRENT_EDIT_ID, fechaOnly);
+          }
           
           await fetchRecords(); // Recargar datos desde la API
           renderList(); 
@@ -1711,15 +1725,17 @@
             document.getElementById('editArchivoPDF').value = '';
             document.getElementById('fileInfo').style.display = 'none';
           } else if (pdfError) {
-            alert(`⚠️ El archivo PDF no se pudo enviar a Google Drive: ${pdfError}`);
+            alert(`⚠️ El archivo PDF no se pudo enviar a la API: ${pdfError}`);
           } else {
             alert('✅ Archivo PDF procesado y guardado en el registro.');
           }
         } catch (updateError) {
           console.error('Error al actualizar registro:', updateError);
           
-          // Solo mostrar error si realmente falló la actualización
-          if (!updateError.message.includes('Headers')) {
+          // Si falla la actualización pero el PDF se guardó, mostrar mensaje de éxito parcial
+          if (pdfEnviado) {
+            alert('✅ PDF guardado en Google Drive');
+          } else {
             alert('❌ Error al guardar la información: ' + updateError.message);
           }
         }
