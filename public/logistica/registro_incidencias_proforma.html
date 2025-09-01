@@ -1520,10 +1520,14 @@
        if (!rec) return; 
        try { 
          await updateRecord(CURRENT_EDIT_ID, { ARCHIVO_SOLUCION_PDF: '' }); 
-         document.getElementById('archivoModal').style.display = 'none'; 
          await fetchRecords(); // Recargar datos desde la API
-         renderList(); 
+         renderList(); // Actualizar la tabla
          alert('✅ Archivo removido exitosamente.');
+         
+         // Cerrar el modal después de mostrar el mensaje
+         setTimeout(() => {
+           document.getElementById('archivoModal').style.display = 'none';
+         }, 1500);
        } catch (error) { 
          console.error('Error clearing file:', error); 
          alert('❌ Error al remover el archivo: ' + error.message);
@@ -1576,9 +1580,14 @@
         console.log('Resultado de guardar comentario:', result);
         
         await fetchRecords(); // Recargar datos desde la API
-        renderList(); 
+        renderList(); // Actualizar la tabla
         
         alert('✅ Comentario guardado exitosamente.');
+        
+        // Cerrar el modal después de mostrar el mensaje
+        setTimeout(() => {
+          document.getElementById('archivoModal').style.display = 'none';
+        }, 1500);
         
       } catch (error) { 
         console.error('Error saving comment:', error); 
@@ -1713,8 +1722,9 @@
             await updateRecord(CURRENT_EDIT_ID, fechaOnly);
           }
           
+          // Recargar datos y actualizar vista inmediatamente
           await fetchRecords(); // Recargar datos desde la API
-          renderList(); 
+          renderList(); // Actualizar la tabla
           
           console.log('Estado final - PDF enviado:', pdfEnviado, 'Error:', pdfError);
           
@@ -1724,6 +1734,11 @@
             // Limpiar el campo de archivo
             document.getElementById('editArchivoPDF').value = '';
             document.getElementById('fileInfo').style.display = 'none';
+            
+            // Cerrar el modal después de mostrar el mensaje
+            setTimeout(() => {
+              document.getElementById('archivoModal').style.display = 'none';
+            }, 1500);
           } else if (pdfError) {
             alert(`⚠️ El archivo PDF no se pudo enviar a la API: ${pdfError}`);
           } else {
@@ -1735,6 +1750,13 @@
           // Si falla la actualización pero el PDF se guardó, mostrar mensaje de éxito parcial
           if (pdfEnviado) {
             alert('✅ PDF guardado en Google Drive');
+            // Aún así, intentar recargar los datos
+            try {
+              await fetchRecords();
+              renderList();
+            } catch (reloadError) {
+              console.error('Error al recargar datos:', reloadError);
+            }
           } else {
             alert('❌ Error al guardar la información: ' + updateError.message);
           }
