@@ -423,18 +423,40 @@
       
       const archivoUrl = rec['ARCHIVO_SOLUCION_PDF'];
       const hasArchivo = archivoUrl && String(archivoUrl).trim();
-      
-      if(hasArchivo){
-        const btn = document.createElement('button');
-        btn.className = 'btn btn-azul';
-        btn.textContent = 'Ver archivo';
-        btn.style.fontSize = '0.75rem';
-        btn.style.padding = '0.25rem 0.5rem';
-        btn.onclick = (e) => {
-          e.preventDefault();
-          openViewTextModalById(rec.ID);
-        };
-        td.appendChild(btn);
+      const hasTexto = !!String(rec['TEXTO_SOLUCION_PDF'] || '').trim();
+
+      if(hasArchivo || hasTexto){
+        const box = document.createElement('div');
+        box.className = 'cell-actions';
+
+        // Botón Ver PDF (solo si hay archivo)
+        if(hasArchivo) {
+          const btnPDF = document.createElement('a');
+          btnPDF.href = '#';
+          btnPDF.textContent = '📄';
+          btnPDF.className = 'icon-btn';
+          btnPDF.title = 'Ver PDF';
+          btnPDF.dataset.action = 'view-pdf';
+          btnPDF.dataset.id = rec.ID;
+          box.appendChild(btnPDF);
+        }
+
+        // Botón Ver Comentario (solo si hay texto)
+        if(hasTexto) {
+          if(hasArchivo) {
+            box.appendChild(document.createTextNode(' '));
+          }
+          const btnComentario = document.createElement('a');
+          btnComentario.href = '#';
+          btnComentario.textContent = '👁️';
+          btnComentario.className = 'icon-btn';
+          btnComentario.title = 'Ver comentario';
+          btnComentario.dataset.action = 'view-comentario';
+          btnComentario.dataset.id = rec.ID;
+          box.appendChild(btnComentario);
+        }
+
+        td.appendChild(box);
       } else {
         td.textContent = '—';
       }
@@ -634,6 +656,58 @@
       document.getElementById('viewTextModal').style.display='flex'; 
     };
 
+    // Función para abrir PDF
+    const openPDFById = (id) => {
+      const rec = findById(id);
+      if (!rec) {
+        alert('No se encontró el registro.');
+        return;
+      }
+      
+      const archivoUrl = String(rec['ARCHIVO_SOLUCION_PDF'] || '').trim();
+      if (!archivoUrl) {
+        alert('No hay archivo PDF disponible.');
+        return;
+      }
+      
+      // Si es una URL válida, abrir en nueva pestaña
+      if (/^https?:\/\//i.test(archivoUrl)) {
+        window.open(archivoUrl, '_blank');
+      } else {
+        // Si no es URL, mostrar en modal
+        const cont = document.getElementById('viewArchivoContent');
+        cont.innerHTML = '';
+        const pre = document.createElement('div');
+        pre.className = 'prelike';
+        pre.textContent = archivoUrl;
+        cont.appendChild(pre);
+        document.getElementById('viewTextModal').style.display = 'flex';
+      }
+    };
+
+    // Función para abrir comentario
+    const openComentarioById = (id) => {
+      const rec = findById(id);
+      if (!rec) {
+        alert('No se encontró el registro.');
+        return;
+      }
+      
+      const comentario = String(rec['TEXTO_SOLUCION_PDF'] || '').trim();
+      if (!comentario) {
+        alert('No hay comentario disponible.');
+        return;
+      }
+      
+      const cont = document.getElementById('viewArchivoContent');
+      cont.innerHTML = '';
+      const pre = document.createElement('div');
+      pre.className = 'prelike';
+      pre.textContent = comentario;
+      cont.appendChild(pre);
+      document.getElementById('viewTextModal').style.display = 'flex';
+    };
+
     // Guardados (Facturación) - API calls
     const performEstadoSolucionSave = async (id, {comprobante, numero, estado}) => {
       try {
@@ -705,6 +779,8 @@
         if(action==='view'){ e.preventDefault(); showDetailById(id);} 
         if(action==='pdf'){ e.preventDefault(); generatePDFById(id);} 
         if(action==='view-text'){ e.preventDefault(); openViewTextModalById(id);} 
+        if(action==='view-pdf'){ e.preventDefault(); openPDFById(id);} 
+        if(action==='view-comentario'){ e.preventDefault(); openComentarioById(id);} 
         if(action==='edit-sol'){ e.preventDefault(); openEstadoSolModalById(id);} 
       });
 
