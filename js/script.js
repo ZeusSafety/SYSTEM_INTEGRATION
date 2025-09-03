@@ -129,10 +129,12 @@ function loadMenu() {
         "MARKETING": "marketing",
         "IMPORTACION": "importacion", 
         "SISTEMAS": "sistemas",
-        "FACTURACION": "ventas",
+        "VENTAS": "ventas",
         "LOGISTICA": "logistica",
         "GERENCIA": "gerencia",
-        "ADMINISTRACION": "administracion"
+        "ADMINISTRACION": "administracion",
+        "RECURSOS_HUMANOS": "recursos_humanos",
+        "FACTURACION": "facturacion"
     };
 
     // Selecciona todas las cards
