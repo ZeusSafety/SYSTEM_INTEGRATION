@@ -498,6 +498,62 @@
             text-decoration: underline;
         }
 
+        .file-input-container {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-input {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .file-input-label {
+            display: block;
+            padding: 12px 20px;
+            background: var(--gris-claro);
+            border: 2px dashed var(--gris-medio);
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: var(--gris-medio);
+        }
+
+        .file-input-label:hover {
+            background: var(--azul-muy-claro);
+            border-color: var(--azul-claro);
+            color: var(--azul-claro);
+        }
+
+        .current-pdf {
+            background: var(--azul-muy-claro);
+            border: 1px solid var(--azul-claro);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .current-pdf h4 {
+            color: var(--azul-principal);
+            margin-bottom: 10px;
+            font-size: 1rem;
+        }
+
+        .current-pdf a {
+            color: var(--azul-claro);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .current-pdf a:hover {
+            text-decoration: underline;
+        }
+
         @media (max-width: 768px) {
             .header-content {
                 flex-direction: column;
@@ -563,6 +619,7 @@
                         <th>NOMBRE</th>
                         <th>DESCRIPCIÓN</th>
                         <th>MONTO</th>
+                        <th>MONEDA</th>
                         <th>URL PDF PAGO</th>
                         <th>FECHA PAGO</th>
                         <th>ÁREA</th>
@@ -571,7 +628,7 @@
                 </thead>
                 <tbody id="mainTableBody">
                     <tr>
-                        <td colspan="7" class="loading">
+                        <td colspan="8" class="loading">
                             <i class="fas fa-spinner"></i>
                             <p>Cargando datos...</p>
                         </td>
@@ -604,6 +661,14 @@
                     <div class="form-group">
                         <label for="monto" class="form-label">Monto *</label>
                         <input type="number" id="monto" name="monto" class="form-input" step="0.01" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="moneda" class="form-label">Moneda *</label>
+                        <select id="moneda" name="moneda" class="form-input" required>
+                            <option value="">Seleccionar moneda</option>
+                            <option value="SOLES">SOLES</option>
+                            <option value="DOLARES">DOLARES</option>
+                        </select>
                     </div>
                     <div class="form-group">
                         <label for="url_pdf_pago" class="form-label">URL PDF Pago</label>
@@ -663,25 +728,16 @@
                         <input type="number" id="update_monto" name="monto" class="form-input" step="0.01" min="0" required>
                     </div>
                     <div class="form-group">
-                        <label for="update_url_pdf_pago" class="form-label">URL PDF Pago</label>
-                        <input type="url" id="update_url_pdf_pago" name="url_pdf_pago" class="form-input" placeholder="https://...">
+                        <label for="update_moneda" class="form-label">Moneda *</label>
+                        <select id="update_moneda" name="moneda" class="form-input" required>
+                            <option value="">Seleccionar moneda</option>
+                            <option value="SOLES">SOLES</option>
+                            <option value="DOLARES">DOLARES</option>
+                        </select>
                     </div>
                     <div class="form-group">
                         <label for="update_fecha_pago" class="form-label">Fecha de Pago *</label>
                         <input type="date" id="update_fecha_pago" name="fecha_pago" class="form-input" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="update_area" class="form-label">Área *</label>
-                        <select id="update_area" name="area" class="form-input" required>
-                            <option value="">Seleccionar área</option>
-                            <option value="SISTEMAS">SISTEMAS</option>
-                            <option value="ADMINISTRACION">ADMINISTRACION</option>
-                            <option value="VENTAS">VENTAS</option>
-                            <option value="LOGISTICA">LOGISTICA</option>
-                            <option value="IMPORTACIONES">IMPORTACIONES</option>
-                            <option value="GERENCIA">GERENCIA</option>
-                            <option value="MARKETING">MARKETING</option>
-                        </select>
                     </div>
                 </form>
             </div>
@@ -690,6 +746,45 @@
                 <button type="button" class="btn btn-primary" onclick="updatePago()">
                     <i class="fas fa-save"></i>
                     Guardar Cambios
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Gestionar PDF -->
+    <div id="pdfModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">
+                    <i class="fas fa-file-pdf"></i>
+                    Gestionar PDF del Pago
+                </h3>
+                <span class="close" onclick="closePdfModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div id="currentPdfContainer" class="current-pdf" style="display: none;">
+                    <h4>PDF Actual:</h4>
+                    <a id="currentPdfLink" href="#" target="_blank">
+                        <i class="fas fa-file-pdf"></i> Ver PDF Actual
+                    </a>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Subir Nuevo PDF:</label>
+                    <div class="file-input-container">
+                        <input type="file" id="pdfFile" class="file-input" accept=".pdf" onchange="handleFileSelect(event)">
+                        <label for="pdfFile" class="file-input-label">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <span id="fileLabel">Hacer clic para seleccionar archivo PDF</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closePdfModal()">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="guardarPDF()">
+                    <i class="fas fa-save"></i>
+                    Guardar PDF
                 </button>
             </div>
         </div>
@@ -723,6 +818,8 @@
         let currentUpdateId = null;
         let currentDeleteId = null;
         let pagosData = [];
+        let pagoPdfActual = null;
+        let archivoSeleccionado = null;
 
         // Función para cargar datos de pagos
         async function loadPagosData() {
@@ -771,7 +868,7 @@
                 console.log('No hay datos para mostrar');
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="7" class="no-data">
+                        <td colspan="8" class="no-data">
                             <i class="fas fa-inbox"></i>
                             <p>No hay pagos disponibles</p>
                         </td>
@@ -785,6 +882,7 @@
                     <td>${item.NOMBRE || ''}</td>
                     <td>${item.DESCRIPCION || ''}</td>
                     <td>$${(item.MONTO || 0).toFixed(2)}</td>
+                    <td>${item.MONEDA || ''}</td>
                     <td>
                         ${item.URL_PDF_PAGO ? 
                             `<a href="${item.URL_PDF_PAGO}" target="_blank" class="pdf-link">
@@ -799,6 +897,10 @@
                         <button class="action-btn update-btn" onclick="openUpdateModal(${index})">
                             <i class="fas fa-edit"></i>
                             Editar
+                        </button>
+                        <button class="action-btn pdf-btn" onclick="gestionarPDF(${index})">
+                            <i class="fas fa-file-pdf"></i>
+                            PDF
                         </button>
                         <button class="action-btn delete-btn" onclick="confirmDelete(${index})">
                             <i class="fas fa-trash"></i>
@@ -837,7 +939,7 @@
             const formData = new FormData(form);
             
             // Validar campos requeridos
-            const requiredFields = ['nombre', 'descripcion', 'monto', 'fecha_pago', 'area'];
+            const requiredFields = ['nombre', 'descripcion', 'monto', 'moneda', 'fecha_pago', 'area'];
             for (let field of requiredFields) {
                 if (!formData.get(field)) {
                     alert(`Por favor complete el campo: ${field}`);
@@ -846,34 +948,46 @@
             }
 
             try {
-                // Aquí implementarías la llamada a la API para crear el pago
-                // Por ahora, simulamos la creación
-                const newPago = {
-                    NOMBRE: formData.get('nombre'),
-                    DESCRIPCION: formData.get('descripcion'),
-                    MONTO: parseFloat(formData.get('monto')),
-                    URL_PDF_PAGO: formData.get('url_pdf_pago') || null,
-                    FECHA_PAGO: formData.get('fecha_pago'),
-                    's.NOMBRE': formData.get('area')
+                const api = "https://colaboradores-2946605267.us-central1.run.app";
+                const metodo = "insertar_pagos_area";
+                
+                const data = {
+                    nombre: formData.get('nombre'),
+                    descripcion: formData.get('descripcion'),
+                    monto: parseFloat(formData.get('monto')),
+                    fecha_pago: formData.get('fecha_pago'),
+                    moneda: formData.get('moneda')
                 };
 
-                // Agregar a la lista local
-                pagosData.push(newPago);
-                displayPagosData(pagosData);
-                
-                alert('Pago creado exitosamente');
-                closeAddModal();
-                
-                // En producción, aquí harías la llamada real a la API:
-                // const response = await fetch(apiUrl, {
-                //     method: 'POST',
-                //     headers: { 'Content-Type': 'application/json' },
-                //     body: JSON.stringify(newPago)
-                // });
+                console.log('Enviando datos de nuevo pago:', data);
+
+                const response = await fetch(`${api}?metodo=${metodo}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                console.log('Status de respuesta nuevo pago:', response.status);
+
+                if (response.status === 200) {
+                    const result = await response.json();
+                    console.log('Respuesta de nuevo pago:', result);
+                    
+                    alert('Pago creado exitosamente');
+                    closeAddModal();
+                    
+                    // Recargar datos para mostrar los cambios
+                    loadPagosData();
+                } else {
+                    console.error('Error en la respuesta de nuevo pago:', response.status);
+                    alert('Error al crear el pago. Por favor intente nuevamente.');
+                }
                 
             } catch (error) {
                 console.error('Error creando pago:', error);
-                alert('Error al crear el pago. Por favor intente nuevamente.');
+                alert('Error de conexión. Por favor intente nuevamente.');
             }
         }
 
@@ -886,9 +1000,8 @@
             document.getElementById('update_nombre').value = pago.NOMBRE || '';
             document.getElementById('update_descripcion').value = pago.DESCRIPCION || '';
             document.getElementById('update_monto').value = pago.MONTO || '';
-            document.getElementById('update_url_pdf_pago').value = pago.URL_PDF_PAGO || '';
+            document.getElementById('update_moneda').value = pago.MONEDA || '';
             document.getElementById('update_fecha_pago').value = pago.FECHA_PAGO || '';
-            document.getElementById('update_area').value = pago['s.NOMBRE'] || '';
             
             // Mostrar el modal
             document.getElementById('updateModal').classList.add('show');
@@ -910,7 +1023,7 @@
             const formData = new FormData(form);
             
             // Validar campos requeridos
-            const requiredFields = ['nombre', 'descripcion', 'monto', 'fecha_pago', 'area'];
+            const requiredFields = ['nombre', 'descripcion', 'monto', 'moneda', 'fecha_pago'];
             for (let field of requiredFields) {
                 if (!formData.get(field)) {
                     alert(`Por favor complete el campo: ${field}`);
@@ -919,31 +1032,51 @@
             }
 
             try {
-                // Actualizar en la lista local
-                pagosData[currentUpdateId] = {
-                    NOMBRE: formData.get('nombre'),
-                    DESCRIPCION: formData.get('descripcion'),
-                    MONTO: parseFloat(formData.get('monto')),
-                    URL_PDF_PAGO: formData.get('url_pdf_pago') || null,
-                    FECHA_PAGO: formData.get('fecha_pago'),
-                    's.NOMBRE': formData.get('area')
+                const api = "https://colaboradores-2946605267.us-central1.run.app";
+                const metodo = "actualizar_pagos_areas";
+                
+                const data = {
+                    nombre: formData.get('nombre'),
+                    descripcion: formData.get('descripcion'),
+                    monto: parseFloat(formData.get('monto')),
+                    fecha_pago: formData.get('fecha_pago'),
+                    moneda: formData.get('moneda')
                 };
 
-                displayPagosData(pagosData);
-                
-                alert('Pago actualizado exitosamente');
-                closeUpdateModal();
-                
-                // En producción, aquí harías la llamada real a la API:
-                // const response = await fetch(`${apiUrl}/${currentUpdateId}`, {
-                //     method: 'PUT',
-                //     headers: { 'Content-Type': 'application/json' },
-                //     body: JSON.stringify(pagosData[currentUpdateId])
-                // });
+                // Obtener el ID real del pago
+                const pagoActual = pagosData[currentUpdateId];
+                const pagoId = pagoActual.ID || pagoActual.id || currentUpdateId;
+
+                console.log('Enviando datos de actualización:', data);
+                console.log('ID del pago:', pagoId);
+
+                const response = await fetch(`${api}?metodo=${metodo}&id=${pagoId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                console.log('Status de respuesta actualización:', response.status);
+
+                if (response.status === 200) {
+                    const result = await response.json();
+                    console.log('Respuesta de actualización:', result);
+                    
+                    alert('Pago actualizado exitosamente');
+                    closeUpdateModal();
+                    
+                    // Recargar datos para mostrar los cambios
+                    loadPagosData();
+                } else {
+                    console.error('Error en la respuesta de actualización:', response.status);
+                    alert('Error al actualizar el pago. Por favor intente nuevamente.');
+                }
                 
             } catch (error) {
                 console.error('Error actualizando pago:', error);
-                alert('Error al actualizar el pago. Por favor intente nuevamente.');
+                alert('Error de conexión. Por favor intente nuevamente.');
             }
         }
 
@@ -983,10 +1116,91 @@
             }
         }
 
+        // Funciones para el modal de PDF
+        function gestionarPDF(index) {
+            const pago = pagosData[index];
+            if (!pago) {
+                alert('Pago no encontrado');
+                return;
+            }
+
+            pagoPdfActual = pago;
+            
+            // Mostrar PDF actual si existe
+            const currentPdfContainer = document.getElementById('currentPdfContainer');
+            const currentPdfLink = document.getElementById('currentPdfLink');
+            
+            if (pago.URL_PDF_PAGO) {
+                currentPdfLink.href = pago.URL_PDF_PAGO;
+                currentPdfContainer.style.display = 'block';
+            } else {
+                currentPdfContainer.style.display = 'none';
+            }
+            
+            // Limpiar archivo seleccionado
+            archivoSeleccionado = null;
+            document.getElementById('pdfFile').value = '';
+            document.getElementById('fileLabel').textContent = 'Hacer clic para seleccionar archivo PDF';
+            
+            // Mostrar el modal
+            document.getElementById('pdfModal').classList.add('show');
+        }
+
+        function closePdfModal() {
+            document.getElementById('pdfModal').classList.remove('show');
+            pagoPdfActual = null;
+            archivoSeleccionado = null;
+            document.getElementById('pdfFile').value = '';
+            document.getElementById('fileLabel').textContent = 'Hacer clic para seleccionar archivo PDF';
+        }
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                if (file.type !== 'application/pdf') {
+                    alert('Por favor seleccione un archivo PDF válido.');
+                    event.target.value = '';
+                    return;
+                }
+                
+                archivoSeleccionado = file;
+                document.getElementById('fileLabel').textContent = `Archivo seleccionado: ${file.name}`;
+            }
+        }
+
+        function guardarPDF() {
+            if (!pagoPdfActual) {
+                alert('Error: No se ha seleccionado un pago');
+                return;
+            }
+
+            if (!archivoSeleccionado) {
+                alert('Por favor seleccione un archivo PDF para subir');
+                return;
+            }
+
+            // Aquí implementarías la lógica para subir el archivo
+            // Por ahora, simulamos la subida
+            alert(`PDF guardado para el pago: ${pagoPdfActual.NOMBRE}\nArchivo: ${archivoSeleccionado.name}`);
+            
+            // En producción, aquí harías la llamada a la API para subir el archivo:
+            // const formData = new FormData();
+            // formData.append('pdf', archivoSeleccionado);
+            // formData.append('id', pagoPdfActual.ID);
+            // 
+            // fetch('api/upload-pdf', {
+            //     method: 'POST',
+            //     body: formData
+            // });
+            
+            closePdfModal();
+        }
+
         // Cerrar modales al hacer clic fuera de ellos
         window.onclick = function(event) {
             const addModal = document.getElementById('addModal');
             const updateModal = document.getElementById('updateModal');
+            const pdfModal = document.getElementById('pdfModal');
             const confirmModal = document.getElementById('confirmModal');
             
             if (event.target === addModal) {
@@ -994,6 +1208,9 @@
             }
             if (event.target === updateModal) {
                 closeUpdateModal();
+            }
+            if (event.target === pdfModal) {
+                closePdfModal();
             }
             if (event.target === confirmModal) {
                 closeConfirmModal();
