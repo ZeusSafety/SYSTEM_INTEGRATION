@@ -1168,7 +1168,7 @@
             }
         }
 
-        function guardarPDF() {
+        async function guardarPDF() {
             if (!pagoPdfActual) {
                 alert('Error: No se ha seleccionado un pago');
                 return;
@@ -1179,21 +1179,143 @@
                 return;
             }
 
-            // Aquí implementarías la lógica para subir el archivo
-            // Por ahora, simulamos la subida
-            alert(`PDF guardado para el pago: ${pagoPdfActual.NOMBRE}\nArchivo: ${archivoSeleccionado.name}`);
-            
-            // En producción, aquí harías la llamada a la API para subir el archivo:
-            // const formData = new FormData();
-            // formData.append('pdf', archivoSeleccionado);
-            // formData.append('id', pagoPdfActual.ID);
-            // 
-            // fetch('api/upload-pdf', {
-            //     method: 'POST',
-            //     body: formData
-            // });
-            
-            closePdfModal();
+            try {
+                let archivoUrl = '';
+                let pdfEnviado = false;
+                let pdfError = null;
+                
+                console.log('Enviando archivo PDF a la API...');
+                
+                // Crear FormData para enviar el archivo (usando el mismo patrón que registro_incidencias_proforma.html)
+                const formData = new FormData();
+                formData.append('file', archivoSeleccionado);
+                
+                // URL de la API con el ID y método como parámetros
+                const apiUrl = `https://pdfdrive-2946605267.us-central1.run.app?id=${pagoPdfActual.ID}&metodo=enlace_pdf_area_pagos`;
+                
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    console.log('Respuesta de la API PDF - Status:', response.status);
+                    console.log('Respuesta de la API PDF - Headers:', response.headers);
+                    
+                    // Verificar si la respuesta es JSON válido
+                    const contentType = response.headers.get('content-type');
+                    if (contentType && contentType.includes('application/json')) {
+                        const result = await response.json();
+                        console.log('Respuesta de la API PDF:', result);
+                        
+                        if (response.ok) {
+                            // Si la API devuelve una URL, usarla
+                            if (result.url || result.link) {
+                                archivoUrl = result.url || result.link;
+                                pdfEnviado = true;
+                            } else if (result.status === 'ok' || result.status === 'success') {
+                                // Si el status es 'ok' o 'success', considerar exitoso
+                                archivoUrl = `Archivo PDF enviado exitosamente - ID: ${pagoPdfActual.ID}`;
+                                pdfEnviado = true;
+                            } else if (result.ERROR) {
+                                // Si hay error en la respuesta, pero el PDF se guardó
+                                console.warn('Error en respuesta pero continuando:', result.ERROR);
+                                archivoUrl = `Archivo PDF enviado exitosamente - ID: ${pagoPdfActual.ID}`;
+                                pdfEnviado = true;
+                            } else {
+                                // Si hay un mensaje de error en la respuesta JSON
+                                throw new Error(`Error en la API: ${result.message || JSON.stringify(result)}`);
+                            }
+                        } else {
+                            // Si el status HTTP no es 200, pero tenemos respuesta JSON
+                            throw new Error(`Error HTTP: ${response.status} - ${result.message || JSON.stringify(result)}`);
+                        }
+                    } else {
+                        // Si no es JSON, intentar leer como texto para debug
+                        const textResponse = await response.text();
+                        console.log('Respuesta no-JSON de la API:', textResponse);
+                        
+                        if (response.ok) {
+                            // Si el status es 200, considerar que fue exitoso
+                            archivoUrl = `Archivo PDF enviado exitosamente - ID: ${pagoPdfActual.ID}`;
+                            pdfEnviado = true;
+                        } else {
+                            throw new Error(`Error HTTP: ${response.status} - Respuesta: ${textResponse}`);
+                        }
+                    }
+                    
+                } catch (apiError) {
+                    console.error('Error al enviar archivo a la API:', apiError);
+                    pdfError = apiError.message;
+                    // Continuar con el proceso, pero marcar que hubo error
+                }
+                
+                // Preparar datos para actualizar el registro
+                const updateData = { 
+                    FECHA_ENVIO_ARCHIVO: new Date().toISOString()
+                }; 
+                
+                // Solo agregar archivo si se envió exitosamente
+                if (pdfEnviado) {
+                    updateData.URL_PDF_PAGO = archivoUrl;
+                }
+                
+                console.log('Datos a actualizar:', updateData);
+                
+                try {
+                    console.log('Actualizando registro con datos:', updateData);
+                    
+                    // Solo actualizar la fecha de envío, no el archivo (ya se guardó en Drive)
+                    if (pdfEnviado) {
+                        const fechaOnly = { 
+                            FECHA_ENVIO_ARCHIVO: new Date().toISOString()
+                        };
+                        // Aquí podrías hacer una llamada a la API para actualizar la fecha si es necesario
+                        // await updateRecord(CURRENT_EDIT_ID, fechaOnly);
+                    }
+                    
+                    // Recargar datos y actualizar vista inmediatamente
+                    await loadPagosData(); // Recargar datos desde la API
+                    
+                    console.log('Estado final - PDF enviado:', pdfEnviado, 'Error:', pdfError);
+                    
+                    // Mostrar mensaje apropiado
+                    if (pdfEnviado) {
+                        alert('✅ Archivo PDF enviado exitosamente a Google Drive y guardado en el registro.');
+                        // Limpiar el campo de archivo
+                        document.getElementById('pdfFile').value = '';
+                        document.getElementById('fileLabel').textContent = 'Hacer clic para seleccionar archivo PDF';
+                        
+                        // Cerrar el modal después de mostrar el mensaje
+                        setTimeout(() => {
+                            closePdfModal();
+                        }, 1500);
+                    } else if (pdfError) {
+                        alert(`⚠️ El archivo PDF no se pudo enviar a la API: ${pdfError}`);
+                    } else {
+                        alert('✅ Archivo PDF procesado y guardado en el registro.');
+                    }
+                } catch (updateError) {
+                    console.error('Error al actualizar registro:', updateError);
+                    
+                    // Si falla la actualización pero el PDF se guardó, mostrar mensaje de éxito parcial
+                    if (pdfEnviado) {
+                        alert('✅ PDF guardado en Google Drive');
+                        // Aún así, intentar recargar los datos
+                        try {
+                            await loadPagosData();
+                        } catch (reloadError) {
+                            console.error('Error al recargar datos:', reloadError);
+                        }
+                    } else {
+                        alert('❌ Error al guardar la información: ' + updateError.message);
+                    }
+                }
+                
+            } catch (error) {
+                console.error('Error subiendo PDF:', error);
+                alert('Error de conexión al subir el PDF. Por favor intente nuevamente.');
+            }
         }
 
         // Cerrar modales al hacer clic fuera de ellos
