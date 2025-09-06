@@ -1271,13 +1271,12 @@
                 console.log('URL de la petición:', api);
                 console.log('Método:', metodo);
 
-                const response = await fetch(api, {
+                const response = await fetch(`${api}?metodo=${metodo}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify(data),
-                    params: { metodo: metodo }
+                    body: JSON.stringify(data)
                 });
 
                 console.log('Status de respuesta agregar colaborador:', response.status);
