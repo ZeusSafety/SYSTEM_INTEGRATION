@@ -1021,7 +1021,24 @@
     // ===== Funciones de utilidad =====
     const badgeClass = (v) => { v = (v || '').toUpperCase(); return v === 'PENDIENTE' ? 'badge-pendiente' : v === 'EN REVISIÓN' || v === 'EN REVISION' || v === 'EN PROCESO' ? 'badge-enrevision' : v === 'NOTIFICADO' ? 'badge-notificado' : v === 'COMPLETADO' ? 'badge-completado' : v === 'OBSERVADO' ? 'badge-observado' : ''; };
     const fmtDateDisplay = (dt) => { if (!dt) return ''; const d = new Date(dt); if (isNaN(d)) return dt; const dd = String(d.getDate()).padStart(2, '0'); const mm = String(d.getMonth() + 1).padStart(2, '0'); const yyyy = d.getFullYear(); let hh = d.getHours(); const ap = hh >= 12 ? 'PM' : 'AM'; hh = hh % 12 || 12; const mi = String(d.getMinutes()).padStart(2, '0'); const ss = String(d.getSeconds()).padStart(2, '0'); return `${dd}-${mm}-${yyyy} ${String(hh).padStart(2, '0')}:${mi}:${ss} ${ap}`; };
-    const fmtDateOnly = (dt) => { if (!dt) return ''; const d = new Date(dt); if (isNaN(d)) return dt; const dd = String(d.getDate()).padStart(2, '0'); const mm = String(d.getMonth() + 1).padStart(2, '0'); const yyyy = d.getFullYear(); return `${dd}/${mm}/${yyyy}`; };
+    const fmtDateOnly = (dt) => { 
+      if (!dt) return ''; 
+      // Si la fecha viene en formato YYYY-MM-DD, manejarla directamente sin conversión de zona horaria
+      if (typeof dt === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dt)) {
+        const parts = dt.split('-');
+        const dd = parts[2];
+        const mm = parts[1];
+        const yyyy = parts[0];
+        return `${dd}/${mm}/${yyyy}`;
+      }
+      // Para otros formatos, usar el método original
+      const d = new Date(dt); 
+      if (isNaN(d)) return dt; 
+      const dd = String(d.getDate()).padStart(2, '0'); 
+      const mm = String(d.getMonth() + 1).padStart(2, '0'); 
+      const yyyy = d.getFullYear(); 
+      return `${dd}/${mm}/${yyyy}`; 
+    };
     const nowLocalISO = () => { const d = new Date(); const yyyy = d.getFullYear(); const mm = String(d.getMonth() + 1).padStart(2, '0'); const dd = String(d.getDate()).padStart(2, '0'); const HH = String(d.getHours()).padStart(2, '0'); const MI = String(d.getMinutes()).padStart(2, '0'); const SS = String(d.getSeconds()).padStart(2, '0'); return `${yyyy}-${mm}-${dd}T${HH}:${MI}:${SS}`; };
 
     // Función para convertir número de mes a nombre
