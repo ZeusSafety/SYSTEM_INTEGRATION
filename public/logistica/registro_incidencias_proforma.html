@@ -728,21 +728,25 @@
              </div>
             <div class="form-group">
               <label for="responsable">Responsable incidencia *</label>
-              <select id="responsable" required>
-                <option value="">Seleccione...</option>
-                <option>SANDRA</option>
-                <option>JOSE</option>
-                <option>KIMBERLY</option>
-                <option>JOSEPH</option>
-                <option>MANUEL</option>
-                <option>JOSELYN</option>
-                <option>VICTOR</option>
-                <option>HERVIN</option>
-                <option>EVELYN</option>
-                <option>ALVARO</option>
-                <option>LIZETH</option>
-                <option>ONLINE</option>
-              </select>
+              <div style="display: flex; gap: 0.5rem; align-items: center;">
+                <select id="responsable" required style="min-width:220px; transition: width 0.2s;">
+                  <option value="">Seleccione...</option>
+                  <option>SANDRA</option>
+                  <option>JOSE</option>
+                  <option>KIMBERLY</option>
+                  <option>JOSEPH</option>
+                  <option>MANUEL</option>
+                  <option>JOSELYN</option>
+                  <option>VICTOR</option>
+                  <option>HERVIN</option>
+                  <option>EVELYN</option>
+                  <option>ALVARO</option>
+                  <option>LIZETH</option>
+                  <option>ONLINE</option>
+                  <option value="OTROS">OTROS</option>
+                </select>
+                <input type="text" id="responsableOtro" placeholder="Ingrese nombre" style="display:none; width:160px; text-transform:uppercase;" maxlength="40" />
+              </div>
             </div>
             <div class="form-group">
               <label for="area">Área *</label>
@@ -2034,6 +2038,32 @@
     // ===== Form interacciones =====
     document.getElementById('tipoIncidencia').addEventListener('change', (e) => { const val = e.target.value; const d = document.getElementById('observacionDetalle'); d.disabled = (val !== 'OTROS'); if (val !== 'OTROS') d.value = ''; });
 
+    // Mostrar campo adicional cuando "OTROS" es seleccionado en Responsable incidencia
+    (function () {
+      const sel = document.getElementById('responsable');
+      const inp = document.getElementById('responsableOtro');
+      if (!sel || !inp) return;
+      const toggle = () => {
+        if (sel.value === 'OTROS') {
+          inp.style.display = '';
+          sel.style.width = '120px';
+          inp.required = true;
+          setTimeout(() => inp.focus(), 0);
+        } else {
+          inp.style.display = 'none';
+          sel.style.width = '';
+          inp.required = false;
+          inp.value = '';
+        }
+      };
+      sel.addEventListener('change', toggle);
+      toggle();
+      // Forzar mayúsculas al escribir
+      inp.addEventListener('input', function () {
+        this.value = this.value.toUpperCase();
+      });
+    })();
+
     // ===== Filtros/listado =====
     document.getElementById('applyFilter').onclick = () => renderList();
     document.getElementById('clearFilters').onclick = () => { document.getElementById('filterEstado').value = 'TODOS'; document.getElementById('filterStart').value = ''; document.getElementById('filterEnd').value = ''; renderList(); };
@@ -2077,7 +2107,9 @@
       e.preventDefault();
       const encargado = document.getElementById('encargado').value;
       const fechaEmision = document.getElementById('fechaEmision').value;
-      const responsable = document.getElementById('responsable').value;
+      const responsableSel = document.getElementById('responsable').value;
+      const responsableOtro = document.getElementById('responsableOtro') ? document.getElementById('responsableOtro').value.trim().toUpperCase() : '';
+      const responsable = (responsableSel === 'OTROS' && responsableOtro) ? responsableOtro : responsableSel;
       const area = document.getElementById('area').value;
       const proforma = document.getElementById('proforma').value;
       const comprobante = document.getElementById('comprobante').value;
@@ -2110,8 +2142,8 @@
         }
       });
 
-             // Formatear la fecha para la API (solo fecha, sin hora)
-       const fechaFormateada = fechaEmision;
+      // Formatear la fecha para la API (solo fecha, sin hora)
+      const fechaFormateada = fechaEmision;
 
       try {
         // Incrustar los ítems en observación como fallback para listados que no devuelven DETALLE
