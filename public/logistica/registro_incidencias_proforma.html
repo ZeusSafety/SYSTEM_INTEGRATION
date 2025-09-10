@@ -909,12 +909,12 @@
         </div>
       </div>
       
-      <!-- Sección de PDF -->
+      <!-- Sección de Archivo -->
       <div class="form-group">
-        <label for="editArchivoPDF">Cargar PDF (opcional)</label>
-        <input type="file" id="editArchivoPDF" accept="application/pdf" />
+        <label for="editArchivoPDF">Cargar Archivo (PDF o Imagen) (opcional)</label>
+        <input type="file" id="editArchivoPDF" accept="application/pdf,image/jpeg,image/jpg,image/png,image/gif,image/webp" />
         <p class="muted">
-          <strong>📤 Envío automático:</strong> Al seleccionar un PDF, se enviará automáticamente a la API de almacenamiento 
+          <strong>📤 Envío automático:</strong> Al seleccionar un archivo (PDF o imagen), se enviará automáticamente a la API de almacenamiento 
           y se guardará el enlace resultante en el registro, no se podrá recibir un mensaje de éxito, presionar una sola vez.
         </p>
         <div id="fileInfo" style="display:none; background:#f8f9fa; padding:8px; border-radius:4px; margin-top:8px;">
@@ -922,10 +922,10 @@
         </div>
         <div style="margin-top: 10px;">
           <button id="savePDF" class="btn btn-primary">
-            <span id="savePDFText">Guardar PDF</span>
+            <span id="savePDFText">Guardar Archivo</span>
             <span id="savePDFLoading" style="display:none;">⏳ Enviando...</span>
           </button>
-          <button id="openPDF" class="btn btn-secondary" style="display:none;">Abrir PDF</button>
+          <button id="openPDF" class="btn btn-secondary" style="display:none;">Abrir Archivo</button>
           <button id="clearArchivo" class="btn btn-danger">Quitar archivo</button>
         </div>
       </div>
@@ -1636,7 +1636,7 @@
       const file = fileInput.files && fileInput.files[0] ? fileInput.files[0] : null; 
       
       if (!file) {
-        alert('Por favor seleccione un archivo PDF para guardar.');
+        alert('Por favor seleccione un archivo (PDF o imagen) para guardar.');
         return;
       }
       
@@ -1753,7 +1753,7 @@
           
           // Mostrar mensaje apropiado
           if (pdfEnviado) {
-            alert('✅ Archivo PDF enviado exitosamente a Google Drive y guardado en el registro.');
+            alert('✅ Archivo enviado exitosamente a Google Drive y guardado en el registro.');
             // Limpiar el campo de archivo
             document.getElementById('editArchivoPDF').value = '';
             document.getElementById('fileInfo').style.display = 'none';
@@ -1763,16 +1763,16 @@
               document.getElementById('archivoModal').style.display = 'none';
             }, 1500);
           } else if (pdfError) {
-            alert(`⚠️ El archivo PDF no se pudo enviar a la API: ${pdfError}`);
+            alert(`⚠️ El archivo no se pudo enviar a la API: ${pdfError}`);
           } else {
-            alert('✅ Archivo PDF procesado y guardado en el registro.');
+            alert('✅ Archivo procesado y guardado en el registro.');
           }
         } catch (updateError) {
           console.error('Error al actualizar registro:', updateError);
           
-          // Si falla la actualización pero el PDF se guardó, mostrar mensaje de éxito parcial
+          // Si falla la actualización pero el archivo se guardó, mostrar mensaje de éxito parcial
           if (pdfEnviado) {
-            alert('✅ PDF guardado en Google Drive');
+            alert('✅ Archivo guardado en Google Drive');
             // Aún así, intentar recargar los datos
             try {
               await fetchRecords();
@@ -1786,8 +1786,8 @@
         }
         
       } catch (error) { 
-        console.error('Error saving PDF:', error); 
-        alert('❌ Error al guardar el PDF: ' + error.message);
+        console.error('Error saving file:', error); 
+        alert('❌ Error al guardar el archivo: ' + error.message);
       } finally {
         // Restaurar botón
         saveBtn.disabled = false;
@@ -1919,21 +1919,63 @@
            y += 10; // Espacio adicional
            doc.setFontSize(14);
            doc.text('DETALLES DE ERROR Y SOLUCIÓN:', 10, y);
-           y += 10;
+           y += 15; // Más espacio después del título
            doc.setFontSize(12);
            
            errorSolucionData.forEach((item, index) => {
-             if (y > 270) {
+             // Verificar si necesitamos nueva página antes de agregar el ítem
+             if (y > 250) {
                doc.addPage();
                y = 10;
              }
              
+             // Título del ítem
+             doc.setFontSize(12);
              doc.text(`Ítem ${index + 1}:`, 10, y);
-             y += 7;
-             doc.text(`  Error: ${item.ERROR_ || ''}`, 15, y);
-             y += 7;
-             doc.text(`  Solución: ${item.SOLUCION || ''}`, 15, y);
-             y += 10;
+             y += 8;
+             
+             // Error con texto dividido en líneas si es muy largo
+             const errorText = item.ERROR_ || '';
+             if (errorText) {
+               doc.setFontSize(10);
+               const errorLines = doc.splitTextToSize(`Error: ${errorText}`, 180);
+               errorLines.forEach(line => {
+                 if (y > 270) {
+                   doc.addPage();
+                   y = 10;
+                 }
+                 doc.text(line, 15, y);
+                 y += 5;
+               });
+               y += 3; // Espacio adicional después del error
+             }
+             
+             // Solución con texto dividido en líneas si es muy largo
+             const solucionText = item.SOLUCION || '';
+             if (solucionText) {
+               doc.setFontSize(10);
+               const solucionLines = doc.splitTextToSize(`Solución: ${solucionText}`, 180);
+               solucionLines.forEach(line => {
+                 if (y > 270) {
+                   doc.addPage();
+                   y = 10;
+                 }
+                 doc.text(line, 15, y);
+                 y += 5;
+               });
+               y += 8; // Espacio adicional después de la solución
+             }
+             
+             // Línea separadora entre ítems
+             if (index < errorSolucionData.length - 1) {
+               if (y > 270) {
+                 doc.addPage();
+                 y = 10;
+               }
+               doc.setFontSize(8);
+               doc.text('─'.repeat(50), 10, y);
+               y += 8;
+             }
            });
          }
          
@@ -2109,7 +2151,9 @@
       const fileName = document.getElementById('fileName');
       
       if (file) {
-        fileName.textContent = `${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+        const fileSize = (file.size / 1024 / 1024).toFixed(2);
+        const fileType = file.type.startsWith('image/') ? '🖼️' : '📄';
+        fileName.textContent = `${fileType} ${file.name} (${fileSize} MB)`;
         fileInfo.style.display = 'block';
       } else {
         fileInfo.style.display = 'none';
