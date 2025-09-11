@@ -1,0 +1,1329 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Despacho</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+</head>
+
+<style>
+        .btn-registro-flotante {
+            position: fixed;
+            right: 30px;
+            bottom: 30px;
+            z-index: 1000;
+            background-color: var(--success-color);
+            color: #fff;
+            border: none;
+            border-radius: 50px;
+            padding: 14px 32px;
+            font-size: 1.1em;
+            font-weight: 600;
+            box-shadow: 0 4px 16px var(--shadow-color);
+            cursor: pointer;
+            transition: background-color var(--transition-speed), transform var(--transition-speed);
+        }
+        .btn-registro-flotante:hover {
+            background-color: #218838;
+            transform: translateY(-2px) scale(1.04);
+        }
+        .btn-regresar-flotante {
+            position: fixed;
+            left: 30px;
+            bottom: 30px;
+            z-index: 1000;
+            background-color: var(--primary-color);
+            color: #fff;
+            border: none;
+            border-radius: 50px;
+            padding: 14px 32px;
+            font-size: 1.1em;
+            font-weight: 600;
+            box-shadow: 0 4px 16px var(--shadow-color);
+            cursor: pointer;
+            transition: background-color var(--transition-speed), transform var(--transition-speed);
+        }
+        .btn-regresar-flotante:hover {
+            background-color: #004494;
+            transform: translateY(-2px) scale(1.04);
+        }
+        :root {
+            --primary-color: #0056b3;
+            /* Un azul corporativo */
+            --secondary-color: #f0f2f5;
+            /* Gris claro para fondos */
+            --text-color: #333;
+            --border-color: #ccc;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --transition-speed: 0.3s;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: var(--secondary-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 30px auto;
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px var(--shadow-color);
+            animation: fadeIn 1s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary-color);
+            margin-bottom: 40px;
+            font-weight: 700;
+            position: relative;
+        }
+
+        h1::after {
+            content: '';
+            display: block;
+            width: 80px;
+            height: 4px;
+            background-color: var(--primary-color);
+            margin: 10px auto 0;
+            border-radius: 2px;
+        }
+
+        .form-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+            padding: 25px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            border: 1px solid #eee;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
+            font-size: 0.95em;
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="date"],
+        .form-group select,
+        .form-group textarea {
+            width: calc(100% - 20px);
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 1em;
+            color: var(--text-color);
+            box-sizing: border-box;
+            transition: border-color var(--transition-speed), box-shadow var(--transition-speed);
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(0, 86, 179, 0.2);
+            outline: none;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: background-color var(--transition-speed), transform var(--transition-speed);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background-color: #004494;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 86, 179, 0.3);
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            color: #fff;
+        }
+
+        .btn-secondary:hover {
+            background-color: #545b62;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(108, 117, 125, 0.3);
+        }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: #fff;
+            padding: 8px 15px;
+            font-size: 0.85em;
+        }
+
+        .btn-danger:hover {
+            background-color: #c82333;
+            transform: translateY(-1px);
+        }
+
+        .table-container {
+            margin-top: 40px;
+            overflow-x: auto;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px var(--shadow-color);
+            animation: slideIn 1s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            min-width: 800px;
+            box-shadow: 0 2px 12px rgba(0, 86, 179, 0.07);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        table thead th {
+            background-color: var(--primary-color);
+            color: #fff;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.95em;
+            letter-spacing: 0.5px;
+            border-right: 1px solid #e3eaf5;
+        }
+
+        table thead th:last-child {
+            border-right: none;
+        }
+
+        table tbody tr {
+            background-color: #fff;
+            border-bottom: 1.5px solid #e3eaf5;
+            transition: background-color var(--transition-speed);
+        }
+
+        table tbody tr:nth-child(even) {
+            background-color: #f6faff;
+        }
+
+        table tbody tr:hover {
+            background-color: #eaf3ff;
+        }
+
+        table tbody td {
+            padding: 15px;
+            vertical-align: middle;
+            font-size: 0.97em;
+            border-right: 1px solid #e3eaf5;
+        }
+
+        table tbody td:last-child {
+            border-right: none;
+        }
+
+        .table-actions {
+            text-align: center;
+        }
+
+        .footer-buttons {
+            margin-top: 40px;
+            text-align: right;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .total-container {
+            width: 100%;
+            margin: 30px auto 0 auto;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: center;
+            overflow-x: auto;
+            max-width: 100vw;
+        }
+
+        .total-table-wrapper {
+            width: 100%;
+            max-width: 400px;
+            min-width: 220px;
+        }
+
+        .total-table {
+            width: 100%;
+            min-width: 220px;
+            max-width: 400px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 86, 179, 0.07);
+            border: 1px solid #e3eaf5;
+            background: #fff;
+            table-layout: fixed;
+        }
+
+        @media (max-width: 600px) {
+            .total-container {
+                padding-left: 2vw;
+                padding-right: 2vw;
+                max-width: 100vw;
+            }
+
+            .total-table-wrapper {
+                max-width: 98vw;
+                min-width: 180px;
+            }
+
+            .total-table {
+                font-size: 0.95em;
+                min-width: 180px;
+                max-width: 98vw;
+            }
+
+            .total-label,
+            .total-value {
+                padding: 8px;
+                font-size: 1em;
+            }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .form-section {
+                grid-template-columns: 1fr;
+            }
+
+            .container {
+                padding: 20px;
+                margin: 20px auto;
+            }
+
+            h1 {
+                font-size: 1.8em;
+            }
+
+            .btn {
+                width: 100%;
+                margin-bottom: 15px;
+            }
+
+            .footer-buttons {
+                text-align: center;
+            }
+        }
+        .btn-historial-flotante {
+            position: fixed;
+            right: 30px;
+            bottom: 90px;
+            z-index: 1000;
+            background-color: #ffc107;
+            color: #333;
+            border: none;
+            border-radius: 50px;
+            padding: 14px 32px;
+            font-size: 1.1em;
+            font-weight: 600;
+            box-shadow: 0 4px 16px var(--shadow-color);
+            cursor: pointer;
+            transition: background-color var(--transition-speed), transform var(--transition-speed);
+        }
+        .btn-historial-flotante:hover {
+            background-color: #e0a800;
+            color: #fff;
+            transform: translateY(-2px) scale(1.04);
+        }
+
+        /* Estilos para campos editables */
+        .edit-input {
+            width: 100%;
+            padding: 8px;
+            border: 2px solid var(--primary-color);
+            border-radius: 6px;
+            font-size: 0.95em;
+            transition: all 0.3s ease;
+        }
+
+        .edit-input:focus {
+            border-color: var(--success-color);
+            box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.2);
+            outline: none;
+        }
+
+        .edit-select {
+            width: 100%;
+            padding: 8px;
+            border: 2px solid var(--primary-color);
+            border-radius: 6px;
+            font-size: 0.95em;
+            background-color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .edit-select:focus {
+            border-color: var(--success-color);
+            box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.2);
+            outline: none;
+        }
+
+        .suggestions-edit {
+            position: absolute;
+            list-style: none;
+            padding: 0;
+            margin: 2px 0 0 0;
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            width: 100%;
+        }
+
+        .suggestions-edit li {
+            padding: 8px 12px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .suggestions-edit li:hover {
+            background-color: #e3eaf5;
+        }
+
+        /* Estilos para el Modal */
+        .modal-edit {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-edit.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content-edit {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 600px;
+            position: relative;
+            transform: translateY(-20px);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .modal-edit.show .modal-content-edit {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .modal-header-edit {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--primary-color);
+        }
+
+        .modal-header-edit h2 {
+            margin: 0;
+            color: var(--primary-color);
+            font-size: 1.5em;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5em;
+            color: var(--text-color);
+            cursor: pointer;
+            padding: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .close-modal:hover {
+            color: var(--danger-color);
+            transform: scale(1.1);
+        }
+
+        .modal-body-edit {
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .modal-body-edit .form-group {
+            margin-bottom: 20px;
+        }
+
+        .modal-footer-edit {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-60px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Estilos para los botones de acción en la tabla */
+        .table-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            align-items: center;
+            padding: 5px;
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.9em;
+            transition: all 0.2s ease;
+            color: white;
+            min-width: 38px;
+            justify-content: center;
+        }
+
+        .action-btn i {
+            font-size: 1.1em;
+        }
+
+        .action-btn.edit {
+            background-color: var(--primary-color);
+        }
+
+        .action-btn.edit:hover {
+            background-color: #004494;
+            transform: translateY(-2px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .action-btn.delete {
+            background-color: var(--danger-color);
+        }
+
+        .action-btn.delete:hover {
+            background-color: #c82333;
+            transform: translateY(-2px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Tooltip para los botones */
+        .action-btn-tooltip {
+            position: relative;
+        }
+
+        .action-btn-tooltip:before {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            margin-bottom: 5px;
+            padding: 5px 10px;
+            border-radius: 4px;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            font-size: 12px;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s ease;
+        }
+
+        .action-btn-tooltip:hover:before {
+            opacity: 1;
+            visibility: visible;
+        }
+</style>
+
+<body>
+    <button class="btn-regresar-flotante" onclick="window.top.location.href='<?= ScriptApp.getService().getUrl() ?>?page=importacion'">Regresar</button>
+    <button class="btn-registro-flotante" onclick="window.top.location.href='<?= ScriptApp.getService().getUrl() ?>?page=importaciones'">Ir al Registro de Importación</button>
+    <button class="btn-historial-flotante" onclick="window.top.location.href='<?= ScriptApp.getService().getUrl() ?>?page=historial_ficha_import'">Ir al Historial Fichas de Importacion</button>
+        
+    <div class="container">
+        <h1>REGISTRO DE FICHA IMPORTACIÓN</h1>
+
+        <div class="form-section">
+            <div class="form-group">
+                <label for="numero_despacho">N° Despacho:</label>
+                <input type="text" id="numero_despacho" name="numero_despacho"  required>
+            </div>
+            <div class="form-group">
+                <label for="redactado_por">Redactado por:</label>
+                <select id="redactado_por" name="redactado_por" required>
+                    <option value="">Seleccione</option>
+                    <option value="SANDRA">SANDRA</option>
+                    <option value="HERVIN">HERVIN</option>
+                    <option value="KIMBERLY">KIMBERLY</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="fecha">Fecha:</label>
+                <input type="date" id="fecha" name="fecha" required>
+            </div>
+            <div class="form-group">
+                <label for="tipo_carga">Tipo de Carga:</label>
+                <select id="tipo_carga" name="tipo_carga" required>
+                    <option value="" >Seleccione el Tipo de Carga</option>
+                    <option value="1 CONTENEDOR 40 HQ" >1 CONTENEDOR 40 HQ</option>
+                    <option value="1 CONTENEDOR 40 NOR" >1 CONTENEDOR 40 NOR</option>
+                    <option value="1 CONTENEDOR 20 ST">1 CONTENEDOR 20 ST</option>
+                    <option value="CONSOLIDADO">CONSOLIDADO</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <div class="form-group">
+                <label for="producto">Producto:</label>
+                <input type="text" id="producto" name="producto" required onkeyup="buscarProductos(this.value)">
+                <ul id="suggestions-producto" style="list-style:none;padding-left:0;margin-top:2px;max-height:120px;overflow-y:auto;border:1px solid #ccc;border-radius:6px;background:#fff;position:absolute;z-index:10;min-width:220px;max-width:340px;width:auto;display:none;"></ul>
+            </div>
+            <div class="form-group">
+                <label for="codigo">Código:</label>
+                <input type="text" id="codigo" name="codigo" required readonly style="background-color:#f5f5f5;">
+            </div>
+            <div class="form-group">
+                <label for="unidad_medida">Unidad de Medida:</label>
+                <select id="unidad_medida" name="unidad_medida" required>
+                    <option value="">Seleccione ...</option>
+                    <option value="UNIDAD">UNIDAD</option>
+                    <option value="DOCENA">DOCENA</option>
+                    <option value="CAJAS">CAJAS</option>
+                    <option value="ROLLO">ROLLO</option>
+                </select>
+            </div>
+            <div class="form-group" style="display:flex; gap:10px; align-items:end;">
+                <div style="flex:1;">
+                    <label for="cantidad">Cantidad:</label>  
+                    <input type="text" id="cantidad" name="cantidad" required>
+                </div>
+                <div style="flex:1;">
+                    <label for="cantidad_en_caja">Cantidad en Caja:</label>
+                    <input type="text" id="cantidad_en_caja" name="cantidad_en_caja">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="imagen_producto">Imagen:</label>
+                <input type="file" id="imagen_producto" accept="image/*" style="display:none;">
+                <label for="imagen_producto" class="btn btn-primary" id="btn-subir-imagen" style="display:inline-block; cursor:pointer; color: white;">
+                    <i class="bi bi-image"></i> Seleccionar imagen
+                </label>
+                <span id="nombre-imagen-seleccionada" style="margin-left:10px; color:#555; font-size:0.95em;">Ningún archivo seleccionado</span>
+            </div>
+            <div class="form-group" style="min-width:150px; display:none;">
+                <label for="verificacion">Verificación:</label>
+                <select id="verificacion" name="verificacion" required>
+                    <option value="">Seleccione</option>
+                    <option value="SI">SI</option>
+                    <option value="NO">NO</option>
+                </select>
+            </div>
+            <div class="form-group" style="min-width:200px; display:none;">
+                <label for="observaciones">Observaciones:</label>
+                <textarea id="observaciones" name="observaciones" rows="1" maxlength="90"
+                    style="width:100%; resize:none;" placeholder="Detalles..."></textarea>
+            </div>
+            <div class="form-group" style="grid-column: 1 / -1; text-align: right;">
+                                 <button type="button" class="btn btn-primary" onclick="agregarFila()">Agregar a la Lista</button>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>N°</th>
+                        <th>Producto</th>
+                        <th>Código</th>
+                        <th>Unidad de Medida</th>
+                        <th>Cantidad</th>
+                        <th>Cantidad en Caja</th>
+                        <th>Imagen</th>
+                        <th>Verificación</th>
+                        <th>Observaciones</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="total-container">
+            <div class="total-table-wrapper">
+                <table class="total-table">
+                    <tbody>
+                        <tr>
+                            <td class="total-label">TOTAL :</td>
+                            <td class="total-value"><span id="totalCantidad">0</span></td>
+                            <td class="total-label">TOTAL EN CAJA:</td>
+                            <td class="total-value"><span id="totalCantidadEnCaja">0</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="footer-buttons">
+            <button type="button" class="btn btn-secondary" onclick="limpiarFormularioCompleto()" style="margin-right: 10px;">Limpiar Formulario</button>
+            <button type="button" class="btn btn-primary" onclick="generarFichaImportacionPDF()">Registrar PDF</button>
+        </div>
+    </div>
+</body>
+
+<!-- Modal de Edición -->
+<div id="modalEdicion" class="modal-edit">
+    <div class="modal-content-edit">
+        <div class="modal-header-edit">
+            <h2>Editar Producto</h2>
+            <button type="button" class="close-modal" onclick="cerrarModal()">&times;</button>
+        </div>
+        <div class="modal-body-edit">
+            <form id="formEdicion">
+                <input type="hidden" id="editRowIndex">
+                <div class="form-group">
+                    <label for="editProducto">Producto:</label>
+                    <div style="position:relative;">
+                        <input type="text" id="editProducto" class="edit-input" required onkeyup="buscarProductosEdit(this.value)">
+                        <ul id="suggestions-edit-modal" class="suggestions-edit" style="display:none;"></ul>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="editCodigo">Código:</label>
+                    <input type="text" id="editCodigo" class="edit-input" readonly style="background-color:#f5f5f5;">
+                </div>
+                <div class="form-group">
+                    <label for="editUnidad">Unidad de Medida:</label>
+                    <select id="editUnidad" class="edit-select" required>
+                        <option value="UNIDAD">UNIDAD</option>
+                        <option value="DOCENA">DOCENA</option>
+                        <option value="CAJAS">CAJAS</option>
+                        <option value="ROLLO">ROLLO</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="editCantidad">Cantidad:</label>
+                    <input type="text" id="editCantidad" class="edit-input" required>
+                </div>
+                <div class="form-group">
+                    <label for="editCantidadEnCaja">Cantidad en Caja:</label>
+                    <input type="text" id="editCantidadEnCaja" class="edit-input">
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer-edit">
+            <button type="button" class="btn btn-secondary" onclick="cerrarModal()">Cancelar</button>
+            <button type="button" class="btn btn-primary" onclick="guardarEdicion()">Guardar Cambios</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- Autocompletado de productos y código ---
+    // --- Envío de datos para generar PDF ---
+    function generarFichaImportacionPDF() {
+        // Validar campos obligatorios
+        const numeroDespacho = document.getElementById('numero_despacho').value.trim();
+        const redactadoPor = document.getElementById('redactado_por').value;
+        const fecha = document.getElementById('fecha').value;
+        const tipoCarga = document.getElementById('tipo_carga').value;
+        const totalCantidad = document.getElementById('totalCantidad').textContent;
+        const totalCantidadEnCaja = document.getElementById('totalCantidadEnCaja').textContent;
+
+        // Validaciones
+        if (!numeroDespacho) {
+            alert('Por favor, ingrese el N° de Despacho.');
+            return;
+        }
+        if (!redactadoPor) {
+            alert('Por favor, seleccione quién redactó el documento.');
+            return;
+        }
+        if (!fecha) {
+            alert('Por favor, seleccione la fecha.');
+            return;
+        }
+        if (!tipoCarga) {
+            alert('Por favor, seleccione el tipo de carga.');
+            return;
+        }
+
+        // Obtener datos de la tabla
+        const filas = Array.from(document.querySelectorAll('.table-container table tbody tr'));
+        if (filas.length === 0) {
+            alert('Por favor, agregue al menos un producto a la lista.');
+            return;
+        }
+
+        const productos = filas.map(fila => {
+            const celdas = fila.querySelectorAll('td');
+            const imgEl = celdas[6] ? celdas[6].querySelector('img') : null;
+            return {
+                numero: celdas[0].textContent.trim(),
+                producto: celdas[1].textContent.trim(),
+                codigo: celdas[2].textContent.trim(),
+                unidad: celdas[3].textContent.trim(),
+                cantidad: celdas[4].textContent.trim(),
+                cantidadEnCaja: celdas[5].textContent.trim(),
+                imagen: imgEl ? imgEl.src : ''
+            };
+        });
+
+        // Mostrar indicador de carga
+        const btnRegistrar = document.querySelector('.footer-buttons .btn.btn-primary');
+        const textoOriginal = btnRegistrar.textContent;
+        btnRegistrar.textContent = 'Generando PDF...';
+        btnRegistrar.disabled = true;
+
+        console.log('Datos a enviar:', {
+            numeroDespacho,
+            redactadoPor,
+            fecha,
+            tipoCarga,
+            productos,
+            totalCantidad,
+            totalCantidadEnCaja
+        });
+
+        // Llamar a Apps Script con función alternativa si falla
+        function intentarGenerarPDF(usarAlternativo = false) {
+            const funcion = usarAlternativo ? 'generarFichaImportacionPDFAlternativo' : 'generarFichaImportacionPDF';
+            const totalCantidadEnCaja = document.getElementById('totalCantidadEnCaja').textContent;
+        const datos = {
+                numeroDespacho,
+                redactadoPor,
+                fecha,
+                tipoCarga,
+                productos,
+                totalCantidad,
+                totalCantidadEnCaja
+            };
+            
+            google.script.run
+                .withSuccessHandler(function(url) {
+                    btnRegistrar.textContent = textoOriginal;
+                    btnRegistrar.disabled = false;
+                    
+                    if (url) {
+                        const metodo = usarAlternativo ? ' (método alternativo)' : '';
+                        alert('¡PDF generado exitosamente' + metodo + '!\n\nPuedes descargarlo aquí: ' + url);
+                        // Abrir el PDF en una nueva pestaña
+                        window.open(url, '_blank');
+                        // Limpiar formulario después de generar PDF exitosamente
+                        limpiarFormularioCompleto();
+                    } else {
+                        alert('Error al generar el PDF. Por favor, intente nuevamente.');
+                    }
+                })
+                .withFailureHandler(function(error) {
+                    console.error('Error al generar PDF:', error);
+                    
+                    // Si es el primer intento y falla, intentar con método alternativo
+                    if (!usarAlternativo) {
+                        console.log('Intentando con método alternativo...');
+                        intentarGenerarPDF(true);
+                    } else {
+                        // Si ambos métodos fallan, mostrar error
+                        btnRegistrar.textContent = textoOriginal;
+                        btnRegistrar.disabled = false;
+                        alert('Error al generar el PDF: ' + (error.message || error) + '\n\nSugerencias:\n1. Verifica que tengas acceso a la hoja de Google Sheets\n2. Asegúrate de que la hoja FICHA_IMPORTACION exista\n3. Verifica los permisos del script');
+                    }
+                })[funcion](datos);
+        }
+        
+        // Iniciar con el método principal
+        intentarGenerarPDF(false);
+    }
+    
+    let productosData = {};
+    const inputProducto = document.getElementById('producto');
+    const inputCodigo = document.getElementById('codigo');
+    const suggestionsProducto = document.getElementById('suggestions-producto');
+
+    function cargarProductosConCodigos(data) {
+        productosData = data;
+    }
+
+    function buscarProductos(textoBusqueda) {
+        suggestionsProducto.innerHTML = '';
+        if (textoBusqueda.length > 0) {
+            const sugerenciasFiltradas = Object.keys(productosData).filter(producto =>
+                producto.toLowerCase().includes(textoBusqueda.toLowerCase())
+            );
+            if (sugerenciasFiltradas.length > 0) {
+                suggestionsProducto.style.display = 'block';
+                sugerenciasFiltradas.forEach(producto => {
+                    const li = document.createElement('li');
+                    li.textContent = producto;
+                    li.style.padding = '8px';
+                    li.style.cursor = 'pointer';
+                    li.onmouseover = function() { li.style.background = '#eaf3ff'; };
+                    li.onmouseout = function() { li.style.background = '#fff'; };
+                    li.onclick = function() {
+                        inputProducto.value = producto;
+                        inputCodigo.value = productosData[producto];
+                        suggestionsProducto.innerHTML = '';
+                        suggestionsProducto.style.display = 'none';
+                    };
+                    suggestionsProducto.appendChild(li);
+                });
+            } else {
+                suggestionsProducto.style.display = 'none';
+            }
+        } else {
+            suggestionsProducto.style.display = 'none';
+        }
+    }
+
+    // Cargar productos al iniciar
+    window.onload = function() {
+        if (typeof cargarTablaImportaciones === 'function') cargarTablaImportaciones();
+        google.script.run.withSuccessHandler(cargarProductosConCodigos).obtenerProductosConCodigos_cambio_de_nombre();
+        
+        // Establecer fecha actual por defecto
+        const hoy = new Date();
+        const fechaFormateada = hoy.toISOString().split('T')[0]; // Formato YYYY-MM-DD
+        document.getElementById('fecha').value = fechaFormateada;
+    };
+    function actualizarNumeracion() {
+        const filas = document.querySelectorAll('.table-container table tbody tr');
+        filas.forEach((fila, idx) => {
+            // Solo actualiza la primera celda (N°) de cada fila
+            fila.querySelector('td').textContent = idx + 1;
+        });
+        actualizarTotalCantidad();
+    }
+
+    function actualizarTotalCantidad() {
+        // Selecciona solo la tabla de productos, no la tabla de total
+        const tablaProductos = document.querySelector('.table-container table');
+        const filas = tablaProductos.querySelectorAll('tbody tr');
+        let suma = 0;
+        let sumaEnCaja = 0;
+        filas.forEach(fila => {
+            // La columna cantidad es la quinta celda (índice 4)
+            const cantidad = fila.children[4].textContent;
+            suma += parseFloat(cantidad) || 0;
+            // La columna cantidad en caja es la sexta celda (índice 5)
+            const cantidadEnCaja = fila.children[5].textContent;
+            sumaEnCaja += parseFloat(cantidadEnCaja) || 0;
+        });
+        document.getElementById('totalCantidad').textContent = suma;
+        document.getElementById('totalCantidadEnCaja').textContent = sumaEnCaja;
+    }
+
+    // Redimensiona y comprime una imagen en el cliente para reducir el peso del envío
+    function resizeImageFile(file, maxDimension, quality) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let width = img.naturalWidth || img.width;
+                    let height = img.naturalHeight || img.height;
+                    const scale = Math.min(maxDimension / width, maxDimension / height, 1);
+                    const targetW = Math.round(width * scale);
+                    const targetH = Math.round(height * scale);
+                    canvas.width = targetW;
+                    canvas.height = targetH;
+                    const ctx = canvas.getContext('2d');
+                    ctx.clearRect(0, 0, targetW, targetH);
+                    ctx.drawImage(img, 0, 0, targetW, targetH);
+                    try {
+                        const dataUrl = canvas.toDataURL('image/jpeg', quality);
+                        resolve(dataUrl);
+                    } catch (err) {
+                        // Si falla (por restricciones del navegador), usar el original
+                        resolve(e.target.result);
+                    }
+                };
+                img.onerror = reject;
+                img.src = e.target.result;
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
+    }
+
+    function agregarFila() {
+        const producto = document.getElementById('producto').value.trim();
+        const codigo = document.getElementById('codigo').value.trim();
+        const unidad = document.getElementById('unidad_medida').value;
+        const cantidad = document.getElementById('cantidad').value.trim();
+        const cantidadEnCaja = document.getElementById('cantidad_en_caja').value.trim();
+
+        // Validaciones detalladas
+        if (!producto) {
+            alert('Por favor, ingrese el nombre del producto.');
+            document.getElementById('producto').focus();
+            return;
+        }
+        if (!codigo) {
+            alert('Por favor, seleccione un producto para obtener el código automáticamente.');
+            document.getElementById('producto').focus();
+            return;
+        }
+        if (!unidad) {
+            alert('Por favor, seleccione la unidad de medida.');
+            document.getElementById('unidad_medida').focus();
+            return;
+        }
+        if (!cantidad) {
+            alert('Por favor, ingrese la cantidad.');
+            document.getElementById('cantidad').focus();
+            return;
+        }
+        if (isNaN(cantidad) || parseFloat(cantidad) <= 0) {
+            alert('Por favor, ingrese una cantidad válida (número mayor a 0).');
+            document.getElementById('cantidad').focus();
+            return;
+        }
+        if (cantidadEnCaja && (isNaN(cantidadEnCaja) || parseFloat(cantidadEnCaja) < 0)) {
+            alert('Por favor, ingrese una cantidad en caja válida (número mayor o igual a 0).');
+            document.getElementById('cantidad_en_caja').focus();
+            return;
+        }
+
+        // Verificar límite de productos (máximo 26 filas)
+        const filasExistentes = document.querySelectorAll('table tbody tr').length;
+        if (filasExistentes >= 26) {
+            alert('Se ha alcanzado el límite máximo de 26 productos por ficha de importación.');
+            return;
+        }
+
+        const inputImagen = document.getElementById('imagen_producto');
+        const nombrePreview = document.getElementById('nombre-imagen-seleccionada');
+        const archivoImagen = inputImagen && inputImagen.files ? inputImagen.files[0] : null;
+
+        function crearFilaConImagen(dataUrlImagen) {
+            const tbody = document.querySelector('table tbody');
+            const row = document.createElement('tr');
+            const imagenCeldaHTML = dataUrlImagen ? `<img src="${dataUrlImagen}" style="width:60px;height:60px;object-fit:contain;" />` : '';
+            row.innerHTML = `
+                <td></td>
+                <td>${producto}</td>
+                <td>${codigo}</td>
+                <td>${unidad}</td>
+                <td>${cantidad}</td>
+                <td>${cantidadEnCaja}</td>
+                <td>${imagenCeldaHTML}</td>
+                <td></td>
+                <td></td>
+                <td class="table-actions">
+                    <button type="button" class="action-btn edit action-btn-tooltip" onclick="editarFila(this)" data-tooltip="Editar producto">
+                        <i class="bi bi-pencil-square"></i>
+                    </button>
+                    <button type="button" class="action-btn delete action-btn-tooltip" onclick="eliminarFila(this)" data-tooltip="Eliminar producto">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </td>
+            `;
+
+            tbody.appendChild(row);
+            actualizarNumeracion();
+
+            // Limpiar campos
+            document.getElementById('producto').value = '';
+            document.getElementById('codigo').value = '';
+            document.getElementById('unidad_medida').value = '';
+            document.getElementById('cantidad').value = '';
+            document.getElementById('cantidad_en_caja').value = '';
+            if (inputImagen) { inputImagen.value = ''; nombrePreview.textContent = 'Ningún archivo seleccionado'; }
+            document.getElementById('verificacion').value = '';
+            document.getElementById('observaciones').value = '';
+            
+            // Enfocar el campo de producto para la siguiente entrada
+            document.getElementById('producto').focus();
+        }
+
+        if (archivoImagen) {
+            // Redimensionar a 300px máx y calidad 0.7 para reducir tamaño
+            resizeImageFile(archivoImagen, 300, 0.7)
+                .then(dataUrl => crearFilaConImagen(dataUrl))
+                .catch(() => crearFilaConImagen(''));
+        } else {
+            crearFilaConImagen('');
+        }
+    }
+
+    // Actualizar texto del nombre de archivo seleccionado
+    document.addEventListener('change', function(e){
+        if (e.target && e.target.id === 'imagen_producto') {
+            const nombre = e.target.files && e.target.files[0] ? e.target.files[0].name : 'Ningún archivo seleccionado';
+            const nombrePreview = document.getElementById('nombre-imagen-seleccionada');
+            if (nombrePreview) nombrePreview.textContent = nombre;
+        }
+    });
+
+    function eliminarFila(btn) {
+        const fila = btn.closest('tr');
+        fila.remove();
+        actualizarNumeracion();
+    }
+
+    let filaEnEdicion = null;
+
+    function editarFila(btn) {
+        filaEnEdicion = btn.closest('tr');
+        const cells = filaEnEdicion.children;
+        
+        // Llenar el formulario con los datos actuales
+        document.getElementById('editProducto').value = cells[1].textContent.trim();
+        document.getElementById('editCodigo').value = cells[2].textContent.trim();
+        document.getElementById('editUnidad').value = cells[3].textContent.trim();
+        document.getElementById('editCantidad').value = cells[4].textContent.trim();
+        document.getElementById('editCantidadEnCaja').value = cells[5].textContent.trim();
+
+        // Mostrar el modal
+        document.getElementById('modalEdicion').classList.add('show');
+    }
+
+    function cerrarModal() {
+        document.getElementById('modalEdicion').classList.remove('show');
+        filaEnEdicion = null;
+        document.getElementById('formEdicion').reset();
+        document.getElementById('suggestions-edit-modal').style.display = 'none';
+    }
+
+    function buscarProductosEdit(valor) {
+        const sugerenciasContainer = document.getElementById('suggestions-edit-modal');
+        valor = valor.trim().toUpperCase();
+        
+        if (valor.length < 2) {
+            sugerenciasContainer.style.display = 'none';
+            return;
+        }
+
+        // Filtrar productos que coincidan con la búsqueda
+        const sugerencias = Object.keys(productosData)
+            .filter(producto => producto.toUpperCase().includes(valor))
+            .slice(0, 10); // Limitar a 10 sugerencias
+
+        if (sugerencias.length > 0) {
+            sugerenciasContainer.innerHTML = sugerencias
+                .map(producto => `<li onclick="seleccionarProductoEdit('${producto}')">${producto}</li>`)
+                .join('');
+            sugerenciasContainer.style.display = 'block';
+        } else {
+            sugerenciasContainer.style.display = 'none';
+        }
+    }
+
+    function seleccionarProductoEdit(producto) {
+        document.getElementById('editProducto').value = producto;
+        document.getElementById('editCodigo').value = productosData[producto] || '';
+        document.getElementById('suggestions-edit-modal').style.display = 'none';
+    }
+
+    function guardarEdicion() {
+        if (!filaEnEdicion) return;
+        
+        const producto = document.getElementById('editProducto').value.trim();
+        const codigo = document.getElementById('editCodigo').value.trim();
+        const unidad = document.getElementById('editUnidad').value;
+        const cantidad = document.getElementById('editCantidad').value.trim();
+        const cantidadEnCaja = document.getElementById('editCantidadEnCaja').value.trim();
+
+        // Validaciones
+        if (!producto || !codigo || !unidad || !cantidad) {
+            alert('Por favor, complete todos los campos requeridos.');
+            return;
+        }
+
+        if (isNaN(cantidad) || parseFloat(cantidad) <= 0) {
+            alert('Por favor, ingrese una cantidad válida (número mayor a 0).');
+            return;
+        }
+
+        if (cantidadEnCaja && (isNaN(cantidadEnCaja) || parseFloat(cantidadEnCaja) < 0)) {
+            alert('Por favor, ingrese una cantidad en caja válida (número mayor o igual a 0).');
+            return;
+        }
+
+        // Actualizar la fila
+        const cells = filaEnEdicion.children;
+        cells[1].textContent = producto;
+        cells[2].textContent = codigo;
+        cells[3].textContent = unidad;
+        cells[4].textContent = cantidad;
+        cells[5].textContent = cantidadEnCaja;
+
+        // Actualizar los totales después de la edición
+        actualizarTotalCantidad();
+        
+        cerrarModal();
+    }
+    function actualizarCodigoProductoEdit(input) {
+        // Autocompletar el código según el producto editado
+        const fila = input.closest('tr');
+        const productoEdit = input.value.trim();
+        if (productosData[productoEdit]) {
+            fila.children[2].querySelector('input').value = productosData[productoEdit];
+        } else {
+            fila.children[2].querySelector('input').value = '';
+        }
+    }
+    function guardarEdicionFila(btn) {
+        const fila = btn.closest('tr');
+        const producto = fila.children[1].querySelector('input').value.trim();
+        const codigo = fila.children[2].querySelector('input').value.trim();
+        const unidad = fila.children[3].querySelector('select').value;
+        const cantidad = fila.children[4].querySelector('input').value.trim();
+        const cantidadEnCaja = fila.children[5].querySelector('input').value.trim();
+        // Validaciones básicas
+        if (!producto) {
+            alert('Por favor, ingrese el nombre del producto.');
+            fila.children[1].querySelector('input').focus();
+            return;
+        }
+        if (!codigo) {
+            alert('Por favor, seleccione un producto válido para obtener el código.');
+            fila.children[1].querySelector('input').focus();
+            return;
+        }
+        if (!unidad) {
+            alert('Por favor, seleccione la unidad de medida.');
+            fila.children[3].querySelector('select').focus();
+            return;
+        }
+        if (!cantidad || isNaN(cantidad) || parseFloat(cantidad) <= 0) {
+            alert('Por favor, ingrese una cantidad válida.');
+            fila.children[4].querySelector('input').focus();
+            return;
+        }
+        if (cantidadEnCaja && (isNaN(cantidadEnCaja) || parseFloat(cantidadEnCaja) < 0)) {
+            alert('Por favor, ingrese una cantidad en caja válida.');
+            fila.children[5].querySelector('input').focus();
+            return;
+        }
+        // Actualizar los valores en la fila
+        fila.children[1].textContent = producto;
+        fila.children[2].textContent = codigo;
+        fila.children[3].textContent = unidad;
+        fila.children[4].textContent = cantidad;
+        fila.children[5].textContent = cantidadEnCaja;
+        // Restaurar el botón editar
+        fila.querySelector('.btn-primary').outerHTML = `<button type='button' class='btn btn-secondary' onclick='editarFila(this)'>Editar</button>`;
+        actualizarNumeracion();
+    }
+
+    function limpiarFormularioCompleto() {
+        // Limpiar campos principales
+        document.getElementById('numero_despacho').value = '';
+        document.getElementById('redactado_por').value = '';
+        document.getElementById('tipo_carga').value = '';
+        
+        // La fecha se mantiene como la actual
+        const hoy = new Date();
+        const fechaFormateada = hoy.toISOString().split('T')[0];
+        document.getElementById('fecha').value = fechaFormateada;
+        
+        // Limpiar tabla de productos
+        const tbody = document.querySelector('table tbody');
+        tbody.innerHTML = '';
+        
+        // Actualizar numeración y total
+        actualizarNumeracion();
+        
+        // Limpiar campos de producto
+        document.getElementById('producto').value = '';
+        document.getElementById('codigo').value = '';
+        document.getElementById('unidad_medida').value = '';
+        document.getElementById('cantidad').value = '';
+        document.getElementById('cantidad_en_caja').value = '';
+        document.getElementById('verificacion').value = '';
+        document.getElementById('observaciones').value = '';
+        
+        // Enfocar el primer campo
+        document.getElementById('numero_despacho').focus();
+    }
+</script>
+
+</html>
