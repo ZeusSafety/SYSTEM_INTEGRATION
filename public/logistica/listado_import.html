@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Listado Importaciones - ZEUS SAFETY</title>
+  <title>Listado Importaciones Logística - ZEUS SAFETY</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
   <style>
     * {
@@ -72,7 +72,7 @@
     }
 
     .container {
-      max-width: 1200px;
+      max-width: 1400px;
       width: 100%;
       background: rgba(255, 255, 255, 0.95);
       border-radius: 20px;
@@ -253,12 +253,13 @@
       margin: 0;
       border-radius: 16px;
       overflow: hidden;
+      min-width: 1600px;
     }
 
     .table thead th {
       text-align: center !important;
       vertical-align: middle !important;
-      font-size: 1.08rem;
+      font-size: 0.95rem;
       letter-spacing: 0.5px;
       background: var(--azul-oscuro) !important;
       color: var(--blanco) !important;
@@ -267,44 +268,55 @@
       box-shadow: 0 2px 8px rgba(0, 38, 77, 0.2);
       text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
       text-transform: uppercase;
-      padding: 16px 12px;
+      padding: 12px 8px;
       letter-spacing: 1px;
     }
 
     .table td {
       text-align: center;
       vertical-align: middle;
-      padding: 12px 8px;
+      padding: 10px 6px;
       border-color: #e9ecef;
       white-space: nowrap;
+      min-width: 80px;
+      font-size: 0.9rem;
+    }
+
+    .table td:nth-child(5) {
+      /* Productos */
+      white-space: pre-line;
+      min-width: 150px;
+      max-width: 200px;
+    }
+
+    .table td:nth-child(6) {
+      /* Archivo PDF */
       min-width: 100px;
     }
 
-    .table td:nth-child(4) {
-      /* Productos */
-      white-space: pre-line;
-      min-width: 180px;
-      max-width: 320px;
-    }
-
-    .table td:nth-child(9) {
-      /* Canal */
-      min-width: 120px;
-    }
-
     .table td:nth-child(10) {
-      /* Fecha Recepción */
-      min-width: 130px;
+      /* Canal */
+      min-width: 80px;
     }
 
     .table td:nth-child(11) {
-      /* Incidencias */
+      /* Fecha Recepción */
       min-width: 120px;
     }
 
     .table td:nth-child(12) {
-      /* Acciones */
+      /* Incidencias */
+      min-width: 100px;
+    }
+
+    .table td:nth-child(13) {
+      /* Fecha Incidencias */
       min-width: 120px;
+    }
+
+    .table td:nth-child(14) {
+      /* Acciones */
+      min-width: 100px;
     }
 
     .table-striped>tbody>tr:nth-of-type(odd) {
@@ -337,92 +349,101 @@
       background: var(--maiz-oscuro) !important;
       color: var(--negro) !important;
       font-weight: bold;
-      border-radius: 8px;
-      padding: 6px 14px;
+      border-radius: 6px;
+      padding: 4px 8px;
       display: inline-block;
       box-shadow: 0 2px 8px rgba(226, 163, 15, 0.3);
+      font-size: 0.85rem;
     }
 
     .estado-produccion {
       background: var(--rojo) !important;
       color: var(--blanco) !important;
       font-weight: bold;
-      border-radius: 8px;
-      padding: 6px 14px;
+      border-radius: 6px;
+      padding: 4px 8px;
       display: inline-block;
       box-shadow: 0 2px 8px rgba(230, 57, 70, 0.3);
+      font-size: 0.85rem;
     }
 
     .estado-eta {
       background: var(--verde) !important;
       color: var(--blanco) !important;
       font-weight: bold;
-      border-radius: 8px;
-      padding: 6px 14px;
+      border-radius: 6px;
+      padding: 4px 8px;
       display: inline-block;
       box-shadow: 0 2px 8px rgba(67, 170, 139, 0.3);
+      font-size: 0.85rem;
     }
 
     .estado-incidencia-si {
       background: var(--rojo-alerta) !important;
       color: var(--blanco) !important;
       font-weight: bold;
-      border-radius: 8px;
-      padding: 6px 14px;
+      border-radius: 6px;
+      padding: 4px 8px;
       display: inline-block;
       box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+      font-size: 0.85rem;
     }
 
     .estado-incidencia-no {
       background: var(--verde-exito) !important;
       color: var(--blanco) !important;
       font-weight: bold;
-      border-radius: 8px;
-      padding: 6px 14px;
+      border-radius: 6px;
+      padding: 4px 8px;
       display: inline-block;
       box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+      font-size: 0.85rem;
     }
 
     .canal-verde {
       background: rgba(40, 167, 69, 0.2) !important;
       color: var(--verde-exito) !important;
       font-weight: bold;
-      border-radius: 8px;
-      padding: 6px 14px;
+      border-radius: 6px;
+      padding: 4px 8px;
       display: inline-block;
       border: 2px solid var(--verde-exito);
+      font-size: 0.85rem;
     }
 
     .canal-rojo {
       background: rgba(220, 53, 69, 0.2) !important;
       color: var(--rojo-alerta) !important;
       font-weight: bold;
-      border-radius: 8px;
-      padding: 6px 14px;
+      border-radius: 6px;
+      padding: 4px 8px;
       display: inline-block;
       border: 2px solid var(--rojo-alerta);
+      font-size: 0.85rem;
     }
 
     .canal-naranja {
       background: rgba(255, 193, 7, 0.2) !important;
       color: #fd7e14 !important;
       font-weight: bold;
-      border-radius: 8px;
-      padding: 6px 14px;
+      border-radius: 6px;
+      padding: 4px 8px;
       display: inline-block;
       border: 2px solid #fd7e14;
+      font-size: 0.85rem;
     }
 
     .btn-actualizar {
       background: var(--azul-oscuro);
       color: var(--blanco);
       border-radius: 6px;
-      padding: 6px 16px;
+      padding: 6px 12px;
       font-weight: 600;
       border: none;
       transition: all 0.3s ease;
       box-shadow: 0 4px 12px rgba(0, 38, 77, 0.2);
       cursor: pointer;
+      font-size: 0.85rem;
     }
 
     .btn-actualizar:hover {
@@ -436,11 +457,12 @@
       background: var(--azul-oscuro);
       color: var(--blanco);
       border-radius: 6px;
-      padding: 6px 16px;
+      padding: 6px 12px;
       font-weight: 600;
       border: none;
       transition: all 0.3s ease;
       box-shadow: 0 4px 12px rgba(0, 38, 77, 0.2);
+      font-size: 0.85rem;
     }
 
     .btn-pdf:hover {
@@ -545,14 +567,6 @@
       background: var(--maiz-claro);
     }
 
-    .table {
-      margin: 0;
-      border-radius: 16px;
-      overflow: hidden;
-      min-width: 1200px;
-      /* Ancho mínimo para asegurar que todas las columnas sean visibles */
-    }
-
     /* Responsive design */
     @media (max-width: 768px) {
       .btn-back {
@@ -628,7 +642,6 @@
 
     .header-spacer {
       width: 150px;
-      /* Mismo ancho que el logo para mantener centrado el título */
     }
 
     .header-title h1 {
@@ -706,7 +719,7 @@
         alt="Logo Zeus">
     </div>
     <div class="header-title">
-      <h1>LISTADO IMPORTACIONES</h1>
+      <h1>LISTADO IMPORTACIONES LOGÍSTICA</h1>
     </div>
     <div class="header-spacer"></div>
   </div>
@@ -715,7 +728,7 @@
 
   <div class="container">
     <div class="header">
-      <h2><i class="fas fa-list-alt"></i>Consulta y Filtrado de Registros de Importación </h2>
+      <h2><i class="fas fa-list-alt"></i>Consulta y Filtrado de Registros de Importación Logística</h2>
     </div>
 
     <div class="logo-container">
@@ -749,23 +762,25 @@
         <table class="table table-striped table-hover align-middle" id="tablaImportaciones">
           <thead class="table-dark sticky-top">
             <tr>
+              <th>ID</th>
               <th>Fecha Registro</th>
               <th>N° Despacho</th>
               <th>Redactado por</th>
-              <th style="min-width:180px;max-width:320px;">Productos</th>
+              <th>Productos</th>
               <th>Archivo_PDF</th>
               <th>Fecha Llegada</th>
               <th>Tipo de Carga</th>
               <th>Estado</th>
               <th>Canal</th>
-              <th>Fecha Recepción</th>
+              <th>Fecha de Recepción</th>
               <th>Incidencias</th>
+              <th>Fecha de Incidencias</th>
               <th>Acciones</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td colspan="12" class="text-center">Cargando...</td>
+              <td colspan="14" class="text-center">Cargando...</td>
             </tr>
           </tbody>
         </table>
@@ -811,12 +826,14 @@
   <script>
     let registrosGlobal = [];
 
-    // Función para consumir la API
+    // Función para consumir la API con parámetro logistica
     async function obtenerDatosAPI() {
       const api = "https://importacionesvr01crud-2946605267.us-central1.run.app";
+      const logistica = "logistica";
 
       try {
-        const response = await fetch(api);
+        const url = `${api}?logistica=${logistica}`;
+        const response = await fetch(url);
 
         if (response.status === 200) {
           const datos = await response.text();
@@ -834,12 +851,12 @@
 
     function cargarTablaImportaciones(filtrados = null) {
       const tbody = document.querySelector('#tablaImportaciones tbody');
-      tbody.innerHTML = '<tr><td colspan="12" class="text-center">Cargando...</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="14" class="text-center">Cargando...</td></tr>';
       let ultimoId = localStorage.getItem('ultimoIdImportacion');
 
       const render = function (registros) {
         if (!Array.isArray(registros) || registros.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="12" class="text-center">Sin registros</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="14" class="text-center">Sin registros</td></tr>';
           return;
         }
 
@@ -861,8 +878,9 @@
             tr.classList.add('fila-nueva');
           }
 
-          // Crear las celdas en el orden correcto
+          // Crear las celdas en el orden correcto según las columnas especificadas
           const celdas = [
+            row.ID_IMPORTACIONES,
             row.FECHA_REGISTRO,
             row.NUMERO_DESPACHO,
             row.RESPONSABLE,
@@ -873,37 +891,51 @@
             row.ESTADO_IMPORTACION,
             row.CANAL,
             row.FECHA_RECEPCION,
-            row.INCIDENCIAS
+            row.INCIDENCIAS,
+            row.INCIDENCIA_REGISTRO
           ];
 
           celdas.forEach(function (cell, idx) {
             const td = document.createElement('td');
 
-            if (idx === 3) { // Productos
-              td.style.minWidth = '180px';
-              td.style.maxWidth = '320px';
+            if (idx === 0) { // ID
+              td.textContent = cell;
+              td.style.fontWeight = 'bold';
+              td.style.color = 'var(--azul-oscuro)';
+            } else if (idx === 1) { // Fecha Registro
+              td.textContent = cell;
+            } else if (idx === 2) { // N° Despacho
+              td.textContent = cell;
+              td.style.fontWeight = 'bold';
+            } else if (idx === 3) { // Redactado por
+              td.textContent = cell;
+            } else if (idx === 4) { // Productos
+              td.style.minWidth = '150px';
+              td.style.maxWidth = '200px';
               td.style.whiteSpace = 'pre-line';
               td.style.overflowWrap = 'break-word';
               td.style.wordBreak = 'break-word';
               td.style.verticalAlign = 'top';
               td.style.position = 'relative';
               td.style.height = '100%';
-              if (cell && String(cell).length > 120) {
+              if (cell && String(cell).length > 80) {
                 td.style.overflowY = 'auto';
-                td.style.maxHeight = '80px';
+                td.style.maxHeight = '60px';
               }
               td.textContent = cell;
-            } else if (idx === 4) { // Archivo PDF
+            } else if (idx === 5) { // Archivo PDF
               if (cell && typeof cell === 'string' && cell.startsWith('http')) {
                 td.innerHTML = `<button class="btn-pdf" onclick="window.open('${cell}','_blank')"><i class='fas fa-file-pdf'></i> PDF</button>`;
               } else {
-                td.textContent = cell;
+                td.textContent = cell || '';
               }
-            } else if (idx === 6) { // Tipo de Carga
+            } else if (idx === 6) { // Fecha Llegada
+              td.textContent = cell;
+            } else if (idx === 7) { // Tipo de Carga
               td.textContent = cell;
               td.style.fontWeight = 'bold';
               td.style.color = 'var(--azul-oscuro)';
-            } else if (idx === 7) { // Estado
+            } else if (idx === 8) { // Estado
               let estado = String(cell).toUpperCase();
               if (estado === 'TRANSITO') {
                 td.innerHTML = `<span class='estado-transito'>${cell}</span>`;
@@ -914,7 +946,7 @@
               } else {
                 td.textContent = cell;
               }
-            } else if (idx === 8) { // Canal
+            } else if (idx === 9) { // Canal
               let canal = String(cell).toUpperCase();
               if (canal === 'VERDE') {
                 td.innerHTML = `<span class='canal-verde'>${cell}</span>`;
@@ -925,21 +957,13 @@
               } else {
                 td.textContent = cell;
               }
-            } else if (idx === 9) { // Fecha Recepción
+            } else if (idx === 10) { // Fecha Recepción
               if (cell && cell !== 'null' && cell !== '') {
-                // Convertir formato de fecha si es necesario
-                let fecha = cell;
-                if (cell.includes('/')) {
-                  const partes = cell.split('/');
-                  if (partes.length === 3) {
-                    fecha = `${partes[2]}-${partes[1].padStart(2, '0')}-${partes[0].padStart(2, '0')}`;
-                  }
-                }
-                td.textContent = fecha;
+                td.textContent = cell;
               } else {
                 td.textContent = '';
               }
-            } else if (idx === 10) { // Incidencias
+            } else if (idx === 11) { // Incidencias
               let incidencia = String(cell).toUpperCase();
               if (incidencia === 'SI') {
                 td.innerHTML = `<span class='estado-incidencia-si'>${cell}</span>`;
@@ -947,6 +971,12 @@
                 td.innerHTML = `<span class='estado-incidencia-no'>${cell}</span>`;
               } else {
                 td.textContent = cell || '';
+              }
+            } else if (idx === 12) { // Fecha Incidencias
+              if (cell && cell !== 'null' && cell !== '') {
+                td.textContent = cell;
+              } else {
+                td.textContent = '';
               }
             } else {
               td.textContent = cell;
@@ -992,7 +1022,7 @@
           render(registrosGlobal);
         })
         .catch(function (err) {
-          tbody.innerHTML = '<tr><td colspan="9" class="text-danger">Error al cargar datos: ' + err.message + '</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="14" class="text-danger">Error al cargar datos: ' + err.message + '</td></tr>';
         })
         .finally(function () {
           // Habilitar el botón de filtro cuando los datos estén listos
@@ -1016,14 +1046,20 @@
         if (fechaInicio) {
           let f = row.FECHA_REGISTRO;
           if (f && f.length >= 10) {
-            let fRow = f.split(' ')[0].split('/').reverse().join('-');
+            let fRow = f.split(' ')[0];
+            if (fRow.includes('/')) {
+              fRow = fRow.split('/').reverse().join('-');
+            }
             cumpleFecha = cumpleFecha && (fRow >= fechaInicio);
           }
         }
         if (fechaFinal) {
           let f = row.FECHA_REGISTRO;
           if (f && f.length >= 10) {
-            let fRow = f.split(' ')[0].split('/').reverse().join('-');
+            let fRow = f.split(' ')[0];
+            if (fRow.includes('/')) {
+              fRow = fRow.split('/').reverse().join('-');
+            }
             cumpleFecha = cumpleFecha && (fRow <= fechaFinal);
           }
         }
@@ -1058,6 +1094,7 @@
       }
 
       document.getElementById('incidencias').value = incidencias || '';
+
       document.getElementById('modalActualizar').style.display = 'block';
     }
 
