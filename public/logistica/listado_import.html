@@ -692,6 +692,11 @@
             <i class="fas fa-filter"></i> Filtrar
           </button>
         </div>
+        <div class="form-group">
+          <button class="btn w-100" id="btnProcedimiento" style="background: var(--verde);">
+            <i class="fas fa-info-circle"></i> Procedimiento
+          </button>
+        </div>
       </div>
     </div>
 
@@ -756,6 +761,70 @@
         </button>
         <button type="button" class="btn" id="btnCancelar" style="background: var(--gris-medio);">
           <i class="fas fa-times"></i> Cancelar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para procedimiento -->
+  <div id="modalProcedimiento" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <span class="close-procedimiento">&times;</span>
+        <h3><i class="fas fa-info-circle"></i> Procedimiento de Importaciones Logística</h3>
+      </div>
+      <div class="modal-body">
+        <div style="text-align: left; line-height: 1.6;">
+          <h4 style="color: var(--azul-oscuro); margin-bottom: 15px;">Proceso de Gestión de Importaciones</h4>
+          
+          <div style="margin-bottom: 20px;">
+            <h5 style="color: var(--maiz-oscuro); margin-bottom: 10px;">1. Registro de Importación</h5>
+            <p>• Se registra la importación con todos los datos básicos</p>
+            <p>• Se asigna un número de despacho único</p>
+            <p>• Se especifica el tipo de carga y productos</p>
+          </div>
+
+          <div style="margin-bottom: 20px;">
+            <h5 style="color: var(--maiz-oscuro); margin-bottom: 10px;">2. Seguimiento de Estados</h5>
+            <p>• <strong>ETA:</strong> Estimated Time of Arrival - Tiempo estimado de llegada</p>
+            <p>• <strong>TRANSITO:</strong> En camino hacia destino</p>
+            <p>• <strong>PRODUCCION:</strong> En proceso de producción/manufactura</p>
+            <p>• <strong>PENDIENTE:</strong> Esperando procesamiento</p>
+          </div>
+
+          <div style="margin-bottom: 20px;">
+            <h5 style="color: var(--maiz-oscuro); margin-bottom: 10px;">3. Canales de Prioridad</h5>
+            <p>• <strong>VERDE:</strong> Prioridad normal</p>
+            <p>• <strong>NARANJA:</strong> Prioridad media</p>
+            <p>• <strong>ROJO:</strong> Prioridad alta</p>
+          </div>
+
+          <div style="margin-bottom: 20px;">
+            <h5 style="color: var(--maiz-oscuro); margin-bottom: 10px;">4. Gestión de Incidencias</h5>
+            <p>• Registrar cualquier problema durante el proceso</p>
+            <p>• Actualizar fechas de recepción cuando corresponda</p>
+            <p>• Documentar incidencias para seguimiento</p>
+          </div>
+
+          <div style="margin-bottom: 20px;">
+            <h5 style="color: var(--maiz-oscuro); margin-bottom: 10px;">5. Actualización de Datos</h5>
+            <p>• Utilizar el botón "Actualizar" para modificar información</p>
+            <p>• Actualizar fecha de recepción cuando los productos lleguen</p>
+            <p>• Marcar incidencias si las hay</p>
+          </div>
+
+          <div style="background: var(--gris-suave); padding: 15px; border-radius: 8px; border-left: 4px solid var(--maiz-oscuro);">
+            <h5 style="color: var(--azul-oscuro); margin-bottom: 10px;">Notas Importantes:</h5>
+            <p>• Mantener actualizada la información para un seguimiento eficiente</p>
+            <p>• Los documentos PDF deben estar siempre disponibles</p>
+            <p>• Comunicar cualquier cambio de estado inmediatamente</p>
+            <p>• El sistema permite filtrar por fechas y número de despacho</p>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn" id="btnCerrarProcedimiento">
+          <i class="fas fa-check"></i> Entendido
         </button>
       </div>
     </div>
@@ -1082,12 +1151,26 @@
       }
     }
 
+    // Función para abrir modal de procedimiento
+    function abrirModalProcedimiento() {
+      document.getElementById('modalProcedimiento').style.display = 'block';
+    }
+
+    // Función para cerrar modal de procedimiento
+    function cerrarModalProcedimiento() {
+      document.getElementById('modalProcedimiento').style.display = 'none';
+    }
+
     // Event listeners para el modal
     document.addEventListener('DOMContentLoaded', function () {
       const modal = document.getElementById('modalActualizar');
+      const modalProcedimiento = document.getElementById('modalProcedimiento');
       const closeBtn = document.querySelector('.close');
+      const closeBtnProcedimiento = document.querySelector('.close-procedimiento');
       const btnCancelar = document.getElementById('btnCancelar');
       const btnGuardar = document.getElementById('btnGuardar');
+      const btnProcedimiento = document.getElementById('btnProcedimiento');
+      const btnCerrarProcedimiento = document.getElementById('btnCerrarProcedimiento');
 
       // Cerrar modal con X
       closeBtn.onclick = cerrarModal;
@@ -1098,10 +1181,18 @@
       // Guardar cambios
       btnGuardar.onclick = actualizarRegistro;
 
-      // Cerrar modal haciendo clic fuera
+      // Event listeners para modal de procedimiento
+      btnProcedimiento.onclick = abrirModalProcedimiento;
+      closeBtnProcedimiento.onclick = cerrarModalProcedimiento;
+      btnCerrarProcedimiento.onclick = cerrarModalProcedimiento;
+
+      // Cerrar modales haciendo clic fuera
       window.onclick = function (event) {
         if (event.target === modal) {
           cerrarModal();
+        }
+        if (event.target === modalProcedimiento) {
+          cerrarModalProcedimiento();
         }
       }
     });
