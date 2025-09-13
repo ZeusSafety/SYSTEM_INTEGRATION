@@ -84,15 +84,6 @@
       margin: 80px auto 20px;
     }
 
-    .container::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 5px;
-      background: linear-gradient(90deg, var(--maiz-oscuro), var(--maiz-claro));
-    }
 
     .header {
       text-align: center;
@@ -135,17 +126,6 @@
       margin-bottom: 30px;
       box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
       border: 2px solid transparent;
-      border-left: 6px solid var(--maiz-oscuro);
-    }
-
-    .filters-section::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 4px;
-      background: linear-gradient(90deg, var(--maiz-oscuro), var(--maiz-claro));
     }
 
     .filters-grid {
@@ -217,37 +197,10 @@
       overflow: hidden;
       box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
       border: 2px solid transparent;
-      border-left: 6px solid var(--maiz-oscuro);
       position: relative;
     }
 
-    .table-container::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      right: 0;
-      bottom: 0;
-      width: 20px;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.8));
-      pointer-events: none;
-      z-index: 1;
-      opacity: 0;
-      transition: opacity 0.3s ease;
-    }
 
-    .table-container.has-scroll::after {
-      opacity: 1;
-    }
-
-    .table-container::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 4px;
-      background: linear-gradient(90deg, var(--maiz-oscuro), var(--maiz-claro));
-    }
 
     .table {
       margin: 0;
@@ -541,30 +494,15 @@
       max-height: 60vh;
       border-radius: 16px;
       box-shadow: 0 2px 12px rgba(0, 38, 77, 0.1);
-      overflow-x: auto;
-      overflow-y: auto;
-      scrollbar-width: thin;
-      scrollbar-color: var(--maiz-oscuro) var(--gris-suave);
+      overflow-x: hidden;
+      overflow-y: hidden;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
     }
 
-    /* Estilos para scrollbar en WebKit (Chrome, Safari, Edge) */
+    /* Ocultar scrollbar en WebKit (Chrome, Safari, Edge) */
     .table-responsive::-webkit-scrollbar {
-      height: 8px;
-      width: 8px;
-    }
-
-    .table-responsive::-webkit-scrollbar-track {
-      background: var(--gris-suave);
-      border-radius: 4px;
-    }
-
-    .table-responsive::-webkit-scrollbar-thumb {
-      background: var(--maiz-oscuro);
-      border-radius: 4px;
-    }
-
-    .table-responsive::-webkit-scrollbar-thumb:hover {
-      background: var(--maiz-claro);
+      display: none;
     }
 
     /* Responsive design */
@@ -1027,8 +965,6 @@
         .finally(function () {
           // Habilitar el botón de filtro cuando los datos estén listos
           document.getElementById('btnFiltrar').disabled = false;
-          // Detectar scroll después de cargar los datos
-          setTimeout(detectarScrollHorizontal, 100);
         });
     }
 
@@ -1177,26 +1113,8 @@
       }
     });
 
-    // Función para detectar scroll horizontal
-    function detectarScrollHorizontal() {
-      const tableContainer = document.querySelector('.table-container');
-      const tableResponsive = document.querySelector('.table-responsive');
-
-      if (tableResponsive.scrollWidth > tableResponsive.clientWidth) {
-        tableContainer.classList.add('has-scroll');
-      } else {
-        tableContainer.classList.remove('has-scroll');
-      }
-    }
-
     window.onload = function () {
       cargarTablaImportaciones();
-
-      // Detectar scroll después de cargar la tabla
-      setTimeout(detectarScrollHorizontal, 1000);
-
-      // Detectar scroll cuando cambie el tamaño de la ventana
-      window.addEventListener('resize', detectarScrollHorizontal);
     };
   </script>
 </body>
