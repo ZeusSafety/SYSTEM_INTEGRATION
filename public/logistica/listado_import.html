@@ -494,15 +494,30 @@
       max-height: 60vh;
       border-radius: 16px;
       box-shadow: 0 2px 12px rgba(0, 38, 77, 0.1);
-      overflow-x: hidden;
-      overflow-y: hidden;
-      scrollbar-width: none;
-      -ms-overflow-style: none;
+      overflow-x: auto;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--gris-medio) var(--gris-suave);
     }
 
-    /* Ocultar scrollbar en WebKit (Chrome, Safari, Edge) */
+    /* Estilos para scrollbar en WebKit (Chrome, Safari, Edge) */
     .table-responsive::-webkit-scrollbar {
-      display: none;
+      height: 8px;
+      width: 8px;
+    }
+
+    .table-responsive::-webkit-scrollbar-track {
+      background: var(--gris-suave);
+      border-radius: 4px;
+    }
+
+    .table-responsive::-webkit-scrollbar-thumb {
+      background: var(--gris-medio);
+      border-radius: 4px;
+    }
+
+    .table-responsive::-webkit-scrollbar-thumb:hover {
+      background: #5a6268;
     }
 
     /* Responsive design */
@@ -981,7 +996,7 @@
               }
             } else if (idx === 12) { // Fecha Incidencias
               if (cell && cell !== 'null' && cell !== '') {
-                td.textContent = cell;
+                td.textContent = formatearFechaConAMPM(cell);
               } else {
                 td.textContent = '';
               }
@@ -1159,6 +1174,39 @@
     // Función para cerrar modal de procedimiento
     function cerrarModalProcedimiento() {
       document.getElementById('modalProcedimiento').style.display = 'none';
+    }
+
+    // Función para formatear fecha con AM/PM
+    function formatearFechaConAMPM(fecha) {
+      if (!fecha || fecha === 'null' || fecha === '') {
+        return '';
+      }
+      
+      try {
+        // Crear objeto Date desde la fecha
+        const fechaObj = new Date(fecha);
+        
+        // Verificar si es una fecha válida
+        if (isNaN(fechaObj.getTime())) {
+          return fecha; // Retornar original si no es válida
+        }
+        
+        // Formatear con AM/PM
+        const opciones = {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: true
+        };
+        
+        return fechaObj.toLocaleString('es-ES', opciones);
+      } catch (error) {
+        console.error('Error al formatear fecha:', error);
+        return fecha; // Retornar original si hay error
+      }
     }
 
     // Event listeners para el modal
