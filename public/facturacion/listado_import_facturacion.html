@@ -84,15 +84,6 @@
       margin: 80px auto 20px;
     }
 
-    .container::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 5px;
-      background: linear-gradient(90deg, var(--maiz-oscuro), var(--maiz-claro));
-    }
 
     .header {
       text-align: center;
@@ -135,17 +126,6 @@
       margin-bottom: 30px;
       box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
       border: 2px solid transparent;
-      border-left: 6px solid var(--maiz-oscuro);
-    }
-
-    .filters-section::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 4px;
-      background: linear-gradient(90deg, var(--maiz-oscuro), var(--maiz-claro));
     }
 
     .filters-grid {
@@ -217,7 +197,6 @@
       overflow: hidden;
       box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
       border: 2px solid transparent;
-      border-left: 6px solid var(--maiz-oscuro);
       position: relative;
     }
 
@@ -239,15 +218,6 @@
       opacity: 1;
     }
 
-    .table-container::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 4px;
-      background: linear-gradient(90deg, var(--maiz-oscuro), var(--maiz-claro));
-    }
 
     .table {
       margin: 0;
@@ -522,7 +492,7 @@
       overflow-x: auto;
       overflow-y: auto;
       scrollbar-width: thin;
-      scrollbar-color: var(--maiz-oscuro) var(--gris-suave);
+      scrollbar-color: var(--gris-medio) var(--gris-suave);
     }
 
     /* Estilos para scrollbar en WebKit (Chrome, Safari, Edge) */
@@ -537,19 +507,19 @@
     }
 
     .table-responsive::-webkit-scrollbar-thumb {
-      background: var(--maiz-oscuro);
+      background: var(--gris-medio);
       border-radius: 4px;
     }
 
     .table-responsive::-webkit-scrollbar-thumb:hover {
-      background: var(--maiz-claro);
+      background: #5a6268;
     }
 
     .table {
       margin: 0;
       border-radius: 16px;
       overflow: hidden;
-      min-width: 1200px;
+      min-width: 1400px;
       /* Ancho mínimo para asegurar que todas las columnas sean visibles */
     }
 
@@ -741,6 +711,11 @@
             <i class="fas fa-filter"></i> Filtrar
           </button>
         </div>
+        <div class="form-group">
+          <button class="btn w-100" id="btnProcedimiento" style="background: var(--verde);">
+            <i class="fas fa-info-circle"></i> Procedimiento
+          </button>
+        </div>
       </div>
     </div>
 
@@ -780,11 +755,11 @@
         <form id="formActualizar">
           <input type="hidden" id="idImportacion" name="idImportacion">
           <div class="form-group">
-            <label class="form-label">Estado de Despacho</label>
+            <label class="form-label">Estado de Registro</label>
             <select class="form-control" id="estadoDespacho" name="estadoDespacho">
               <option value="">Seleccionar...</option>
-              <option value="REGISTRADO">REGISTRADO</option>
-              <option value="NO REGISTRADO">NO REGISTRADO</option>
+              <option value="SI">REGISTRADO</option>
+              <option value="NO">NO REGISTRADO</option>
             </select>
           </div>
           <div class="form-group">
@@ -799,6 +774,61 @@
         </button>
         <button type="button" class="btn" id="btnCancelar" style="background: var(--gris-medio);">
           <i class="fas fa-times"></i> Cancelar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para procedimiento -->
+  <div id="modalProcedimiento" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <span class="close-procedimiento">&times;</span>
+        <h3><i class="fas fa-info-circle"></i> Procedimiento de Facturación</h3>
+      </div>
+      <div class="modal-body">
+        <div style="text-align: left; line-height: 1.6;">
+          <h4 style="color: var(--azul-oscuro); margin-bottom: 15px;">Proceso de Gestión de Facturación</h4>
+          
+          <div style="margin-bottom: 20px;">
+            <h5 style="color: var(--maiz-oscuro); margin-bottom: 10px;">1. Registro de Importación</h5>
+            <p>• Se registra la importación con todos los datos básicos</p>
+            <p>• Se asigna un número de despacho único</p>
+            <p>• Se especifica el tipo de carga y productos</p>
+          </div>
+
+          <div style="margin-bottom: 20px;">
+            <h5 style="color: var(--maiz-oscuro); margin-bottom: 10px;">2. Estados de Facturación</h5>
+            <p>• <strong>REGISTRADO:</strong> Despacho facturado correctamente</p>
+            <p>• <strong>NO REGISTRADO:</strong> Pendiente de facturación</p>
+          </div>
+
+          <div style="margin-bottom: 20px;">
+            <h5 style="color: var(--maiz-oscuro); margin-bottom: 10px;">3. Gestión de Documentos</h5>
+            <p>• Los PDFs de solución están disponibles para consulta</p>
+            <p>• Se pueden verificar los documentos de facturación</p>
+            <p>• Registrar observaciones sobre el estado de facturación</p>
+          </div>
+
+          <div style="margin-bottom: 20px;">
+            <h5 style="color: var(--maiz-oscuro); margin-bottom: 10px;">4. Actualización de Estados</h5>
+            <p>• Utilizar el botón "Editar" para modificar información</p>
+            <p>• Actualizar estado de registro de facturación</p>
+            <p>• Agregar observaciones relevantes</p>
+          </div>
+
+          <div style="background: var(--gris-suave); padding: 15px; border-radius: 8px; border-left: 4px solid var(--maiz-oscuro);">
+            <h5 style="color: var(--azul-oscuro); margin-bottom: 10px;">Notas Importantes:</h5>
+            <p>• Mantener actualizada la información de facturación</p>
+            <p>• Los documentos PDF deben estar siempre disponibles</p>
+            <p>• Comunicar cualquier cambio de estado inmediatamente</p>
+            <p>• El sistema permite filtrar por fechas y número de despacho</p>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn" id="btnCerrarProcedimiento">
+          <i class="fas fa-check"></i> Entendido
         </button>
       </div>
     </div>
@@ -841,16 +871,10 @@
           return;
         }
 
-        // Ordenar para que el registro con el ID más alto (último) esté primero
-        let idxNuevo = -1;
-        if (registros.length > 1) {
-          let maxId = Math.max(...registros.map(r => Number(r.ID_IMPORTACIONES) || 0));
-          idxNuevo = registros.findIndex(r => Number(r.ID_IMPORTACIONES) === maxId);
-          if (idxNuevo > -1) {
-            const nuevo = registros.splice(idxNuevo, 1)[0];
-            registros.unshift(nuevo);
-          }
-        }
+        // Ordenar por ID_IMPORTACIONES (más alto primero)
+        registros.sort((a, b) => {
+          return Number(b.ID_IMPORTACIONES) - Number(a.ID_IMPORTACIONES);
+        });
 
         tbody.innerHTML = '';
         registros.forEach(function (row, i) {
@@ -884,19 +908,19 @@
           }
           tr.appendChild(tdSolucionPdf);
 
-          // Estado de Despacho
+          // Estado de Despacho - Mapear desde ESTADO_REGISTRO_FACTURACION
           const tdEstadoDespacho = document.createElement('td');
           const estadoDespacho = row.ESTADO_REGISTRO_FACTURACION || '';
-          if (estadoDespacho === 'REGISTRADO') {
-            tdEstadoDespacho.innerHTML = `<span class='estado-incidencia-no'>${estadoDespacho}</span>`;
-          } else if (estadoDespacho === 'NO REGISTRADO') {
-            tdEstadoDespacho.innerHTML = `<span class='estado-incidencia-si'>${estadoDespacho}</span>`;
+          if (estadoDespacho === 'SI') {
+            tdEstadoDespacho.innerHTML = `<span class='estado-incidencia-no'>REGISTRADO</span>`;
+          } else if (estadoDespacho === 'NO') {
+            tdEstadoDespacho.innerHTML = `<span class='estado-incidencia-si'>NO REGISTRADO</span>`;
           } else {
-            tdEstadoDespacho.textContent = estadoDespacho || '';
+            tdEstadoDespacho.textContent = '';
           }
           tr.appendChild(tdEstadoDespacho);
 
-          // Fecha de Registro
+          // Fecha de Registro - Mapear desde FECHA_REGISTRO_FACTURACION
           const tdFechaRegistroFacturacion = document.createElement('td');
           if (row.FECHA_REGISTRO_FACTURACION && row.FECHA_REGISTRO_FACTURACION !== 'null' && row.FECHA_REGISTRO_FACTURACION !== '') {
             tdFechaRegistroFacturacion.textContent = row.FECHA_REGISTRO_FACTURACION;
@@ -905,13 +929,14 @@
           }
           tr.appendChild(tdFechaRegistroFacturacion);
 
-          // Observaciones
+          // Observaciones - Mapear desde OBSERVACIONES_FACTURACION
           const tdObservaciones = document.createElement('td');
           tdObservaciones.textContent = row.OBSERVACIONES_FACTURACION || '';
           tr.appendChild(tdObservaciones);
 
           // Acciones
           const tdAcciones = document.createElement('td');
+          // Usar ID_IMPORTACIONES real y campos de facturación
           tdAcciones.innerHTML = `<button class="btn-actualizar" onclick="abrirModalActualizar(${row.ID_IMPORTACIONES}, '${row.ESTADO_REGISTRO_FACTURACION || ''}', '${row.OBSERVACIONES_FACTURACION || ''}')"><i class='fas fa-edit'></i> Editar</button>`;
           tr.appendChild(tdAcciones);
 
@@ -1003,6 +1028,16 @@
       document.getElementById('modalActualizar').style.display = 'block';
     }
 
+    // Función para abrir modal de procedimiento
+    function abrirModalProcedimiento() {
+      document.getElementById('modalProcedimiento').style.display = 'block';
+    }
+
+    // Función para cerrar modal de procedimiento
+    function cerrarModalProcedimiento() {
+      document.getElementById('modalProcedimiento').style.display = 'none';
+    }
+
     function cerrarModal() {
       document.getElementById('modalActualizar').style.display = 'none';
       document.getElementById('formActualizar').reset();
@@ -1032,8 +1067,8 @@
           },
           body: JSON.stringify({
             id: id,
-            estado_registro_facturacion: estadoDespacho || null,
-            observaciones_facturacion: observaciones || null
+            estado_registro: estadoDespacho || null,
+            observaciones: observaciones || null
           })
         });
 
@@ -1054,9 +1089,13 @@
     // Event listeners para el modal
     document.addEventListener('DOMContentLoaded', function () {
       const modal = document.getElementById('modalActualizar');
+      const modalProcedimiento = document.getElementById('modalProcedimiento');
       const closeBtn = document.querySelector('.close');
+      const closeBtnProcedimiento = document.querySelector('.close-procedimiento');
       const btnCancelar = document.getElementById('btnCancelar');
       const btnGuardar = document.getElementById('btnGuardar');
+      const btnProcedimiento = document.getElementById('btnProcedimiento');
+      const btnCerrarProcedimiento = document.getElementById('btnCerrarProcedimiento');
 
       // Cerrar modal con X
       closeBtn.onclick = cerrarModal;
@@ -1067,10 +1106,18 @@
       // Guardar cambios
       btnGuardar.onclick = actualizarRegistro;
 
-      // Cerrar modal haciendo clic fuera
+      // Event listeners para modal de procedimiento
+      btnProcedimiento.onclick = abrirModalProcedimiento;
+      closeBtnProcedimiento.onclick = cerrarModalProcedimiento;
+      btnCerrarProcedimiento.onclick = cerrarModalProcedimiento;
+
+      // Cerrar modales haciendo clic fuera
       window.onclick = function (event) {
         if (event.target === modal) {
           cerrarModal();
+        }
+        if (event.target === modalProcedimiento) {
+          cerrarModalProcedimiento();
         }
       }
     });
