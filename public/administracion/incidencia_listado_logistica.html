@@ -983,15 +983,15 @@
                                     </select>
                                 </div>
                                 <div class="form-group">
-                                    <label for="nuevaCantidadEnCaja">Cantidad en Caja:</label>
-                                    <input type="number" id="nuevaCantidadEnCaja" class="form-control" placeholder="0" min="0" step="0.01">
+                                    <label for="nuevaCantidad">Cantidad:</label>
+                                    <input type="number" id="nuevaCantidad" class="form-control" placeholder="0" min="0" step="0.01">
                                 </div>
                             </div>
                             
                             <div class="form-row">
                                 <div class="form-group">
-                                    <label for="nuevaCantidad">Cantidad:</label>
-                                    <input type="number" id="nuevaCantidad" class="form-control" placeholder="0" min="0" step="0.01">
+                                    <label for="nuevaCantidadEnCaja">Cantidad en Caja:</label>
+                                    <input type="number" id="nuevaCantidadEnCaja" class="form-control" placeholder="0" min="0" step="0.01">
                                 </div>
                             </div>
                             
@@ -1035,10 +1035,6 @@
                           <button type="button" class="btn btn-warning" onclick="guardarSoloProductos()">
                               <i class="fas fa-box"></i>
                               Guardar Solo Productos
-                          </button>
-                          <button type="submit" class="btn btn-success">
-                              <i class="fas fa-save"></i>
-                              Guardar Todo
                           </button>
                           <button type="button" class="btn btn-secondary" onclick="cerrarModalActualizar()">
                               <i class="fas fa-times"></i>
@@ -2308,6 +2304,8 @@
                         const scriptResult = await responseScript.text();
                         console.log('✅ Productos guardados exitosamente:', scriptResult);
                         mostrarAlerta('Productos guardados exitosamente', 'success');
+                        cerrarModalActualizar();
+                        cargarIncencias(); // Recargar datos
                     } else {
                         console.error('❌ Error al guardar productos:', responseScript.status);
                         const errorText = await responseScript.text();
@@ -2320,6 +2318,8 @@
                     try {
                         await enviarDatosConXMLHttpRequest(apiScript, payload, metodo);
                         mostrarAlerta('Productos guardados exitosamente', 'success');
+                        cerrarModalActualizar();
+                        cargarIncencias(); // Recargar datos
                     } catch (xhrError) {
                         console.error('❌ Error con XMLHttpRequest:', xhrError);
                         mostrarAlerta('Error al guardar los productos: ' + xhrError.message, 'error');
@@ -2704,8 +2704,7 @@
             document.getElementById('fechaDesde').value = hace30Dias.toISOString().split('T')[0];
             document.getElementById('fechaHasta').value = hoy.toISOString().split('T')[0];
             
-            // Event listener para el formulario de actualización
-            document.getElementById('formActualizarIncidencia').addEventListener('submit', guardarCambiosIncidencia);
+            // Event listener para el formulario de actualización (removido ya que eliminamos el botón "Guardar Todo")
             
             // Cerrar modal al hacer clic fuera de él
             window.onclick = function(event) {
