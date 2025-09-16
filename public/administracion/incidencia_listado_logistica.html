@@ -504,6 +504,11 @@
             margin-top: 30px;
             padding-top: 20px;
             border-top: 1px solid #e2e8f0;
+            flex-wrap: wrap;
+        }
+        
+        .form-actions .btn {
+            min-width: 140px;
         }
 
         .btn-secondary {
@@ -931,6 +936,14 @@
                             </select>
                         </div>
                     </div>
+                    
+                    <!-- Botón para actualizar solo los campos -->
+                    <div style="margin: 20px 0; padding: 15px; background: #f8f9fa; border-radius: 10px; border-left: 4px solid var(--azul-claro);">
+                        <button type="button" class="btn btn-info" onclick="guardarSoloCampos()" style="width: 100%;">
+                            <i class="fas fa-edit"></i>
+                            Actualizar Incidencia
+                        </button>
+                    </div>
 
                     <!-- Formulario para Agregar Productos -->
                     <div class="productos-section">
@@ -960,10 +973,6 @@
                             
                             <div class="form-row">
                                 <div class="form-group">
-                                    <label for="nuevaCantidad">Cantidad:</label>
-                                    <input type="number" id="nuevaCantidad" class="form-control" placeholder="0" min="0" step="0.01">
-                                </div>
-                                <div class="form-group">
                                     <label for="nuevaUnidadMedida">Unidad de Medida:</label>
                                     <select id="nuevaUnidadMedida" class="form-control">
                                         <option value="">Seleccione...</option>
@@ -972,6 +981,17 @@
                                         <option value="litros">Paquetes</option>
                                         <option value="cajas">Cajas</option>
                                     </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="nuevaCantidadEnCaja">Cantidad en Caja:</label>
+                                    <input type="number" id="nuevaCantidadEnCaja" class="form-control" placeholder="0" min="0" step="0.01">
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="nuevaCantidad">Cantidad:</label>
+                                    <input type="number" id="nuevaCantidad" class="form-control" placeholder="0" min="0" step="0.01">
                                 </div>
                             </div>
                             
@@ -997,8 +1017,9 @@
                                             <th>Item</th>
                                             <th>Producto</th>
                                             <th>Código</th>
-                                            <th>Cantidad</th>
                                             <th>Unidad de Medida</th>
+                                            <th>Cantidad en Caja</th>
+                                            <th>Cantidad</th>
                                             <th>Acciones</th>
                                         </tr>
                                     </thead>
@@ -1011,9 +1032,13 @@
                     </div>
                     
                                                                                    <div class="form-actions">
+                          <button type="button" class="btn btn-warning" onclick="guardarSoloProductos()">
+                              <i class="fas fa-box"></i>
+                              Guardar Solo Productos
+                          </button>
                           <button type="submit" class="btn btn-success">
                               <i class="fas fa-save"></i>
-                              Guardar Cambios
+                              Guardar Todo
                           </button>
                           <button type="button" class="btn btn-secondary" onclick="cerrarModalActualizar()">
                               <i class="fas fa-times"></i>
@@ -1034,6 +1059,10 @@
             </div>
             <div class="modal-body">
                 <div class="form-row">
+                    <div class="form-group">
+                        <label for="editCantidadEnCaja">Cantidad en Caja:</label>
+                        <input type="number" id="editCantidadEnCaja" class="form-control" placeholder="0" min="0" step="0.01">
+                    </div>
                     <div class="form-group">
                         <label for="editCantidad">Cantidad:</label>
                         <input type="number" id="editCantidad" class="form-control" placeholder="0" min="0" step="0.01">
@@ -1368,8 +1397,9 @@
             const item = document.getElementById('nuevoItem').value;
             const producto = document.getElementById('nuevoProducto').value;
             const codigo = document.getElementById('nuevoCodigo').value;
-            const cantidad = document.getElementById('nuevaCantidad').value;
             const unidadMedida = document.getElementById('nuevaUnidadMedida').value;
+            const cantidadEnCaja = document.getElementById('nuevaCantidadEnCaja').value;
+            const cantidad = document.getElementById('nuevaCantidad').value;
             
             // Validar que se haya seleccionado un producto
             if (!producto || !codigo) {
@@ -1378,7 +1408,7 @@
             }
             
             // Validar campos requeridos
-            if (!item || !cantidad || !unidadMedida) {
+            if (!item || !unidadMedida || !cantidadEnCaja || !cantidad) {
                 mostrarAlerta('Debe completar todos los campos', 'error');
                 return;
             }
@@ -1392,8 +1422,9 @@
                 <td>${item}</td>
                 <td>${producto}</td>
                 <td>${codigo}</td>
-                <td>${cantidad}</td>
                 <td>${unidadMedida}</td>
+                <td>${cantidadEnCaja}</td>
+                <td>${cantidad}</td>
                 <td>
                     <button type="button" class="btn btn-primary btn-sm" onclick="editarFila(this)" title="Editar producto" style="margin-right: 5px;">
                         <i class="fas fa-edit"></i>
@@ -1415,8 +1446,9 @@
             document.getElementById('nuevoItem').value = '';
             document.getElementById('nuevoProducto').value = '';
             document.getElementById('nuevoCodigo').value = '';
-            document.getElementById('nuevaCantidad').value = '';
             document.getElementById('nuevaUnidadMedida').value = '';
+            document.getElementById('nuevaCantidadEnCaja').value = '';
+            document.getElementById('nuevaCantidad').value = '';
         }
 
         // Función para eliminar fila
@@ -1431,9 +1463,11 @@
             const celdas = row.querySelectorAll('td');
             
             // Obtener valores actuales
-            const cantidad = celdas[3].textContent.trim();
+            const cantidadEnCaja = celdas[4].textContent.trim();
+            const cantidad = celdas[5].textContent.trim();
             
             // Llenar el modal
+            document.getElementById('editCantidadEnCaja').value = cantidadEnCaja;
             document.getElementById('editCantidad').value = cantidad;
             
             // Guardar referencia a la fila
@@ -1453,16 +1487,18 @@
         function guardarEdicion() {
             if (!filaEditando) return;
             
+            const nuevaCantidadEnCaja = document.getElementById('editCantidadEnCaja').value;
             const nuevaCantidad = document.getElementById('editCantidad').value;
             
-            if (!nuevaCantidad) {
-                mostrarAlerta('Debe completar el campo cantidad', 'error');
+            if (!nuevaCantidadEnCaja || !nuevaCantidad) {
+                mostrarAlerta('Debe completar ambos campos', 'error');
                 return;
             }
             
             // Actualizar la fila
             const celdas = filaEditando.querySelectorAll('td');
-            celdas[3].textContent = nuevaCantidad;
+            celdas[4].textContent = nuevaCantidadEnCaja;
+            celdas[5].textContent = nuevaCantidad;
             
             cerrarModalEdit();
             mostrarAlerta('Producto actualizado exitosamente', 'success');
@@ -1502,8 +1538,9 @@
                                 <td>${detalle.ITEM || index + 1}</td>
                                 <td>${detalle.PRODUCTO || 'N/A'}</td>
                                 <td>${detalle.CODIGO || 'N/A'}</td>
-                                <td>${detalle.CANTIDAD || '0'}</td>
                                 <td>${detalle.UNIDAD_MEDIDA || 'N/A'}</td>
+                                <td>0</td>
+                                <td>${detalle.CANTIDAD || '0'}</td>
                                 <td>
                                     <button type="button" class="btn btn-primary btn-sm" onclick="editarFila(this)" title="Editar producto" style="margin-right: 5px;">
                                         <i class="fas fa-edit"></i>
@@ -2111,9 +2148,9 @@
                 
                 // Calcular totales
                 const totalCantidad = productos.reduce((sum, p) => sum + (parseFloat(p.cantidad) || 0), 0);
-                const totalCantidadEnCaja = productos.reduce((sum, p) => sum + (parseFloat(p.cantidad) || 0), 0);
+                const totalCantidadEnCaja = productos.reduce((sum, p) => sum + (parseFloat(p.cantidadEnCaja) || 0), 0);
                 
-                // Preparar payload para la primera API (Google Scripts)
+                // Preparar payload para la primera API (Generación de PDFs)
                 const payload = {
                     numeroDespacho: numeroDespachoActual || "N/A",
                     redactadoPor: respondidoPor,
@@ -2125,7 +2162,7 @@
                         codigo: producto.codigo || "N/A",
                         unidad: producto.unidad || "UND",
                         cantidad: parseFloat(producto.cantidad) || 0,
-                        cantidadEnCaja: parseFloat(producto.cantidad) || 0
+                        cantidadEnCaja: parseFloat(producto.cantidadEnCaja) || 0
                     })),
                     totalCantidad: totalCantidad,
                     totalCantidadEnCaja: totalCantidadEnCaja
@@ -2203,6 +2240,133 @@
             } catch (error) {
                 console.error('❌ Error al actualizar incidencia:', error);
                 mostrarAlerta('Error al actualizar la incidencia: ' + error.message, 'error');
+            }
+        }
+        
+        // Función para guardar solo los productos (sin actualizar los 4 campos)
+        async function guardarSoloProductos() {
+            try {
+                // Obtener productos de la tabla
+                const productos = obtenerProductosDeTabla();
+                
+                if (productos.length === 0) {
+                    mostrarAlerta('No hay productos para guardar', 'warning');
+                    return;
+                }
+                
+                // Obtener datos básicos del formulario
+                const idIncidencia = document.getElementById('idIncidenciaActualizar').value;
+                const fechaCorreccion = document.getElementById('fechaCorreccion').value;
+                const respondidoPor = document.getElementById('respondidoPor').value;
+                
+                if (!idIncidencia || !fechaCorreccion || !respondidoPor) {
+                    mostrarAlerta('Debe completar al menos: Fecha de Corrección y Respondido Por', 'error');
+                    return;
+                }
+                
+                // Calcular totales
+                const totalCantidad = productos.reduce((sum, p) => sum + (parseFloat(p.cantidad) || 0), 0);
+                const totalCantidadEnCaja = productos.reduce((sum, p) => sum + (parseFloat(p.cantidadEnCaja) || 0), 0);
+                
+                // Preparar payload solo para productos
+                const payload = {
+                    numeroDespacho: numeroDespachoActual || "N/A",
+                    redactadoPor: respondidoPor,
+                    fecha: fechaCorreccion,
+                    tipoCarga: "Contenedor 40 pies",
+                    productos: productos.map((producto, index) => ({
+                        numero: parseInt(producto.item) || (index + 1),
+                        producto: producto.producto || "N/A",
+                        codigo: producto.codigo || "N/A",
+                        unidad: producto.unidad || "UND",
+                        cantidad: parseFloat(producto.cantidad) || 0,
+                        cantidadEnCaja: parseFloat(producto.cantidadEnCaja) || 0
+                    })),
+                    totalCantidad: totalCantidad,
+                    totalCantidadEnCaja: totalCantidadEnCaja
+                };
+                
+                console.log('📤 Guardando solo productos:', payload);
+                
+                // Mostrar mensaje de procesamiento
+                mostrarAlerta('🔄 Guardando productos, por favor espere...', 'info');
+                
+                // Llamada solo a la API de generación de PDFs
+                const apiScript = "https://generacionespdfappscript-2946605267.us-central1.run.app";
+                const metodo = "ficha_importacion";
+                
+                try {
+                    const responseScript = await fetch(`${apiScript}?metodo=${metodo}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(payload)
+                    });
+                    
+                    if (responseScript.status === 200) {
+                        const scriptResult = await responseScript.text();
+                        console.log('✅ Productos guardados exitosamente:', scriptResult);
+                        mostrarAlerta('Productos guardados exitosamente', 'success');
+                    } else {
+                        console.error('❌ Error al guardar productos:', responseScript.status);
+                        const errorText = await responseScript.text();
+                        mostrarAlerta('Error al guardar los productos: ' + errorText, 'error');
+                    }
+                    
+                } catch (corsError) {
+                    console.log('⚠️ Error de CORS, intentando método alternativo...');
+                    
+                    try {
+                        await enviarDatosConXMLHttpRequest(apiScript, payload, metodo);
+                        mostrarAlerta('Productos guardados exitosamente', 'success');
+                    } catch (xhrError) {
+                        console.error('❌ Error con XMLHttpRequest:', xhrError);
+                        mostrarAlerta('Error al guardar los productos: ' + xhrError.message, 'error');
+                    }
+                }
+                
+            } catch (error) {
+                console.error('❌ Error al guardar productos:', error);
+                mostrarAlerta('Error al guardar los productos: ' + error.message, 'error');
+            }
+        }
+        
+        // Función para guardar solo los 4 campos principales (sin productos)
+        async function guardarSoloCampos() {
+            try {
+                const idIncidencia = document.getElementById('idIncidenciaActualizar').value;
+                const fechaCorreccion = document.getElementById('fechaCorreccion').value;
+                const estadoIncidencia = document.getElementById('estadoIncidencia').value;
+                const respondidoPor = document.getElementById('respondidoPor').value;
+                const estadoDespacho = document.getElementById('estadoDespacho').value;
+                
+                // Validar campos requeridos
+                if (!fechaCorreccion || !estadoIncidencia || !respondidoPor || !estadoDespacho) {
+                    mostrarAlerta('Por favor complete todos los campos requeridos', 'error');
+                    return;
+                }
+                
+                // Preparar data solo para los 4 campos
+                const data = {
+                    fecha_correcion: fechaCorreccion,
+                    estado_incidencia: estadoIncidencia,
+                    respondido_por: respondidoPor,
+                    estado_despacho: estadoDespacho,
+                    id: parseInt(idIncidencia)
+                };
+                
+                console.log('📤 Guardando solo campos:', data);
+                
+                // Mostrar mensaje de procesamiento
+                mostrarAlerta('🔄 Guardando campos, por favor espere...', 'info');
+                
+                // Llamada solo a la API CRUD
+                await actualizarDatosCRUD(data);
+                
+            } catch (error) {
+                console.error('❌ Error al guardar campos:', error);
+                mostrarAlerta('Error al guardar los campos: ' + error.message, 'error');
             }
         }
         
@@ -2347,13 +2511,14 @@
             
             filas.forEach(fila => {
                 const celdas = fila.querySelectorAll('td');
-                if (celdas.length >= 5) {
+                if (celdas.length >= 6) {
                     const producto = {
                         item: celdas[0].textContent.trim(),
                         producto: celdas[1].textContent.trim(),
                         codigo: celdas[2].textContent.trim(),
-                        cantidad: celdas[3].textContent.trim(),
-                        unidad: celdas[4].textContent.trim()
+                        unidad: celdas[3].textContent.trim(),
+                        cantidadEnCaja: celdas[4].textContent.trim(),
+                        cantidad: celdas[5].textContent.trim()
                     };
                     productos.push(producto);
                 }
