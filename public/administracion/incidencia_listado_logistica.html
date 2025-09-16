@@ -2142,35 +2142,120 @@
             }
             
             try {
-                // Crear FormData para enviar archivos
-                const formData = new FormData();
-                formData.append('id', idIncidencia);
-                formData.append('fechaCorreccion', fechaCorreccion);
-                formData.append('estadoIncidencia', estadoIncidencia);
-                formData.append('respondidoPor', respondidoPor);
-                formData.append('estadoDespacho', estadoDespacho);
+                // Obtener productos de la tabla
+                const productos = obtenerProductosDeTabla();
                 
-                // Aquí iría la llamada a la API para actualizar
-                // Por ahora solo simulamos la actualización
-                console.log('📤 Enviando datos de actualización:', {
-                    id: idIncidencia,
-                    fechaCorreccion,
-                    estadoIncidencia,
-                    respondidoPor,
-                    estadoDespacho
+                // Calcular totales
+                const totalCantidad = productos.reduce((sum, p) => sum + (parseFloat(p.cantidad) || 0), 0);
+                const totalCantidadEnCaja = productos.reduce((sum, p) => sum + (parseFloat(p.cantidadEnCaja) || 0), 0);
+                
+                // Preparar payload para la primera API (Google Scripts)
+                const payload = {
+                    numeroDespacho: numeroDespachoActual || "N/A",
+                    redactadoPor: respondidoPor,
+                    fecha: fechaCorreccion,
+                    tipoCarga: "Contenedor 40 pies",
+                    productos: productos.map((producto, index) => ({
+                        numero: parseInt(producto.item) || (index + 1),
+                        producto: producto.producto || "N/A",
+                        codigo: producto.codigo || "N/A",
+                        unidad: producto.unidad || "UND",
+                        cantidad: parseFloat(producto.cantidadInicial) || 0,
+                        cantidadEnCaja: parseFloat(producto.cantidadRecibida) || 0
+                    })),
+                    totalCantidad: totalCantidad,
+                    totalCantidadEnCaja: totalCantidadEnCaja
+                };
+                
+                // Preparar data para la segunda API (CRUD)
+                const data = {
+                    fecha_correcion: fechaCorreccion,
+                    estado_incidencia: estadoIncidencia,
+                    respondido_por: respondidoPor,
+                    estado_despacho: estadoDespacho,
+                    id: parseInt(idIncidencia)
+                };
+                
+                console.log('📤 Payload para Google Scripts:', payload);
+                console.log('📤 Data para CRUD:', data);
+                
+                // Mostrar mensaje de procesamiento
+                mostrarAlerta('🔄 Procesando actualización, por favor espere...', 'info');
+                
+                // Primera llamada a Google Scripts API
+                const apiScript = "https://script.google.com/macros/s/AKfycbzjxSYdXcJz4-6bUXLaIoK7N6G1rZaHKwEhDabQRvsb1ixqqcX4aRedaTu5cuadoTRN/exec";
+                
+                console.log('🌐 Enviando POST a Google Scripts...');
+                const responseScript = await fetch(apiScript, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
                 });
                 
-                // Simular actualización exitosa
-                setTimeout(() => {
-                    mostrarAlerta('Incidencia actualizada correctamente', 'success');
-                    cerrarModalActualizar();
-                    cargarIncencias(); // Recargar datos
-                }, 1000);
+                if (responseScript.status === 200) {
+                    const scriptResult = await responseScript.text();
+                    console.log('✅ POST de PDF exitoso:', scriptResult);
+                    
+                    // Segunda llamada a CRUD API
+                    console.log('🔄 Ejecutando la segunda API...');
+                    const apiRun = "https://incidenciaslogisticacrud-2946605267.us-central1.run.app";
+                    
+                    const responseCrud = await fetch(apiRun, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(data)
+                    });
+                    
+                    if (responseCrud.status === 200) {
+                        console.log('✅ Datos actualizados correctamente');
+                        mostrarAlerta('Incidencia actualizada correctamente y PDF generado', 'success');
+                        cerrarModalActualizar();
+                        cargarIncencias(); // Recargar datos
+                    } else {
+                        console.error('❌ Error al actualizar datos:', responseCrud.status);
+                        const errorText = await responseCrud.text();
+                        mostrarAlerta('Error al actualizar los datos en la base de datos: ' + errorText, 'error');
+                    }
+                } else {
+                    console.error('❌ Error en la solicitud POST:', responseScript.status);
+                    const errorText = await responseScript.text();
+                    mostrarAlerta('Error al generar el PDF: ' + errorText, 'error');
+                }
                 
             } catch (error) {
                 console.error('❌ Error al actualizar incidencia:', error);
                 mostrarAlerta('Error al actualizar la incidencia: ' + error.message, 'error');
             }
+        }
+        
+        // Función para obtener productos de la tabla
+        function obtenerProductosDeTabla() {
+            const productos = [];
+            const tbody = document.getElementById('productosBody');
+            const filas = tbody.querySelectorAll('tr');
+            
+            filas.forEach(fila => {
+                const celdas = fila.querySelectorAll('td');
+                if (celdas.length >= 7) {
+                    const producto = {
+                        item: celdas[0].textContent.trim(),
+                        producto: celdas[1].textContent.trim(),
+                        codigo: celdas[2].textContent.trim(),
+                        cantidadInicial: celdas[3].textContent.trim(),
+                        unidad: celdas[4].textContent.trim(),
+                        cantidadRecibida: celdas[5].textContent.trim(),
+                        motivo: celdas[6].textContent.trim()
+                    };
+                    productos.push(producto);
+                }
+            });
+            
+            console.log('📦 Productos obtenidos de la tabla:', productos);
+            return productos;
         }
 
         // Función para ver detalles
