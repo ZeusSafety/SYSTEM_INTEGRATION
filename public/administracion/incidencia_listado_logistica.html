@@ -824,7 +824,7 @@
                                   <th>Número de Despacho</th>
                                   <th>PDF Inicial</th>
                                   <th>PDF Incidencia</th>
-                                  <th>Acciones</th>
+                                  <th>Ver Detalles</th>
                                   <th>Fecha de Recepción</th>
                                   <th>Fecha de Corrección</th>
                                   <th>Incidencias?</th>
@@ -832,6 +832,7 @@
                                   <th>Solución PDF</th>
                                   <th>RESPONDIDO POR</th>
                                   <th>ESTADO DESPACHO</th>
+                                  <th>Actualizar</th>
                               </tr>
                           </thead>
                         <tbody id="incidenciasBody">
@@ -959,8 +960,8 @@
                             
                             <div class="form-row">
                                 <div class="form-group">
-                                    <label for="nuevaCantidadInicial">Cantidad Inicial:</label>
-                                    <input type="number" id="nuevaCantidadInicial" class="form-control" placeholder="0" min="0" step="0.01">
+                                    <label for="nuevaCantidad">Cantidad:</label>
+                                    <input type="number" id="nuevaCantidad" class="form-control" placeholder="0" min="0" step="0.01">
                                 </div>
                                 <div class="form-group">
                                     <label for="nuevaUnidadMedida">Unidad de Medida:</label>
@@ -970,22 +971,6 @@
                                         <option value="kilos">Docenas</option>
                                         <option value="litros">Paquetes</option>
                                         <option value="cajas">Cajas</option>
-                                    </select>
-                                </div>
-                            </div>
-                            
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="nuevaCantidadRecibida">Cantidad Recibida:</label>
-                                    <input type="number" id="nuevaCantidadRecibida" class="form-control" placeholder="0" min="0" step="0.01">
-                                </div>
-                                <div class="form-group">
-                                    <label for="nuevoMotivo">Motivo:</label>
-                                    <select id="nuevoMotivo" class="form-control">
-                                        <option value="">Seleccione...</option>
-                                        <option value="falta">Falta</option>
-                                        <option value="sobrante">Sobrante</option>
-                                        <option value="dañado">Dañado</option>
                                     </select>
                                 </div>
                             </div>
@@ -1012,10 +997,8 @@
                                             <th>Item</th>
                                             <th>Producto</th>
                                             <th>Código</th>
-                                            <th>Cantidad Inicial</th>
+                                            <th>Cantidad</th>
                                             <th>Unidad de Medida</th>
-                                            <th>Cantidad Recibida</th>
-                                            <th>Motivo</th>
                                             <th>Acciones</th>
                                         </tr>
                                     </thead>
@@ -1047,22 +1030,13 @@
         <div class="modal-content" style="background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 500px; border-radius: 10px;">
             <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h3 style="margin: 0; color: var(--azul-oscuro);">Editar Producto</h3>
-                <span class="close" onclick="cerrarModal()" style="color: #aaa; font-size: 28px; font-weight: bold; cursor: pointer;">&times;</span>
+                <span class="close" onclick="cerrarModalEdit()" style="color: #aaa; font-size: 28px; font-weight: bold; cursor: pointer;">&times;</span>
             </div>
             <div class="modal-body">
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="editCantidadRecibida">Cantidad Recibida:</label>
-                        <input type="number" id="editCantidadRecibida" class="form-control" placeholder="0" min="0" step="0.01">
-                    </div>
-                    <div class="form-group">
-                        <label for="editMotivo">Motivo:</label>
-                        <select id="editMotivo" class="form-control">
-                            <option value="">Seleccione...</option>
-                            <option value="falta">Falta</option>
-                            <option value="sobrante">Sobrante</option>
-                            <option value="dañado">Dañado</option>
-                        </select>
+                        <label for="editCantidad">Cantidad:</label>
+                        <input type="number" id="editCantidad" class="form-control" placeholder="0" min="0" step="0.01">
                     </div>
                 </div>
                 <div style="text-align: right; margin-top: 20px;">
@@ -1070,7 +1044,7 @@
                         <i class="fas fa-save"></i>
                         Guardar Cambios
                     </button>
-                    <button type="button" class="btn" onclick="cerrarModal()" style="background: #6c757d; color: white; margin-left: 10px;">
+                    <button type="button" class="btn" onclick="cerrarModalEdit()" style="background: #6c757d; color: white; margin-left: 10px;">
                         Cancelar
                     </button>
                 </div>
@@ -1394,10 +1368,8 @@
             const item = document.getElementById('nuevoItem').value;
             const producto = document.getElementById('nuevoProducto').value;
             const codigo = document.getElementById('nuevoCodigo').value;
-            const cantidadInicial = document.getElementById('nuevaCantidadInicial').value;
+            const cantidad = document.getElementById('nuevaCantidad').value;
             const unidadMedida = document.getElementById('nuevaUnidadMedida').value;
-            const cantidadRecibida = document.getElementById('nuevaCantidadRecibida').value;
-            const motivo = document.getElementById('nuevoMotivo').value;
             
             // Validar que se haya seleccionado un producto
             if (!producto || !codigo) {
@@ -1406,7 +1378,7 @@
             }
             
             // Validar campos requeridos
-            if (!item || !cantidadInicial || !unidadMedida || !cantidadRecibida || !motivo) {
+            if (!item || !cantidad || !unidadMedida) {
                 mostrarAlerta('Debe completar todos los campos', 'error');
                 return;
             }
@@ -1420,10 +1392,8 @@
                 <td>${item}</td>
                 <td>${producto}</td>
                 <td>${codigo}</td>
-                <td>${cantidadInicial}</td>
+                <td>${cantidad}</td>
                 <td>${unidadMedida}</td>
-                <td>${cantidadRecibida}</td>
-                <td>${motivo}</td>
                 <td>
                     <button type="button" class="btn btn-primary btn-sm" onclick="editarFila(this)" title="Editar producto" style="margin-right: 5px;">
                         <i class="fas fa-edit"></i>
@@ -1445,10 +1415,8 @@
             document.getElementById('nuevoItem').value = '';
             document.getElementById('nuevoProducto').value = '';
             document.getElementById('nuevoCodigo').value = '';
-            document.getElementById('nuevaCantidadInicial').value = '';
+            document.getElementById('nuevaCantidad').value = '';
             document.getElementById('nuevaUnidadMedida').value = '';
-            document.getElementById('nuevaCantidadRecibida').value = '';
-            document.getElementById('nuevoMotivo').value = '';
         }
 
         // Función para eliminar fila
@@ -1463,12 +1431,10 @@
             const celdas = row.querySelectorAll('td');
             
             // Obtener valores actuales
-            const cantidadRecibida = celdas[5].textContent.trim();
-            const motivo = celdas[6].textContent.trim();
+            const cantidad = celdas[3].textContent.trim();
             
             // Llenar el modal
-            document.getElementById('editCantidadRecibida').value = cantidadRecibida;
-            document.getElementById('editMotivo').value = motivo;
+            document.getElementById('editCantidad').value = cantidad;
             
             // Guardar referencia a la fila
             filaEditando = row;
@@ -1478,7 +1444,7 @@
         }
 
         // Función para cerrar modal de edición
-        function cerrarModal() {
+        function cerrarModalEdit() {
             document.getElementById('editModal').style.display = 'none';
             filaEditando = null;
         }
@@ -1487,20 +1453,18 @@
         function guardarEdicion() {
             if (!filaEditando) return;
             
-            const nuevaCantidad = document.getElementById('editCantidadRecibida').value;
-            const nuevoMotivo = document.getElementById('editMotivo').value;
+            const nuevaCantidad = document.getElementById('editCantidad').value;
             
-            if (!nuevaCantidad || !nuevoMotivo) {
-                mostrarAlerta('Debe completar todos los campos', 'error');
+            if (!nuevaCantidad) {
+                mostrarAlerta('Debe completar el campo cantidad', 'error');
                 return;
             }
             
             // Actualizar la fila
             const celdas = filaEditando.querySelectorAll('td');
-            celdas[5].textContent = nuevaCantidad;
-            celdas[6].textContent = nuevoMotivo;
+            celdas[3].textContent = nuevaCantidad;
             
-            cerrarModal();
+            cerrarModalEdit();
             mostrarAlerta('Producto actualizado exitosamente', 'success');
         }
 
@@ -1540,8 +1504,6 @@
                                 <td>${detalle.CODIGO || 'N/A'}</td>
                                 <td>${detalle.CANTIDAD || '0'}</td>
                                 <td>${detalle.UNIDAD_MEDIDA || 'N/A'}</td>
-                                <td>0</td>
-                                <td></td>
                                 <td>
                                     <button type="button" class="btn btn-primary btn-sm" onclick="editarFila(this)" title="Editar producto" style="margin-right: 5px;">
                                         <i class="fas fa-edit"></i>
@@ -1575,7 +1537,7 @@
             tbody.innerHTML = '';
 
                                                    if (!Array.isArray(incidencias) || incidencias.length === 0) {
-                  tbody.innerHTML = '<tr><td colspan="13" class="text-center">Sin registros</td></tr>';
+                  tbody.innerHTML = '<tr><td colspan="14" class="text-center">Sin registros</td></tr>';
                   return;
               }
 
@@ -1629,9 +1591,6 @@
                           }
                       </td>
                       <td>
-                          <button type="button" class="btn btn-info btn-sm" onclick="abrirModalActualizar('${incidencia.ID_INCIDENCIA}')" title="Actualizar">
-                              <i class="fas fa-sync-alt"></i>
-                          </button>
                           <button type="button" class="btn btn-success btn-sm" onclick="verDetalles('${incidencia.ID_INCIDENCIA}')" title="Ver Detalles">
                               <i class="fas fa-eye"></i>
                           </button>
@@ -1650,6 +1609,11 @@
                       </td>
                       <td>${incidencia.RESPONDIDO_POR || 'N/A'}</td>
                       <td class="colored-cell ${estadoDespachoClass}">${estadoDespachoTexto}</td>
+                      <td>
+                          <button type="button" class="btn btn-info btn-sm" onclick="abrirModalActualizar('${incidencia.ID_INCIDENCIA}')" title="Actualizar">
+                              <i class="fas fa-sync-alt"></i>
+                          </button>
+                      </td>
                   `;
                 tbody.appendChild(row);
             });
@@ -2147,7 +2111,7 @@
                 
                 // Calcular totales
                 const totalCantidad = productos.reduce((sum, p) => sum + (parseFloat(p.cantidad) || 0), 0);
-                const totalCantidadEnCaja = productos.reduce((sum, p) => sum + (parseFloat(p.cantidadEnCaja) || 0), 0);
+                const totalCantidadEnCaja = productos.reduce((sum, p) => sum + (parseFloat(p.cantidad) || 0), 0);
                 
                 // Preparar payload para la primera API (Google Scripts)
                 const payload = {
@@ -2160,8 +2124,8 @@
                         producto: producto.producto || "N/A",
                         codigo: producto.codigo || "N/A",
                         unidad: producto.unidad || "UND",
-                        cantidad: parseFloat(producto.cantidadInicial) || 0,
-                        cantidadEnCaja: parseFloat(producto.cantidadRecibida) || 0
+                        cantidad: parseFloat(producto.cantidad) || 0,
+                        cantidadEnCaja: parseFloat(producto.cantidad) || 0
                     })),
                     totalCantidad: totalCantidad,
                     totalCantidadEnCaja: totalCantidadEnCaja
@@ -2182,53 +2146,196 @@
                 // Mostrar mensaje de procesamiento
                 mostrarAlerta('🔄 Procesando actualización, por favor espere...', 'info');
                 
-                // Primera llamada a Google Scripts API
-                const apiScript = "https://script.google.com/macros/s/AKfycbzjxSYdXcJz4-6bUXLaIoK7N6G1rZaHKwEhDabQRvsb1ixqqcX4aRedaTu5cuadoTRN/exec";
+                // Primera llamada a API de generación de PDFs
+                const apiScript = "https://generacionespdfappscript-2946605267.us-central1.run.app";
+                const metodo = "ficha_importacion";
                 
-                console.log('🌐 Enviando POST a Google Scripts...');
-                const responseScript = await fetch(apiScript, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(payload)
-                });
+                console.log('🌐 Enviando POST a API de generación de PDFs...');
                 
-                if (responseScript.status === 200) {
-                    const scriptResult = await responseScript.text();
-                    console.log('✅ POST de PDF exitoso:', scriptResult);
-                    
-                    // Segunda llamada a CRUD API
-                    console.log('🔄 Ejecutando la segunda API...');
-                    const apiRun = "https://incidenciaslogisticacrud-2946605267.us-central1.run.app";
-                    
-                    const responseCrud = await fetch(apiRun, {
-                        method: 'PUT',
+                try {
+                    // Intentar con fetch normal primero
+                    const responseScript = await fetch(`${apiScript}?metodo=${metodo}`, {
+                        method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
                         },
-                        body: JSON.stringify(data)
+                        body: JSON.stringify(payload)
                     });
                     
-                    if (responseCrud.status === 200) {
-                        console.log('✅ Datos actualizados correctamente');
-                        mostrarAlerta('Incidencia actualizada correctamente y PDF generado', 'success');
-                        cerrarModalActualizar();
-                        cargarIncencias(); // Recargar datos
+                    if (responseScript.status === 200) {
+                        const scriptResult = await responseScript.text();
+                        console.log('✅ POST de PDF exitoso:', scriptResult);
+                        
+                        // Segunda llamada a CRUD API
+                        await actualizarDatosCRUD(data);
                     } else {
-                        console.error('❌ Error al actualizar datos:', responseCrud.status);
-                        const errorText = await responseCrud.text();
-                        mostrarAlerta('Error al actualizar los datos en la base de datos: ' + errorText, 'error');
+                        console.error('❌ Error en la solicitud POST:', responseScript.status);
+                        const errorText = await responseScript.text();
+                        mostrarAlerta('Error al generar el PDF: ' + errorText, 'error');
                     }
-                } else {
-                    console.error('❌ Error en la solicitud POST:', responseScript.status);
-                    const errorText = await responseScript.text();
-                    mostrarAlerta('Error al generar el PDF: ' + errorText, 'error');
+                    
+                } catch (corsError) {
+                    console.log('⚠️ Error de CORS detectado, intentando método alternativo...');
+                    
+                    // Método alternativo usando XMLHttpRequest
+                    try {
+                        await enviarDatosConXMLHttpRequest(apiScript, payload, metodo);
+                        // Si llegamos aquí, el PDF se generó exitosamente
+                        await actualizarDatosCRUD(data);
+                    } catch (xhrError) {
+                        console.error('❌ Error con XMLHttpRequest:', xhrError);
+                        
+                        // Último recurso: intentar con proxy CORS
+                        try {
+                            console.log('🔄 Intentando con proxy CORS...');
+                            await enviarDatosConProxyCORS(apiScript, payload, metodo);
+                            await actualizarDatosCRUD(data);
+                        } catch (proxyError) {
+                            console.error('❌ Error con proxy CORS:', proxyError);
+                            
+                            // Método alternativo: enviar solo a CRUD y mostrar mensaje
+                            console.log('🔄 Enviando solo actualización de datos...');
+                            await actualizarDatosCRUD(data, true); // true indica que no se pudo generar PDF
+                        }
+                    }
                 }
                 
             } catch (error) {
                 console.error('❌ Error al actualizar incidencia:', error);
                 mostrarAlerta('Error al actualizar la incidencia: ' + error.message, 'error');
+            }
+        }
+        
+        // Función auxiliar para enviar datos con XMLHttpRequest (manejo de CORS)
+        function enviarDatosConXMLHttpRequest(url, data, metodo) {
+            return new Promise((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                
+                xhr.open('POST', `${url}?metodo=${metodo}`, true);
+                xhr.setRequestHeader('Content-Type', 'application/json');
+                
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState === 4) {
+                        console.log('📡 XMLHttpRequest respuesta:', xhr.status, xhr.statusText);
+                        
+                        if (xhr.status === 200) {
+                            const result = xhr.responseText;
+                            console.log('✅ PDF generado exitosamente con XMLHttpRequest:', result);
+                            resolve(result);
+                        } else {
+                            console.error('❌ Error en XMLHttpRequest:', xhr.status, xhr.responseText);
+                            reject(new Error(`Error HTTP ${xhr.status}: ${xhr.responseText || xhr.statusText}`));
+                        }
+                    }
+                };
+                
+                xhr.onerror = function() {
+                    console.error('❌ Error de red en XMLHttpRequest');
+                    reject(new Error('Error de red al conectar con la API de generación de PDFs'));
+                };
+                
+                xhr.ontimeout = function() {
+                    console.error('❌ Timeout en XMLHttpRequest');
+                    reject(new Error('Timeout al conectar con la API de generación de PDFs'));
+                };
+                
+                // Establecer timeout de 30 segundos
+                xhr.timeout = 30000;
+                
+                try {
+                    xhr.send(JSON.stringify(data));
+                } catch (error) {
+                    console.error('❌ Error al enviar XMLHttpRequest:', error);
+                    reject(error);
+                }
+            });
+        }
+        
+        // Función auxiliar para enviar datos con proxy CORS (último recurso)
+        function enviarDatosConProxyCORS(url, data, metodo) {
+            return new Promise((resolve, reject) => {
+                console.log('🔄 Intentando con proxy CORS...');
+                
+                // Usar un proxy CORS público
+                const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
+                const targetUrl = `${url}?metodo=${metodo}`;
+                
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', proxyUrl + targetUrl, true);
+                xhr.setRequestHeader('Content-Type', 'application/json');
+                xhr.setRequestHeader('Accept', 'application/json, text/plain, */*');
+                xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+                
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState === 4) {
+                        console.log('📡 Proxy CORS respuesta:', xhr.status, xhr.statusText);
+                        
+                        if (xhr.status === 200) {
+                            const result = xhr.responseText;
+                            console.log('✅ PDF generado exitosamente con proxy CORS:', result);
+                            resolve(result);
+                        } else {
+                            console.error('❌ Error en proxy CORS:', xhr.status, xhr.responseText);
+                            reject(new Error(`Error HTTP ${xhr.status}: ${xhr.responseText || xhr.statusText}`));
+                        }
+                    }
+                };
+                
+                xhr.onerror = function() {
+                    console.error('❌ Error de red en proxy CORS');
+                    reject(new Error('Error de red al conectar con el proxy CORS'));
+                };
+                
+                xhr.ontimeout = function() {
+                    console.error('❌ Timeout en proxy CORS');
+                    reject(new Error('Timeout al conectar con el proxy CORS'));
+                };
+                
+                // Establecer timeout de 30 segundos
+                xhr.timeout = 30000;
+                
+                try {
+                    xhr.send(JSON.stringify(data));
+                } catch (error) {
+                    console.error('❌ Error al enviar proxy CORS:', error);
+                    reject(error);
+                }
+            });
+        }
+        
+        // Función auxiliar para actualizar datos en CRUD
+        async function actualizarDatosCRUD(data, pdfNoGenerado = false) {
+            try {
+                console.log('🔄 Ejecutando la segunda API (CRUD)...');
+                const apiRun = "https://incidenciaslogisticacrud-2946605267.us-central1.run.app";
+                
+                const responseCrud = await fetch(apiRun, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                if (responseCrud.status === 200) {
+                    console.log('✅ Datos actualizados correctamente');
+                    
+                    if (pdfNoGenerado) {
+                        mostrarAlerta('Datos actualizados correctamente. Nota: No se pudo generar el PDF debido a problemas de conectividad.', 'warning');
+                    } else {
+                        mostrarAlerta('Incidencia actualizada correctamente y PDF generado', 'success');
+                    }
+                    
+                    cerrarModalActualizar();
+                    cargarIncencias(); // Recargar datos
+                } else {
+                    console.error('❌ Error al actualizar datos:', responseCrud.status);
+                    const errorText = await responseCrud.text();
+                    mostrarAlerta('Error al actualizar los datos en la base de datos: ' + errorText, 'error');
+                }
+            } catch (error) {
+                console.error('❌ Error al actualizar datos CRUD:', error);
+                mostrarAlerta('Error al actualizar los datos: ' + error.message, 'error');
             }
         }
         
@@ -2240,15 +2347,13 @@
             
             filas.forEach(fila => {
                 const celdas = fila.querySelectorAll('td');
-                if (celdas.length >= 7) {
+                if (celdas.length >= 5) {
                     const producto = {
                         item: celdas[0].textContent.trim(),
                         producto: celdas[1].textContent.trim(),
                         codigo: celdas[2].textContent.trim(),
-                        cantidadInicial: celdas[3].textContent.trim(),
-                        unidad: celdas[4].textContent.trim(),
-                        cantidadRecibida: celdas[5].textContent.trim(),
-                        motivo: celdas[6].textContent.trim()
+                        cantidad: celdas[3].textContent.trim(),
+                        unidad: celdas[4].textContent.trim()
                     };
                     productos.push(producto);
                 }
@@ -2457,7 +2562,7 @@
                 }
                 
                 if (event.target === modalEdit) {
-                    cerrarModal();
+                    cerrarModalEdit();
                 }
             }
         });
