@@ -306,6 +306,52 @@
       min-width: 100px;
     }
 
+    /* Estilos para paginación */
+    .pagination-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      margin-top: 20px;
+      padding: 15px;
+      background: var(--blanco);
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .pagination-info {
+      color: var(--azul-oscuro);
+      font-weight: 600;
+      margin: 0 15px;
+    }
+
+    .pagination-btn {
+      background: var(--azul-oscuro);
+      color: var(--blanco);
+      border: none;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 600;
+    }
+
+    .pagination-btn:hover:not(:disabled) {
+      background: var(--maiz-oscuro);
+      transform: translateY(-2px);
+    }
+
+    .pagination-btn:disabled {
+      background: var(--gris-medio);
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    .pagination-btn.active {
+      background: var(--maiz-oscuro);
+      color: var(--negro);
+    }
+
     .table-striped>tbody>tr:nth-of-type(odd) {
       background-color: var(--gris-suave);
     }
@@ -645,19 +691,34 @@
       }
     }
 
-    header-logo {
+    .header-back {
       display: flex;
       align-items: center;
     }
 
-    .header-logo img {
-      max-width: 150px;
-      object-fit: contain;
-      transition: transform 0.3s ease;
+    .btn-back-header {
+      background: linear-gradient(135deg, var(--maiz-oscuro), var(--maiz-claro));
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 50px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 8px 25px rgba(226, 163, 15, 0.3);
     }
 
-    .header-logo img:hover {
-      transform: scale(1.05);
+    .btn-back-header:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 35px rgba(226, 163, 15, 0.4);
+      background: linear-gradient(135deg, var(--maiz-claro), var(--maiz-oscuro));
+      color: white;
+      text-decoration: none;
     }
 
     .header-title {
@@ -727,8 +788,9 @@
         font-size: 24px;
       }
 
-      .header-logo img {
-        max-width: 120px;
+      .btn-back-header {
+        padding: 10px 16px;
+        font-size: 14px;
       }
 
       .header-spacer {
@@ -741,18 +803,18 @@
 <body>
 
 
-  <!-- Header con Logo y Título -->
+  <!-- Header con Botón Volver y Título -->
   <div class="header-container">
-    <div class="header-logo">
-      <img src="../../Logo de Zeus.png"
-        alt="Logo Zeus">
+    <div class="header-back">
+      <a href="../../importacion.html" class="btn-back-header">
+        <i class="fas fa-arrow-left"></i> Volver al Menú
+      </a>
     </div>
     <div class="header-title">
       <h1>LISTADO IMPORTACIONES</h1>
     </div>
     <div class="header-spacer"></div>
   </div>
-  <a href="../../importacion.html" class="btn-back">Volver al Menú</a>
   <div class="container">
     <div class="header">
       <h2><i class="fas fa-list-alt"></i> Gestión y Actualización de Registros de Importación</h2>
@@ -814,6 +876,23 @@
           </tbody>
         </table>
       </div>
+      
+      <!-- Contenedor de paginación -->
+      <div class="pagination-container" id="paginationContainer" style="display: none;">
+        <button class="pagination-btn" id="btnPrimera" title="Primera página">
+          <i class="fas fa-angle-double-left"></i>
+        </button>
+        <button class="pagination-btn" id="btnAnterior" title="Página anterior">
+          <i class="fas fa-angle-left"></i>
+        </button>
+        <span class="pagination-info" id="paginationInfo">Página 1 de 1</span>
+        <button class="pagination-btn" id="btnSiguiente" title="Página siguiente">
+          <i class="fas fa-angle-right"></i>
+        </button>
+        <button class="pagination-btn" id="btnUltima" title="Última página">
+          <i class="fas fa-angle-double-right"></i>
+        </button>
+      </div>
     </div>
   </div>
 
@@ -838,16 +917,11 @@
               </div>
               <div class="col-md-6">
                 <label class="form-label">N° Despacho</label>
-                <input type="text" class="form-control" id="upd_despacho" required>
+                <input type="text" class="form-control" id="upd_despacho" readonly style="background-color: #f8f9fa;">
               </div>
               <div class="col-md-6">
                 <label class="form-label">Redactado por</label>
-                <select class="form-select" id="upd_redactado" required>
-                  <option value="">Seleccione un responsable</option>
-                  <option value="HERVIN">HERVIN</option>
-                  <option value="KIMBERLY">KIMBERLY</option>
-                  <option value="SANDRA">SANDRA</option>
-                </select>
+                <input type="text" class="form-control" id="upd_redactado" readonly style="background-color: #f8f9fa;">
               </div>
               <div class="col-md-6">
                 <label class="form-label">Fecha Llegada de Productos</label>
@@ -902,6 +976,51 @@
 
   <script>
     let registrosGlobal = [];
+    let registrosPaginados = [];
+    let paginaActual = 1;
+    const registrosPorPagina = 6;
+
+    // Funciones de paginación
+    function calcularPaginacion(registros) {
+      const totalPaginas = Math.ceil(registros.length / registrosPorPagina);
+      const inicio = (paginaActual - 1) * registrosPorPagina;
+      const fin = inicio + registrosPorPagina;
+      registrosPaginados = registros.slice(inicio, fin);
+      return totalPaginas;
+    }
+
+    function actualizarPaginacion(totalPaginas) {
+      const paginationContainer = document.getElementById('paginationContainer');
+      const paginationInfo = document.getElementById('paginationInfo');
+      const btnPrimera = document.getElementById('btnPrimera');
+      const btnAnterior = document.getElementById('btnAnterior');
+      const btnSiguiente = document.getElementById('btnSiguiente');
+      const btnUltima = document.getElementById('btnUltima');
+
+      if (totalPaginas <= 1) {
+        paginationContainer.style.display = 'none';
+        return;
+      }
+
+      paginationContainer.style.display = 'flex';
+      paginationInfo.textContent = `Página ${paginaActual} de ${totalPaginas}`;
+
+      // Habilitar/deshabilitar botones
+      btnPrimera.disabled = paginaActual === 1;
+      btnAnterior.disabled = paginaActual === 1;
+      btnSiguiente.disabled = paginaActual === totalPaginas;
+      btnUltima.disabled = paginaActual === totalPaginas;
+    }
+
+    function irAPagina(pagina) {
+      if (pagina < 1 || pagina > Math.ceil(registrosGlobal.length / registrosPorPagina)) {
+        return;
+      }
+      paginaActual = pagina;
+      const totalPaginas = calcularPaginacion(registrosGlobal);
+      actualizarPaginacion(totalPaginas);
+      renderizarTabla();
+    }
 
     // Función para consumir la API
     async function obtenerDatosAPI() {
@@ -927,12 +1046,14 @@
     // Función para actualizar datos en la API
     async function actualizarDatosAPI(datos) {
       const api = "https://importacionesvr01crud-2946605267.us-central1.run.app";
+      const area = "importacion";
 
       try {
         console.log('Enviando petición PUT a:', api);
         console.log('Datos enviados:', JSON.stringify(datos, null, 2));
 
-        const response = await fetch(api, {
+        const url = `${api}?area=${area}`;
+        const response = await fetch(url, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -973,6 +1094,7 @@
       const render = function (registros) {
         if (!Array.isArray(registros) || registros.length === 0) {
           tbody.innerHTML = '<tr><td colspan="12" class="text-center">Sin registros</td></tr>';
+          actualizarPaginacion(0);
           return;
         }
 
@@ -987,122 +1109,10 @@
           }
         }
 
-        tbody.innerHTML = '';
-        registros.forEach(function (row, i) {
-          const tr = document.createElement('tr');
-          // Si es el primer registro y es el más nuevo, resaltar
-          if (i === 0 && (String(row.ID_IMPORTACIONES) === String(ultimoId))) {
-            tr.classList.add('fila-nueva');
-          }
-
-          // Crear las celdas en el orden correcto
-          const celdas = [
-            row.FECHA_REGISTRO,
-            row.NUMERO_DESPACHO,
-            row.RESPONSABLE,
-            row.PRODUCTOS,
-            row.ARCHIVO_PDF_URL,
-            row.FECHA_LLEGADA_PRODUCTOS,
-            row.TIPO_CARGA,
-            row.ESTADO_IMPORTACION,
-            row.CANAL,
-            row.FECHA_RECEPCION,
-            row.INCIDENCIAS
-          ];
-
-          celdas.forEach(function (cell, idx) {
-            const td = document.createElement('td');
-
-            if (idx === 3) { // Productos
-              td.style.minWidth = '180px';
-              td.style.maxWidth = '320px';
-              td.style.whiteSpace = 'pre-line';
-              td.style.overflowWrap = 'break-word';
-              td.style.wordBreak = 'break-word';
-              td.style.verticalAlign = 'top';
-              td.style.position = 'relative';
-              td.style.height = '100%';
-              if (cell && String(cell).length > 120) {
-                td.style.overflowY = 'auto';
-                td.style.maxHeight = '80px';
-              }
-              td.textContent = cell;
-            } else if (idx === 4) { // Archivo PDF
-              if (cell && typeof cell === 'string' && cell.startsWith('http')) {
-                td.innerHTML = `<button class="btn-pdf" onclick="window.open('${cell}','_blank')"><i class='fas fa-file-pdf'></i> PDF</button>`;
-              } else {
-                td.textContent = cell;
-              }
-            } else if (idx === 6) { // Tipo de Carga
-              td.textContent = cell;
-              td.style.fontWeight = 'bold';
-              td.style.color = 'var(--azul-oscuro)';
-            } else if (idx === 7) { // Estado
-              let estado = String(cell).toUpperCase();
-              if (estado === 'TRANSITO') {
-                td.innerHTML = `<span class='estado-transito'>${cell}</span>`;
-              } else if (estado === 'PRODUCCION') {
-                td.innerHTML = `<span class='estado-produccion'>${cell}</span>`;
-              } else if (estado === 'ETA') {
-                td.innerHTML = `<span class='estado-eta'>${cell}</span>`;
-              } else {
-                td.textContent = cell;
-              }
-            } else if (idx === 8) { // Canal
-              let canal = String(cell).toUpperCase();
-              if (canal === 'ROJO') {
-                td.innerHTML = `<span class='canal-rojo'>${cell}</span>`;
-              } else if (canal === 'VERDE') {
-                td.innerHTML = `<span class='canal-amarillo'>${cell}</span>`;
-              } else if (canal === 'AMARILLO') {
-                td.innerHTML = `<span class='canal-amarillo'>${cell}</span>`;
-              } else {
-                td.textContent = cell;
-              }
-            } else if (idx === 9) { // Fecha Recepción
-              if (cell && cell !== 'null' && cell !== '') {
-                // Convertir formato de fecha si es necesario
-                let fecha = cell;
-                if (cell.includes('/')) {
-                  const partes = cell.split('/');
-                  if (partes.length === 3) {
-                    fecha = `${partes[2]}-${partes[1].padStart(2, '0')}-${partes[0].padStart(2, '0')}`;
-                  }
-                }
-                td.textContent = fecha;
-              } else {
-                td.textContent = '';
-              }
-            } else if (idx === 10) { // Incidencias
-              let incidencia = String(cell).toUpperCase();
-              if (incidencia === 'SI') {
-                td.innerHTML = `<span class='estado-incidencia-si'>${cell}</span>`;
-              } else if (incidencia === 'NO') {
-                td.innerHTML = `<span class='estado-incidencia-no'>${cell}</span>`;
-              } else {
-                td.textContent = cell || '';
-              }
-            } else {
-              td.textContent = cell;
-            }
-            tr.appendChild(td);
-          });
-
-          // Columna ACCIONES
-          const tdAcciones = document.createElement('td');
-          // Usar un enfoque más seguro para pasar los datos
-          const rowData = JSON.stringify(row);
-          const button = document.createElement('button');
-          button.className = 'btn btn-warning';
-          button.innerHTML = '<i class="fas fa-edit"></i> Actualizar';
-          button.onclick = function () {
-            abrirModalActualizar(rowData);
-          };
-          tdAcciones.appendChild(button);
-          tr.appendChild(tdAcciones);
-          console.log('Botón de actualizar agregado para fila:', row.ID_IMPORTACIONES);
-          tbody.appendChild(tr);
-        });
+        // Calcular paginación
+        const totalPaginas = calcularPaginacion(registros);
+        actualizarPaginacion(totalPaginas);
+        renderizarTabla(ultimoId);
       };
 
       if (filtrados && Array.isArray(filtrados)) {
@@ -1141,12 +1151,207 @@
         });
     }
 
+    // Función para renderizar la tabla con paginación
+    function renderizarTabla(ultimoId) {
+      const tbody = document.querySelector('#tablaImportaciones tbody');
+      tbody.innerHTML = '';
+
+      registrosPaginados.forEach(function (row, i) {
+        const tr = document.createElement('tr');
+        // Si es el primer registro y es el más nuevo, resaltar
+        if (i === 0 && (String(row.ID_IMPORTACIONES) === String(ultimoId))) {
+          tr.classList.add('fila-nueva');
+        }
+
+        // Crear las celdas en el orden correcto
+        const celdas = [
+          row.FECHA_REGISTRO,
+          row.NUMERO_DESPACHO,
+          row.RESPONSABLE,
+          row.PRODUCTOS,
+          row.ARCHIVO_PDF_URL,
+          row.FECHA_LLEGADA_PRODUCTOS,
+          row.TIPO_CARGA,
+          row.ESTADO_IMPORTACION,
+          row.CANAL,
+          row.FECHA_RECEPCION,
+          row.INCIDENCIAS
+        ];
+
+        celdas.forEach(function (cell, idx) {
+          const td = document.createElement('td');
+
+          if (idx === 3) { // Productos
+            td.style.minWidth = '180px';
+            td.style.maxWidth = '320px';
+            td.style.whiteSpace = 'pre-line';
+            td.style.overflowWrap = 'break-word';
+            td.style.wordBreak = 'break-word';
+            td.style.verticalAlign = 'top';
+            td.style.position = 'relative';
+            td.style.height = '100%';
+            if (cell && String(cell).length > 120) {
+              td.style.overflowY = 'auto';
+              td.style.maxHeight = '80px';
+            }
+            td.textContent = cell;
+          } else if (idx === 4) { // Archivo PDF
+            if (cell && typeof cell === 'string' && cell.startsWith('http')) {
+              td.innerHTML = `<button class="btn-pdf" onclick="window.open('${cell}','_blank')"><i class='fas fa-file-pdf'></i> PDF</button>`;
+            } else {
+              td.textContent = cell;
+            }
+          } else if (idx === 6) { // Tipo de Carga
+            td.textContent = cell;
+            td.style.fontWeight = 'bold';
+            td.style.color = 'var(--azul-oscuro)';
+          } else if (idx === 7) { // Estado
+            let estado = String(cell).toUpperCase();
+            if (estado === 'TRANSITO') {
+              td.innerHTML = `<span class='estado-transito'>${cell}</span>`;
+            } else if (estado === 'PRODUCCION') {
+              td.innerHTML = `<span class='estado-produccion'>${cell}</span>`;
+            } else if (estado === 'ETA') {
+              td.innerHTML = `<span class='estado-eta'>${cell}</span>`;
+            } else {
+              td.textContent = cell;
+            }
+          } else if (idx === 8) { // Canal
+            let canal = String(cell).toUpperCase();
+            if (canal === 'ROJO') {
+              td.innerHTML = `<span class='canal-rojo'>${cell}</span>`;
+            } else if (canal === 'VERDE') {
+              td.innerHTML = `<span class='canal-verde'>${cell}</span>`;
+            } else if (canal === 'AMARILLO') {
+              td.innerHTML = `<span class='canal-amarillo'>${cell}</span>`;
+            } else {
+              td.textContent = cell;
+            }
+          } else if (idx === 9) { // Fecha Recepción
+            if (cell && cell !== 'null' && cell !== '') {
+              // Convertir formato de fecha si es necesario
+              let fecha = cell;
+              if (cell.includes('/')) {
+                const partes = cell.split('/');
+                if (partes.length === 3) {
+                  fecha = `${partes[2]}-${partes[1].padStart(2, '0')}-${partes[0].padStart(2, '0')}`;
+                }
+              }
+              td.textContent = fecha;
+            } else {
+              td.textContent = '';
+            }
+          } else if (idx === 10) { // Incidencias
+            let incidencia = String(cell).toUpperCase();
+            if (incidencia === 'SI') {
+              td.innerHTML = `<span class='estado-incidencia-si'>${cell}</span>`;
+            } else if (incidencia === 'NO') {
+              td.innerHTML = `<span class='estado-incidencia-no'>${cell}</span>`;
+            } else {
+              td.textContent = cell || '';
+            }
+          } else {
+            td.textContent = cell;
+          }
+          tr.appendChild(td);
+        });
+
+        // Columna ACCIONES
+        const tdAcciones = document.createElement('td');
+        // Usar un enfoque más seguro para pasar los datos
+        const rowData = JSON.stringify(row);
+        const button = document.createElement('button');
+        button.className = 'btn btn-warning';
+        button.innerHTML = '<i class="fas fa-edit"></i> Actualizar';
+        button.onclick = function () {
+          abrirModalActualizar(rowData);
+        };
+        tdAcciones.appendChild(button);
+        tr.appendChild(tdAcciones);
+        console.log('Botón de actualizar agregado para fila:', row.ID_IMPORTACIONES);
+        tbody.appendChild(tr);
+      });
+    }
+
     // Escuchar evento de registro exitoso para guardar el último ID
     window.addEventListener('storage', function (e) {
       if (e.key === 'ultimoIdImportacion') {
         cargarTablaImportaciones();
       }
     });
+
+    // Event listeners para paginación y modal
+    document.addEventListener('DOMContentLoaded', function () {
+      // Event listeners para paginación
+      document.getElementById('btnPrimera').onclick = () => irAPagina(1);
+      document.getElementById('btnAnterior').onclick = () => irAPagina(paginaActual - 1);
+      document.getElementById('btnSiguiente').onclick = () => irAPagina(paginaActual + 1);
+      document.getElementById('btnUltima').onclick = () => irAPagina(Math.ceil(registrosGlobal.length / registrosPorPagina));
+      
+      // Event listener para el botón de guardar actualización
+      document.getElementById('btnGuardarActualizacion').onclick = function () {
+        console.log('Botón Guardar Cambios clickeado');
+        const id = document.getElementById('upd_id').value;
+        const fechaLlegada = document.getElementById('upd_fecha_llegada').value;
+        
+        console.log('ID:', id);
+        console.log('Fecha llegada:', fechaLlegada);
+
+        // Convertir fecha de llegada de "yyyy-MM-dd" a "yyyy-MM-dd" para MySQL
+        let fechaLlegadaFormateada = '';
+        if (fechaLlegada) {
+          // Mantener el formato yyyy-MM-dd que es compatible con MySQL
+          fechaLlegadaFormateada = fechaLlegada;
+        }
+
+        const datos = {
+          productos: document.getElementById('upd_productos').value,
+          fecha_llegada_productos: fechaLlegadaFormateada,
+          tipo_carga: document.getElementById('upd_tipo_carga').value,
+          estado_importacion: document.getElementById('upd_estado').value,
+          canal: document.getElementById('upd_canal').value,
+          id: parseInt(id) // Convertir a número
+        };
+
+        // Validar que todos los campos requeridos estén llenos
+        if (!datos.productos || !datos.fecha_llegada_productos || !datos.tipo_carga || !datos.estado_importacion) {
+          alert('Por favor complete todos los campos requeridos.');
+          return;
+        }
+
+        // Si el canal está vacío, establecer un valor por defecto
+        if (!datos.canal) {
+          datos.canal = '';
+        }
+
+        // Validar que el ID esté presente
+        if (!datos.id) {
+          alert('Error: ID de importación no encontrado.');
+          return;
+        }
+
+        console.log('Datos a enviar:', datos);
+
+        // Usar la API para actualizar
+        actualizarDatosAPI(datos)
+          .then(function (result) {
+            var modal = bootstrap.Modal.getInstance(document.getElementById('modalActualizar'));
+            modal.hide();
+            cargarTablaImportaciones();
+            // Mostrar mensaje de éxito con el resultado del backend
+            if (typeof result === 'string' && result.includes('correctamente')) {
+              alert(result);
+            } else {
+              alert('Importación actualizada correctamente.');
+            }
+          })
+          .catch(function (err) {
+            console.error('Error al actualizar:', err);
+            alert('Error al actualizar: ' + (err.message || err));
+          });
+      };
+    });
+
     window.onload = cargarTablaImportaciones;
 
     document.getElementById('btnFiltrar').onclick = function () {
@@ -1183,6 +1388,9 @@
 
         return cumpleFecha && cumpleDespacho;
       });
+      
+      // Resetear a la primera página cuando se filtra
+      paginaActual = 1;
       cargarTablaImportaciones(filtrados);
     };
 
@@ -1249,65 +1457,6 @@
       }
     }
 
-    document.getElementById('btnGuardarActualizacion').onclick = function () {
-      const id = document.getElementById('upd_id').value;
-      const fechaLlegada = document.getElementById('upd_fecha_llegada').value;
-
-      // Convertir fecha de llegada de "yyyy-MM-dd" a "yyyy-MM-dd" para MySQL
-      let fechaLlegadaFormateada = '';
-      if (fechaLlegada) {
-        // Mantener el formato yyyy-MM-dd que es compatible con MySQL
-        fechaLlegadaFormateada = fechaLlegada;
-      }
-
-      const datos = {
-        numero_despacho: document.getElementById('upd_despacho').value,
-        responsable: document.getElementById('upd_redactado').value,
-        productos: document.getElementById('upd_productos').value,
-        fecha_llegada_productos: fechaLlegadaFormateada,
-        tipo_carga: document.getElementById('upd_tipo_carga').value,
-        estado_importacion: document.getElementById('upd_estado').value,
-        canal: document.getElementById('upd_canal').value,
-        id: parseInt(id) // Convertir a número
-      };
-
-      // Validar que todos los campos requeridos estén llenos
-      if (!datos.numero_despacho || !datos.responsable || !datos.productos || !datos.fecha_llegada_productos || !datos.tipo_carga || !datos.estado_importacion) {
-        alert('Por favor complete todos los campos requeridos.');
-        return;
-      }
-
-      // Si el canal está vacío, establecer un valor por defecto
-      if (!datos.canal) {
-        datos.canal = '';
-      }
-
-      // Validar que el ID esté presente
-      if (!datos.id) {
-        alert('Error: ID de importación no encontrado.');
-        return;
-      }
-
-      console.log('Datos a enviar:', datos);
-
-      // Usar la API para actualizar
-      actualizarDatosAPI(datos)
-        .then(function (result) {
-          var modal = bootstrap.Modal.getInstance(document.getElementById('modalActualizar'));
-          modal.hide();
-          cargarTablaImportaciones();
-          // Mostrar mensaje de éxito con el resultado del backend
-          if (typeof result === 'string' && result.includes('correctamente')) {
-            alert(result);
-          } else {
-            alert('Importación actualizada correctamente.');
-          }
-        })
-        .catch(function (err) {
-          console.error('Error al actualizar:', err);
-          alert('Error al actualizar: ' + (err.message || err));
-        });
-    };
   </script>
 </body>
 
