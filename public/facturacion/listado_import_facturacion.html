@@ -273,9 +273,85 @@
       min-width: 120px;
     }
 
-    .table td:nth-child(12) {
-      /* Solución PDF */
+    .table td:nth-child(7) {
+      /* Observaciones */
+      min-width: 80px;
+      max-width: 80px;
+    }
+
+    .table td:nth-child(8) {
+      /* Acciones */
       min-width: 120px;
+    }
+
+    /* Estilos para paginación */
+    .pagination-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      margin-top: 20px;
+      padding: 15px;
+      background: var(--blanco);
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .pagination-info {
+      color: var(--azul-oscuro);
+      font-weight: 600;
+      margin: 0 15px;
+    }
+
+    .pagination-btn {
+      background: var(--azul-oscuro);
+      color: var(--blanco);
+      border: none;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 600;
+    }
+
+    .pagination-btn:hover:not(:disabled) {
+      background: var(--maiz-oscuro);
+      transform: translateY(-2px);
+    }
+
+    .pagination-btn:disabled {
+      background: var(--gris-medio);
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    .pagination-btn.active {
+      background: var(--maiz-oscuro);
+      color: var(--negro);
+    }
+
+    /* Botón de ojo para observaciones */
+    .btn-observaciones {
+      background: var(--azul-oscuro);
+      color: var(--blanco);
+      border: none;
+      padding: 6px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 14px;
+    }
+
+    .btn-observaciones:hover {
+      background: var(--maiz-oscuro);
+      color: var(--negro);
+      transform: translateY(-2px);
+    }
+
+    .btn-observaciones:disabled {
+      background: var(--gris-medio);
+      cursor: not-allowed;
+      opacity: 0.6;
     }
 
     .table-striped>tbody>tr:nth-of-type(odd) {
@@ -576,19 +652,34 @@
       }
     }
 
-    header-logo {
+    .header-back {
       display: flex;
       align-items: center;
     }
 
-    .header-logo img {
-      max-width: 150px;
-      object-fit: contain;
-      transition: transform 0.3s ease;
+    .btn-back-header {
+      background: linear-gradient(135deg, var(--maiz-oscuro), var(--maiz-claro));
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 50px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 8px 25px rgba(226, 163, 15, 0.3);
     }
 
-    .header-logo img:hover {
-      transform: scale(1.05);
+    .btn-back-header:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 35px rgba(226, 163, 15, 0.4);
+      background: linear-gradient(135deg, var(--maiz-claro), var(--maiz-oscuro));
+      color: white;
+      text-decoration: none;
     }
 
     .header-title {
@@ -658,8 +749,9 @@
         font-size: 24px;
       }
 
-      .header-logo img {
-        max-width: 120px;
+      .btn-back-header {
+        padding: 10px 16px;
+        font-size: 14px;
       }
 
       .header-spacer {
@@ -670,11 +762,12 @@
 </head>
 
 <body>
-  <!-- Header con Logo y Título -->
+  <!-- Header con Botón Volver y Título -->
   <div class="header-container">
-    <div class="header-logo">
-      <img src="../../Logo de Zeus.png"
-        alt="Logo Zeus">
+    <div class="header-back">
+      <a href="../../logistica.html" class="btn-back-header">
+        <i class="fas fa-arrow-left"></i> Volver al Menú
+      </a>
     </div>
     <div class="header-title">
       <h1>LISTADO IMPORTACIONES - FACTURACIÓN</h1>
@@ -682,15 +775,9 @@
     <div class="header-spacer"></div>
   </div>
 
-  <a href="../../logistica.html" class="btn-back">Volver al Menú</a>
-
   <div class="container">
     <div class="header">
       <h2><i class="fas fa-list-alt"></i>Consulta y Gestión de Registros de Facturación </h2>
-    </div>
-
-    <div class="logo-container">
-      <img src="../../Logo de Zeus.png" alt="Logo Zeus">
     </div>
 
     <div class="filters-section">
@@ -741,6 +828,23 @@
             </tr>
           </tbody>
         </table>
+      </div>
+      
+      <!-- Contenedor de paginación -->
+      <div class="pagination-container" id="paginationContainer" style="display: none;">
+        <button class="pagination-btn" id="btnPrimera" title="Primera página">
+          <i class="fas fa-angle-double-left"></i>
+        </button>
+        <button class="pagination-btn" id="btnAnterior" title="Página anterior">
+          <i class="fas fa-angle-left"></i>
+        </button>
+        <span class="pagination-info" id="paginationInfo">Página 1 de 1</span>
+        <button class="pagination-btn" id="btnSiguiente" title="Página siguiente">
+          <i class="fas fa-angle-right"></i>
+        </button>
+        <button class="pagination-btn" id="btnUltima" title="Última página">
+          <i class="fas fa-angle-double-right"></i>
+        </button>
       </div>
     </div>
   </div>
@@ -835,8 +939,78 @@
     </div>
   </div>
 
+  <!-- Modal para observaciones -->
+  <div id="modalObservaciones" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <span class="close-observaciones">&times;</span>
+        <h3><i class="fas fa-eye"></i> Observaciones del Registro</h3>
+      </div>
+      <div class="modal-body">
+        <div style="text-align: left; line-height: 1.6;">
+          <div style="background: var(--gris-suave); padding: 20px; border-radius: 8px; border-left: 4px solid var(--maiz-oscuro);">
+            <h5 style="color: var(--azul-oscuro); margin-bottom: 15px;">Observaciones:</h5>
+            <p id="observacionesTexto" style="font-size: 16px; color: var(--negro); white-space: pre-wrap; word-wrap: break-word;">
+              Sin observaciones registradas.
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn" id="btnCerrarObservaciones">
+          <i class="fas fa-check"></i> Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script>
     let registrosGlobal = [];
+    let registrosPaginados = [];
+    let paginaActual = 1;
+    const registrosPorPagina = 6;
+
+    // Funciones de paginación
+    function calcularPaginacion(registros) {
+      const totalPaginas = Math.ceil(registros.length / registrosPorPagina);
+      const inicio = (paginaActual - 1) * registrosPorPagina;
+      const fin = inicio + registrosPorPagina;
+      registrosPaginados = registros.slice(inicio, fin);
+      return totalPaginas;
+    }
+
+    function actualizarPaginacion(totalPaginas) {
+      const paginationContainer = document.getElementById('paginationContainer');
+      const paginationInfo = document.getElementById('paginationInfo');
+      const btnPrimera = document.getElementById('btnPrimera');
+      const btnAnterior = document.getElementById('btnAnterior');
+      const btnSiguiente = document.getElementById('btnSiguiente');
+      const btnUltima = document.getElementById('btnUltima');
+
+      if (totalPaginas <= 1) {
+        paginationContainer.style.display = 'none';
+        return;
+      }
+
+      paginationContainer.style.display = 'flex';
+      paginationInfo.textContent = `Página ${paginaActual} de ${totalPaginas}`;
+
+      // Habilitar/deshabilitar botones
+      btnPrimera.disabled = paginaActual === 1;
+      btnAnterior.disabled = paginaActual === 1;
+      btnSiguiente.disabled = paginaActual === totalPaginas;
+      btnUltima.disabled = paginaActual === totalPaginas;
+    }
+
+    function irAPagina(pagina) {
+      if (pagina < 1 || pagina > Math.ceil(registrosGlobal.length / registrosPorPagina)) {
+        return;
+      }
+      paginaActual = pagina;
+      const totalPaginas = calcularPaginacion(registrosGlobal);
+      actualizarPaginacion(totalPaginas);
+      renderizarTabla();
+    }
 
     // Función para consumir la API
     async function obtenerDatosAPI() {
@@ -869,6 +1043,7 @@
       const render = function (registros) {
         if (!Array.isArray(registros) || registros.length === 0) {
           tbody.innerHTML = '<tr><td colspan="8" class="text-center">Sin registros</td></tr>';
+          actualizarPaginacion(0);
           return;
         }
 
@@ -877,72 +1052,10 @@
           return Number(b.ID_IMPORTACIONES) - Number(a.ID_IMPORTACIONES);
         });
 
-        tbody.innerHTML = '';
-        registros.forEach(function (row, i) {
-          const tr = document.createElement('tr');
-          if (i === 0 && (String(row.ID_IMPORTACIONES) === String(ultimoId))) {
-            tr.classList.add('fila-nueva');
-          }
-
-          // Crear las celdas según la nueva estructura
-          // ID
-          const tdId = document.createElement('td');
-          tdId.textContent = row.ID_IMPORTACIONES;
-          tr.appendChild(tdId);
-
-          // Fecha Registro
-          const tdFechaRegistro = document.createElement('td');
-          tdFechaRegistro.textContent = row.FECHA_REGISTRO;
-          tr.appendChild(tdFechaRegistro);
-
-          // N° Despacho
-          const tdDespacho = document.createElement('td');
-          tdDespacho.textContent = row.NUMERO_DESPACHO;
-          tr.appendChild(tdDespacho);
-
-          // Solución PDF
-          const tdSolucionPdf = document.createElement('td');
-          if (row.ARCHIVO_PDF_URL && typeof row.ARCHIVO_PDF_URL === 'string' && row.ARCHIVO_PDF_URL.startsWith('http')) {
-            tdSolucionPdf.innerHTML = `<button class="btn-pdf" onclick="window.open('${row.ARCHIVO_PDF_URL}','_blank')"><i class='fas fa-file-pdf'></i> Ver PDF</button>`;
-          } else {
-            tdSolucionPdf.textContent = '';
-          }
-          tr.appendChild(tdSolucionPdf);
-
-          // Estado de Despacho - Mapear desde ESTADO_REGISTRO_FACTURACION
-          const tdEstadoDespacho = document.createElement('td');
-          const estadoDespacho = row.ESTADO_REGISTRO_FACTURACION || '';
-          if (estadoDespacho === 'SI') {
-            tdEstadoDespacho.innerHTML = `<span class='estado-incidencia-no'>REGISTRADO</span>`;
-          } else if (estadoDespacho === 'NO') {
-            tdEstadoDespacho.innerHTML = `<span class='estado-incidencia-si'>NO REGISTRADO</span>`;
-          } else {
-            tdEstadoDespacho.textContent = '';
-          }
-          tr.appendChild(tdEstadoDespacho);
-
-          // Fecha de Registro - Mapear desde FECHA_REGISTRO_FACTURACION
-          const tdFechaRegistroFacturacion = document.createElement('td');
-          if (row.FECHA_REGISTRO_FACTURACION && row.FECHA_REGISTRO_FACTURACION !== 'null' && row.FECHA_REGISTRO_FACTURACION !== '') {
-            tdFechaRegistroFacturacion.textContent = row.FECHA_REGISTRO_FACTURACION;
-          } else {
-            tdFechaRegistroFacturacion.textContent = '';
-          }
-          tr.appendChild(tdFechaRegistroFacturacion);
-
-          // Observaciones - Mapear desde OBSERVACIONES_FACTURACION
-          const tdObservaciones = document.createElement('td');
-          tdObservaciones.textContent = row.OBSERVACIONES_FACTURACION || '';
-          tr.appendChild(tdObservaciones);
-
-          // Acciones
-          const tdAcciones = document.createElement('td');
-          // Usar ID_IMPORTACIONES real y campos de facturación
-          tdAcciones.innerHTML = `<button class="btn-actualizar" onclick="abrirModalActualizar(${row.ID_IMPORTACIONES}, '${row.ESTADO_REGISTRO_FACTURACION || ''}', '${row.OBSERVACIONES_FACTURACION || ''}')"><i class='fas fa-edit'></i> Editar</button>`;
-          tr.appendChild(tdAcciones);
-
-          tbody.appendChild(tr);
-        });
+        // Calcular paginación
+        const totalPaginas = calcularPaginacion(registros);
+        actualizarPaginacion(totalPaginas);
+        renderizarTabla(ultimoId);
       };
 
       if (filtrados && Array.isArray(filtrados)) {
@@ -984,6 +1097,102 @@
         });
     }
 
+    // Función para renderizar la tabla con paginación
+    function renderizarTabla(ultimoId) {
+      const tbody = document.querySelector('#tablaImportaciones tbody');
+      tbody.innerHTML = '';
+
+      registrosPaginados.forEach(function (row, i) {
+        const tr = document.createElement('tr');
+        if (i === 0 && (String(row.ID_IMPORTACIONES) === String(ultimoId))) {
+          tr.classList.add('fila-nueva');
+        }
+
+        // Crear las celdas según la nueva estructura
+        // ID
+        const tdId = document.createElement('td');
+        tdId.textContent = row.ID_IMPORTACIONES;
+        tr.appendChild(tdId);
+
+        // Fecha Registro
+        const tdFechaRegistro = document.createElement('td');
+        tdFechaRegistro.textContent = row.FECHA_REGISTRO;
+        tr.appendChild(tdFechaRegistro);
+
+        // N° Despacho
+        const tdDespacho = document.createElement('td');
+        tdDespacho.textContent = row.NUMERO_DESPACHO;
+        tr.appendChild(tdDespacho);
+
+        // Solución PDF
+        const tdSolucionPdf = document.createElement('td');
+        if (row.ARCHIVO_PDF_URL && typeof row.ARCHIVO_PDF_URL === 'string' && row.ARCHIVO_PDF_URL.startsWith('http')) {
+          tdSolucionPdf.innerHTML = `<button class="btn-pdf" onclick="window.open('${row.ARCHIVO_PDF_URL}','_blank')"><i class='fas fa-file-pdf'></i> Ver PDF</button>`;
+        } else {
+          tdSolucionPdf.textContent = '';
+        }
+        tr.appendChild(tdSolucionPdf);
+
+        // Estado de Despacho - Mapear desde ESTADO_REGISTRO_FACTURACION
+        const tdEstadoDespacho = document.createElement('td');
+        const estadoDespacho = row.ESTADO_REGISTRO_FACTURACION || '';
+        if (estadoDespacho === 'SI') {
+          tdEstadoDespacho.innerHTML = `<span class='estado-incidencia-no'>REGISTRADO</span>`;
+        } else if (estadoDespacho === 'NO') {
+          tdEstadoDespacho.innerHTML = `<span class='estado-incidencia-si'>NO REGISTRADO</span>`;
+        } else {
+          tdEstadoDespacho.textContent = '';
+        }
+        tr.appendChild(tdEstadoDespacho);
+
+        // Fecha de Registro - Mapear desde FECHA_REGISTRO_FACTURACION
+        const tdFechaRegistroFacturacion = document.createElement('td');
+        if (row.FECHA_REGISTRO_FACTURACION && row.FECHA_REGISTRO_FACTURACION !== 'null' && row.FECHA_REGISTRO_FACTURACION !== '') {
+          tdFechaRegistroFacturacion.textContent = row.FECHA_REGISTRO_FACTURACION;
+        } else {
+          tdFechaRegistroFacturacion.textContent = '';
+        }
+        tr.appendChild(tdFechaRegistroFacturacion);
+
+        // Observaciones - Botón de ojo
+        const tdObservaciones = document.createElement('td');
+        const observaciones = row.OBSERVACIONES_FACTURACION || '';
+        if (observaciones && observaciones.trim() !== '') {
+          tdObservaciones.innerHTML = `<button class="btn-observaciones" onclick="abrirModalObservaciones('${observaciones.replace(/'/g, "\\'")}')" title="Ver observaciones"><i class="fas fa-eye"></i></button>`;
+        } else {
+          tdObservaciones.innerHTML = `<button class="btn-observaciones" disabled title="Sin observaciones"><i class="fas fa-eye"></i></button>`;
+        }
+        tr.appendChild(tdObservaciones);
+
+        // Acciones
+        const tdAcciones = document.createElement('td');
+        // Usar ID_IMPORTACIONES real y campos de facturación
+        tdAcciones.innerHTML = `<button class="btn-actualizar" onclick="abrirModalActualizar(${row.ID_IMPORTACIONES}, '${row.ESTADO_REGISTRO_FACTURACION || ''}', '${row.OBSERVACIONES_FACTURACION || ''}')"><i class='fas fa-edit'></i> Editar</button>`;
+        tr.appendChild(tdAcciones);
+
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Función para abrir modal de observaciones
+    function abrirModalObservaciones(observaciones) {
+      const modal = document.getElementById('modalObservaciones');
+      const textoObservaciones = document.getElementById('observacionesTexto');
+      
+      if (observaciones && observaciones.trim() !== '') {
+        textoObservaciones.textContent = observaciones;
+      } else {
+        textoObservaciones.textContent = 'Sin observaciones registradas.';
+      }
+      
+      modal.style.display = 'block';
+    }
+
+    // Función para cerrar modal de observaciones
+    function cerrarModalObservaciones() {
+      document.getElementById('modalObservaciones').style.display = 'none';
+    }
+
     document.getElementById('btnFiltrar').onclick = function () {
       if (!Array.isArray(registrosGlobal) || registrosGlobal.length === 0) {
         return;
@@ -1018,6 +1227,9 @@
 
         return cumpleFecha && cumpleDespacho;
       });
+      
+      // Resetear a la primera página cuando se filtra
+      paginaActual = 1;
       cargarTablaImportaciones(filtrados);
     };
 
@@ -1091,12 +1303,21 @@
     document.addEventListener('DOMContentLoaded', function () {
       const modal = document.getElementById('modalActualizar');
       const modalProcedimiento = document.getElementById('modalProcedimiento');
+      const modalObservaciones = document.getElementById('modalObservaciones');
       const closeBtn = document.querySelector('.close');
       const closeBtnProcedimiento = document.querySelector('.close-procedimiento');
+      const closeBtnObservaciones = document.querySelector('.close-observaciones');
       const btnCancelar = document.getElementById('btnCancelar');
       const btnGuardar = document.getElementById('btnGuardar');
       const btnProcedimiento = document.getElementById('btnProcedimiento');
       const btnCerrarProcedimiento = document.getElementById('btnCerrarProcedimiento');
+      const btnCerrarObservaciones = document.getElementById('btnCerrarObservaciones');
+
+      // Event listeners para paginación
+      document.getElementById('btnPrimera').onclick = () => irAPagina(1);
+      document.getElementById('btnAnterior').onclick = () => irAPagina(paginaActual - 1);
+      document.getElementById('btnSiguiente').onclick = () => irAPagina(paginaActual + 1);
+      document.getElementById('btnUltima').onclick = () => irAPagina(Math.ceil(registrosGlobal.length / registrosPorPagina));
 
       // Cerrar modal con X
       closeBtn.onclick = cerrarModal;
@@ -1112,6 +1333,10 @@
       closeBtnProcedimiento.onclick = cerrarModalProcedimiento;
       btnCerrarProcedimiento.onclick = cerrarModalProcedimiento;
 
+      // Event listeners para modal de observaciones
+      closeBtnObservaciones.onclick = cerrarModalObservaciones;
+      btnCerrarObservaciones.onclick = cerrarModalObservaciones;
+
       // Cerrar modales haciendo clic fuera
       window.onclick = function (event) {
         if (event.target === modal) {
@@ -1119,6 +1344,9 @@
         }
         if (event.target === modalProcedimiento) {
           cerrarModalProcedimiento();
+        }
+        if (event.target === modalObservaciones) {
+          cerrarModalObservaciones();
         }
       }
     });
