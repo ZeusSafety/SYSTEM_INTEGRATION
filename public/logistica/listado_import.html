@@ -273,6 +273,52 @@
       min-width: 100px;
     }
 
+    /* Estilos para paginación */
+    .pagination-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      margin-top: 20px;
+      padding: 15px;
+      background: var(--blanco);
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .pagination-info {
+      color: var(--azul-oscuro);
+      font-weight: 600;
+      margin: 0 15px;
+    }
+
+    .pagination-btn {
+      background: var(--azul-oscuro);
+      color: var(--blanco);
+      border: none;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 600;
+    }
+
+    .pagination-btn:hover:not(:disabled) {
+      background: var(--maiz-oscuro);
+      transform: translateY(-2px);
+    }
+
+    .pagination-btn:disabled {
+      background: var(--gris-medio);
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    .pagination-btn.active {
+      background: var(--maiz-oscuro);
+      color: var(--negro);
+    }
+
     .table-striped>tbody>tr:nth-of-type(odd) {
       background-color: var(--gris-suave);
     }
@@ -573,19 +619,34 @@
       }
     }
 
-    header-logo {
+    .header-back {
       display: flex;
       align-items: center;
     }
 
-    .header-logo img {
-      max-width: 150px;
-      object-fit: contain;
-      transition: transform 0.3s ease;
+    .btn-back-header {
+      background: linear-gradient(135deg, var(--maiz-oscuro), var(--maiz-claro));
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 50px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 8px 25px rgba(226, 163, 15, 0.3);
     }
 
-    .header-logo img:hover {
-      transform: scale(1.05);
+    .btn-back-header:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 35px rgba(226, 163, 15, 0.4);
+      background: linear-gradient(135deg, var(--maiz-claro), var(--maiz-oscuro));
+      color: white;
+      text-decoration: none;
     }
 
     .header-title {
@@ -654,8 +715,9 @@
         font-size: 24px;
       }
 
-      .header-logo img {
-        max-width: 120px;
+      .btn-back-header {
+        padding: 10px 16px;
+        font-size: 14px;
       }
 
       .header-spacer {
@@ -666,11 +728,12 @@
 </head>
 
 <body>
-  <!-- Header con Logo y Título -->
+  <!-- Header con Botón Volver y Título -->
   <div class="header-container">
-    <div class="header-logo">
-      <img src="../../Logo de Zeus.png"
-        alt="Logo Zeus">
+    <div class="header-back">
+      <a href="../../logistica.html" class="btn-back-header">
+        <i class="fas fa-arrow-left"></i> Volver al Menú
+      </a>
     </div>
     <div class="header-title">
       <h1>LISTADO IMPORTACIONES LOGÍSTICA</h1>
@@ -678,15 +741,9 @@
     <div class="header-spacer"></div>
   </div>
 
-  <a href="../../logistica.html" class="btn-back">Volver al Menú</a>
-
   <div class="container">
     <div class="header">
       <h2><i class="fas fa-list-alt"></i>Consulta y Filtrado de Registros de Importación Logística</h2>
-    </div>
-
-    <div class="logo-container">
-      <img src="../../Logo de Zeus.png" alt="Logo Zeus">
     </div>
 
     <div class="filters-section">
@@ -743,6 +800,23 @@
             </tr>
           </tbody>
         </table>
+      </div>
+      
+      <!-- Contenedor de paginación -->
+      <div class="pagination-container" id="paginationContainer" style="display: none;">
+        <button class="pagination-btn" id="btnPrimera" title="Primera página">
+          <i class="fas fa-angle-double-left"></i>
+        </button>
+        <button class="pagination-btn" id="btnAnterior" title="Página anterior">
+          <i class="fas fa-angle-left"></i>
+        </button>
+        <span class="pagination-info" id="paginationInfo">Página 1 de 1</span>
+        <button class="pagination-btn" id="btnSiguiente" title="Página siguiente">
+          <i class="fas fa-angle-right"></i>
+        </button>
+        <button class="pagination-btn" id="btnUltima" title="Última página">
+          <i class="fas fa-angle-double-right"></i>
+        </button>
       </div>
     </div>
   </div>
@@ -848,6 +922,51 @@
 
   <script>
     let registrosGlobal = [];
+    let registrosPaginados = [];
+    let paginaActual = 1;
+    const registrosPorPagina = 6;
+
+    // Funciones de paginación
+    function calcularPaginacion(registros) {
+      const totalPaginas = Math.ceil(registros.length / registrosPorPagina);
+      const inicio = (paginaActual - 1) * registrosPorPagina;
+      const fin = inicio + registrosPorPagina;
+      registrosPaginados = registros.slice(inicio, fin);
+      return totalPaginas;
+    }
+
+    function actualizarPaginacion(totalPaginas) {
+      const paginationContainer = document.getElementById('paginationContainer');
+      const paginationInfo = document.getElementById('paginationInfo');
+      const btnPrimera = document.getElementById('btnPrimera');
+      const btnAnterior = document.getElementById('btnAnterior');
+      const btnSiguiente = document.getElementById('btnSiguiente');
+      const btnUltima = document.getElementById('btnUltima');
+
+      if (totalPaginas <= 1) {
+        paginationContainer.style.display = 'none';
+        return;
+      }
+
+      paginationContainer.style.display = 'flex';
+      paginationInfo.textContent = `Página ${paginaActual} de ${totalPaginas}`;
+
+      // Habilitar/deshabilitar botones
+      btnPrimera.disabled = paginaActual === 1;
+      btnAnterior.disabled = paginaActual === 1;
+      btnSiguiente.disabled = paginaActual === totalPaginas;
+      btnUltima.disabled = paginaActual === totalPaginas;
+    }
+
+    function irAPagina(pagina) {
+      if (pagina < 1 || pagina > Math.ceil(registrosGlobal.length / registrosPorPagina)) {
+        return;
+      }
+      paginaActual = pagina;
+      const totalPaginas = calcularPaginacion(registrosGlobal);
+      actualizarPaginacion(totalPaginas);
+      renderizarTabla();
+    }
 
     // Función para consumir la API con parámetro logistica
     async function obtenerDatosAPI() {
@@ -880,6 +999,7 @@
       const render = function (registros) {
         if (!Array.isArray(registros) || registros.length === 0) {
           tbody.innerHTML = '<tr><td colspan="14" class="text-center">Sin registros</td></tr>';
+          actualizarPaginacion(0);
           return;
         }
 
@@ -894,126 +1014,10 @@
           }
         }
 
-        tbody.innerHTML = '';
-        registros.forEach(function (row, i) {
-          const tr = document.createElement('tr');
-          if (i === 0 && (String(row.ID_IMPORTACIONES) === String(ultimoId))) {
-            tr.classList.add('fila-nueva');
-          }
-
-          // Crear las celdas en el orden correcto según las columnas especificadas
-          const celdas = [
-            row.ID_IMPORTACIONES,
-            row.FECHA_REGISTRO,
-            row.NUMERO_DESPACHO,
-            row.RESPONSABLE,
-            row.PRODUCTOS,
-            row.ARCHIVO_PDF_URL,
-            row.FECHA_LLEGADA_PRODUCTOS,
-            row.TIPO_CARGA,
-            row.ESTADO_IMPORTACION,
-            row.CANAL,
-            row.FECHA_RECEPCION,
-            row.INCIDENCIAS,
-            row.INCIDENCIA_REGISTRO
-          ];
-
-          celdas.forEach(function (cell, idx) {
-            const td = document.createElement('td');
-
-            if (idx === 0) { // ID
-              td.textContent = cell;
-              td.style.fontWeight = 'bold';
-              td.style.color = 'var(--azul-oscuro)';
-            } else if (idx === 1) { // Fecha Registro
-              td.textContent = cell;
-            } else if (idx === 2) { // N° Despacho
-              td.textContent = cell;
-              td.style.fontWeight = 'bold';
-            } else if (idx === 3) { // Redactado por
-              td.textContent = cell;
-            } else if (idx === 4) { // Productos
-              td.style.minWidth = '150px';
-              td.style.maxWidth = '200px';
-              td.style.whiteSpace = 'pre-line';
-              td.style.overflowWrap = 'break-word';
-              td.style.wordBreak = 'break-word';
-              td.style.verticalAlign = 'top';
-              td.style.position = 'relative';
-              td.style.height = '100%';
-              if (cell && String(cell).length > 80) {
-                td.style.overflowY = 'auto';
-                td.style.maxHeight = '60px';
-              }
-              td.textContent = cell;
-            } else if (idx === 5) { // Archivo PDF
-              if (cell && typeof cell === 'string' && cell.startsWith('http')) {
-                td.innerHTML = `<button class="btn-pdf" onclick="window.open('${cell}','_blank')"><i class='fas fa-file-pdf'></i> PDF</button>`;
-              } else {
-                td.textContent = cell || '';
-              }
-            } else if (idx === 6) { // Fecha Llegada
-              td.textContent = cell;
-            } else if (idx === 7) { // Tipo de Carga
-              td.textContent = cell;
-              td.style.fontWeight = 'bold';
-              td.style.color = 'var(--azul-oscuro)';
-            } else if (idx === 8) { // Estado
-              let estado = String(cell).toUpperCase();
-              if (estado === 'TRANSITO') {
-                td.innerHTML = `<span class='estado-transito'>${cell}</span>`;
-              } else if (estado === 'PRODUCCION') {
-                td.innerHTML = `<span class='estado-produccion'>${cell}</span>`;
-              } else if (estado === 'ETA') {
-                td.innerHTML = `<span class='estado-eta'>${cell}</span>`;
-              } else {
-                td.textContent = cell;
-              }
-            } else if (idx === 9) { // Canal
-              let canal = String(cell).toUpperCase();
-              if (canal === 'VERDE') {
-                td.innerHTML = `<span class='canal-verde'>${cell}</span>`;
-              } else if (canal === 'ROJO') {
-                td.innerHTML = `<span class='canal-rojo'>${cell}</span>`;
-              } else if (canal === 'NARANJA') {
-                td.innerHTML = `<span class='canal-naranja'>${cell}</span>`;
-              } else {
-                td.textContent = cell;
-              }
-            } else if (idx === 10) { // Fecha Recepción
-              if (cell && cell !== 'null' && cell !== '') {
-                td.textContent = cell;
-              } else {
-                td.textContent = '';
-              }
-            } else if (idx === 11) { // Incidencias
-              let incidencia = String(cell).toUpperCase();
-              if (incidencia === 'SI') {
-                td.innerHTML = `<span class='estado-incidencia-si'>${cell}</span>`;
-              } else if (incidencia === 'NO') {
-                td.innerHTML = `<span class='estado-incidencia-no'>${cell}</span>`;
-              } else {
-                td.textContent = cell || '';
-              }
-            } else if (idx === 12) { // Fecha Incidencias
-              if (cell && cell !== 'null' && cell !== '') {
-                td.textContent = formatearFechaConAMPM(cell);
-              } else {
-                td.textContent = '';
-              }
-            } else {
-              td.textContent = cell;
-            }
-            tr.appendChild(td);
-          });
-
-          // Agregar celda de acciones
-          const tdAcciones = document.createElement('td');
-          tdAcciones.innerHTML = `<button class="btn-actualizar" onclick="abrirModalActualizar('${row.ID_IMPORTACIONES}', '${row.FECHA_RECEPCION || ''}', '${row.INCIDENCIAS || ''}')"><i class="fas fa-edit"></i> Actualizar</button>`;
-          tr.appendChild(tdAcciones);
-
-          tbody.appendChild(tr);
-        });
+        // Calcular paginación
+        const totalPaginas = calcularPaginacion(registros);
+        actualizarPaginacion(totalPaginas);
+        renderizarTabla(ultimoId);
       };
 
       if (filtrados && Array.isArray(filtrados)) {
@@ -1051,6 +1055,132 @@
           // Habilitar el botón de filtro cuando los datos estén listos
           document.getElementById('btnFiltrar').disabled = false;
         });
+    }
+
+    // Función para renderizar la tabla con paginación
+    function renderizarTabla(ultimoId) {
+      const tbody = document.querySelector('#tablaImportaciones tbody');
+      tbody.innerHTML = '';
+
+      registrosPaginados.forEach(function (row, i) {
+        const tr = document.createElement('tr');
+        if (i === 0 && (String(row.ID_IMPORTACIONES) === String(ultimoId))) {
+          tr.classList.add('fila-nueva');
+        }
+
+        // Crear las celdas en el orden correcto según las columnas especificadas
+        const celdas = [
+          row.ID_IMPORTACIONES,
+          row.FECHA_REGISTRO,
+          row.NUMERO_DESPACHO,
+          row.RESPONSABLE,
+          row.PRODUCTOS,
+          row.ARCHIVO_PDF_URL,
+          row.FECHA_LLEGADA_PRODUCTOS,
+          row.TIPO_CARGA,
+          row.ESTADO_IMPORTACION,
+          row.CANAL,
+          row.FECHA_RECEPCION,
+          row.INCIDENCIAS,
+          row.INCIDENCIA_REGISTRO
+        ];
+
+        celdas.forEach(function (cell, idx) {
+          const td = document.createElement('td');
+
+          if (idx === 0) { // ID
+            td.textContent = cell;
+            td.style.fontWeight = 'bold';
+            td.style.color = 'var(--azul-oscuro)';
+          } else if (idx === 1) { // Fecha Registro
+            td.textContent = cell;
+          } else if (idx === 2) { // N° Despacho
+            td.textContent = cell;
+            td.style.fontWeight = 'bold';
+          } else if (idx === 3) { // Redactado por
+            td.textContent = cell;
+          } else if (idx === 4) { // Productos
+            td.style.minWidth = '150px';
+            td.style.maxWidth = '200px';
+            td.style.whiteSpace = 'pre-line';
+            td.style.overflowWrap = 'break-word';
+            td.style.wordBreak = 'break-word';
+            td.style.verticalAlign = 'top';
+            td.style.position = 'relative';
+            td.style.height = '100%';
+            if (cell && String(cell).length > 80) {
+              td.style.overflowY = 'auto';
+              td.style.maxHeight = '60px';
+            }
+            td.textContent = cell;
+          } else if (idx === 5) { // Archivo PDF
+            if (cell && typeof cell === 'string' && cell.startsWith('http')) {
+              td.innerHTML = `<button class="btn-pdf" onclick="window.open('${cell}','_blank')"><i class='fas fa-file-pdf'></i> PDF</button>`;
+            } else {
+              td.textContent = cell || '';
+            }
+          } else if (idx === 6) { // Fecha Llegada
+            td.textContent = cell;
+          } else if (idx === 7) { // Tipo de Carga
+            td.textContent = cell;
+            td.style.fontWeight = 'bold';
+            td.style.color = 'var(--azul-oscuro)';
+          } else if (idx === 8) { // Estado
+            let estado = String(cell).toUpperCase();
+            if (estado === 'TRANSITO') {
+              td.innerHTML = `<span class='estado-transito'>${cell}</span>`;
+            } else if (estado === 'PRODUCCION') {
+              td.innerHTML = `<span class='estado-produccion'>${cell}</span>`;
+            } else if (estado === 'ETA') {
+              td.innerHTML = `<span class='estado-eta'>${cell}</span>`;
+            } else {
+              td.textContent = cell;
+            }
+          } else if (idx === 9) { // Canal
+            let canal = String(cell).toUpperCase();
+            if (canal === 'VERDE') {
+              td.innerHTML = `<span class='canal-verde'>${cell}</span>`;
+            } else if (canal === 'ROJO') {
+              td.innerHTML = `<span class='canal-rojo'>${cell}</span>`;
+            } else if (canal === 'NARANJA') {
+              td.innerHTML = `<span class='canal-naranja'>${cell}</span>`;
+            } else {
+              td.textContent = cell;
+            }
+          } else if (idx === 10) { // Fecha Recepción
+            if (cell && cell !== 'null' && cell !== '') {
+              td.textContent = cell;
+            } else {
+              td.textContent = '';
+            }
+          } else if (idx === 11) { // Incidencias
+            let incidencia = String(cell).toUpperCase();
+            if (incidencia === 'SI') {
+              td.innerHTML = `<span class='estado-incidencia-si'>${cell}</span>`;
+            } else if (incidencia === 'NO') {
+              td.innerHTML = `<span class='estado-incidencia-no'>${cell}</span>`;
+            } else {
+              td.textContent = cell || '';
+            }
+          } else if (idx === 12) { // Fecha Incidencias
+            if (cell && cell !== 'null' && cell !== '') {
+              td.textContent = formatearFechaConAMPM(cell);
+            } else {
+              td.textContent = '';
+            }
+          } else {
+            td.textContent = cell;
+          }
+          tr.appendChild(td);
+        });
+
+        // Agregar celda de acciones
+        const tdAcciones = document.createElement('td');
+        tdAcciones.innerHTML = `<button class="btn-actualizar" onclick="abrirModalActualizar('${row.ID_IMPORTACIONES}', '${row.FECHA_RECEPCION || ''}', '${row.INCIDENCIAS || ''}')"><i class="fas fa-edit"></i> Actualizar</button>`;
+        tr.appendChild(tdAcciones);
+
+        tbody.appendChild(tr);
+      });
     }
 
     document.getElementById('btnFiltrar').onclick = function () {
@@ -1093,6 +1223,9 @@
 
         return cumpleFecha && cumpleDespacho;
       });
+      
+      // Resetear a la primera página cuando se filtra
+      paginaActual = 1;
       cargarTablaImportaciones(filtrados);
     };
 
@@ -1220,6 +1353,12 @@
       const btnGuardar = document.getElementById('btnGuardar');
       const btnProcedimiento = document.getElementById('btnProcedimiento');
       const btnCerrarProcedimiento = document.getElementById('btnCerrarProcedimiento');
+
+      // Event listeners para paginación
+      document.getElementById('btnPrimera').onclick = () => irAPagina(1);
+      document.getElementById('btnAnterior').onclick = () => irAPagina(paginaActual - 1);
+      document.getElementById('btnSiguiente').onclick = () => irAPagina(paginaActual + 1);
+      document.getElementById('btnUltima').onclick = () => irAPagina(Math.ceil(registrosGlobal.length / registrosPorPagina));
 
       // Cerrar modal con X
       closeBtn.onclick = cerrarModal;
