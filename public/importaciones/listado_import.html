@@ -879,7 +879,22 @@
           celdas.forEach(function (cell, idx) {
             const td = document.createElement('td');
 
-            if (idx === 3) { // Productos
+            if (idx === 0) { // Fecha Registro - solo mostrar fecha sin hora
+              if (cell && cell !== 'null' && cell !== '') {
+                // Extraer solo la fecha (antes del espacio si existe)
+                let fecha = cell.split(' ')[0];
+                // Convertir formato de fecha si es necesario
+                if (fecha.includes('/')) {
+                  const partes = fecha.split('/');
+                  if (partes.length === 3) {
+                    fecha = `${partes[2]}-${partes[1].padStart(2, '0')}-${partes[0].padStart(2, '0')}`;
+                  }
+                }
+                td.textContent = fecha;
+              } else {
+                td.textContent = '';
+              }
+            } else if (idx === 3) { // Productos
               td.style.minWidth = '180px';
               td.style.maxWidth = '320px';
               td.style.whiteSpace = 'pre-line';
