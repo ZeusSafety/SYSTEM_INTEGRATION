@@ -27,7 +27,7 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
             min-height: 100vh;
             padding: 20px;
         }
@@ -36,7 +36,7 @@
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            background: var(--azul-oscuro);
+            background: #0A2B4C;
             color: white;
             text-decoration: none;
             padding: 12px 20px;
@@ -44,12 +44,12 @@
             font-weight: 600;
             transition: all 0.3s ease;
             margin-bottom: 20px;
-            box-shadow: 0 4px 15px rgba(30, 58, 138, 0.3);
+            box-shadow: 0 4px 15px rgba(10, 43, 76, 0.3);
         }
 
         .btn-back:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(30, 58, 138, 0.4);
+            box-shadow: 0 6px 20px rgba(10, 43, 76, 0.4);
             background: #1e40af;
         }
 
@@ -63,7 +63,7 @@
         }
 
         .header {
-            background: linear-gradient(135deg, var(--azul-oscuro), var(--azul-claro));
+            background: linear-gradient(135deg, #0A2B4C, var(--azul-claro));
             color: white;
             padding: 30px;
             text-align: center;
@@ -246,19 +246,59 @@
         }
 
         .table-responsive {
+            position: relative;
             border-radius: 10px;
-            overflow: hidden;
+            overflow-x: auto;
+            overflow-y: hidden;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .table-responsive::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .table-responsive::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        .table-responsive::-webkit-scrollbar-thumb {
+            background: #0A2B4C;
+            border-radius: 4px;
+        }
+
+        .table-responsive::-webkit-scrollbar-thumb:hover {
+            background: var(--azul-oscuro);
+        }
+
+        /* Indicador de scroll horizontal */
+        .table-responsive::after {
+            content: '← Desliza para ver más columnas →';
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 12px;
+            color: #666;
+            opacity: 0.7;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+        /* Ocultar indicador cuando no hay scroll */
+        .table-responsive:not(:hover)::after {
+            opacity: 0;
         }
 
         .table {
             width: 100%;
+            min-width: 1600px; /* Ancho mínimo para activar scroll horizontal */
             border-collapse: collapse;
             margin-bottom: 0;
         }
 
         .table thead th {
-            background: var(--azul-oscuro);
+            background: #0A2B4C;
             color: white;
             border: none;
             padding: 15px 10px;
@@ -278,6 +318,24 @@
         .table tbody tr:hover {
             background-color: #f8f9fa;
         }
+
+        /* Anchos específicos para columnas */
+        .table th:nth-child(1), .table td:nth-child(1) { min-width: 80px; } /* ID Incidencia */
+        .table th:nth-child(2), .table td:nth-child(2) { min-width: 120px; } /* Fecha Registro */
+        .table th:nth-child(3), .table td:nth-child(3) { min-width: 100px; } /* Número Despacho */
+        .table th:nth-child(4), .table td:nth-child(4) { min-width: 80px; } /* PDF Inicial */
+        .table th:nth-child(5), .table td:nth-child(5) { min-width: 80px; } /* PDF Incidencia */
+        .table th:nth-child(6), .table td:nth-child(6) { min-width: 80px; } /* Ver Detalles */
+        .table th:nth-child(7), .table td:nth-child(7) { min-width: 120px; } /* Fecha Recepción */
+        .table th:nth-child(8), .table td:nth-child(8) { min-width: 120px; } /* Fecha Corrección */
+        .table th:nth-child(9), .table td:nth-child(9) { min-width: 80px; } /* Incidencias */
+        .table th:nth-child(10), .table td:nth-child(10) { min-width: 100px; } /* Estado */
+        .table th:nth-child(11), .table td:nth-child(11) { min-width: 80px; } /* Solución PDF */
+        .table th:nth-child(12), .table td:nth-child(12) { min-width: 100px; } /* Respondido Por */
+        .table th:nth-child(13), .table td:nth-child(13) { min-width: 100px; } /* Estado Despacho */
+        .table th:nth-child(14), .table td:nth-child(14) { min-width: 120px; } /* Fecha Registro Facturación */
+        .table th:nth-child(15), .table td:nth-child(15) { min-width: 150px; } /* Observaciones Facturación */
+        .table th:nth-child(16), .table td:nth-child(16) { min-width: 80px; } /* Actualizar */
 
         .pdf-link {
             color: var(--azul-claro);
@@ -715,6 +773,52 @@
             border-radius: 6px;
         }
 
+        /* Estilos para paginación */
+        .pagination-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .pagination-info {
+            color: #0A2B4C;
+            font-weight: 600;
+            margin: 0 15px;
+        }
+
+        .pagination-btn {
+            background: #0A2B4C;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .pagination-btn:hover:not(:disabled) {
+            background: var(--azul-oscuro);
+            transform: translateY(-2px);
+        }
+
+        .pagination-btn:disabled {
+            background: var(--gris-oscuro);
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .pagination-btn.active {
+            background: var(--azul-oscuro);
+            color: white;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             body {
@@ -837,6 +941,8 @@
                                   <th>Solución PDF</th>
                                   <th>RESPONDIDO POR</th>
                                   <th>ESTADO DESPACHO</th>
+                                  <th>FECHA REGISTRO FACTURACIÓN</th>
+                                  <th>OBSERVACIONES FACTURACIÓN</th>
                                   <th>Actualizar</th>
                               </tr>
                           </thead>
@@ -844,6 +950,23 @@
                             <!-- Los datos se cargarán dinámicamente -->
                         </tbody>
                     </table>
+                </div>
+                
+                <!-- Contenedor de paginación -->
+                <div class="pagination-container" id="paginationContainer" style="display: none;">
+                    <button class="pagination-btn" id="btnPrimera" title="Primera página">
+                        <i class="fas fa-angle-double-left"></i>
+                    </button>
+                    <button class="pagination-btn" id="btnAnterior" title="Página anterior">
+                        <i class="fas fa-angle-left"></i>
+                    </button>
+                    <span class="pagination-info" id="paginationInfo">Página 1 de 1</span>
+                    <button class="pagination-btn" id="btnSiguiente" title="Página siguiente">
+                        <i class="fas fa-angle-right"></i>
+                    </button>
+                    <button class="pagination-btn" id="btnUltima" title="Última página">
+                        <i class="fas fa-angle-double-right"></i>
+                    </button>
                 </div>
             </div>
         </div>
@@ -1077,6 +1200,22 @@
         </div>
     </div>
 
+    <!-- Modal de Observaciones Facturación -->
+    <div id="observacionesFacturacionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-eye"></i> Observaciones de Facturación</h2>
+                <span class="close" onclick="cerrarModalObservacionesFacturacion()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="modal-section">
+                    <h4><i class="fas fa-comment"></i> Observaciones</h4>
+                    <textarea id="observacionesFacturacionDetalle" class="observaciones-textarea" readonly></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal de Procedimientos -->
     <div id="procedimientosModal" class="modal">
         <div class="modal-content">
@@ -1194,6 +1333,53 @@
         let timeoutId = null;
         let filaEditando = null;
         let numeroDespachoActual = null;
+        
+        // Variables de paginación
+        let registrosPaginados = [];
+        let paginaActual = 1;
+        const registrosPorPagina = 6;
+
+        // Funciones de paginación
+        function calcularPaginacion(registros) {
+            const totalPaginas = Math.ceil(registros.length / registrosPorPagina);
+            const inicio = (paginaActual - 1) * registrosPorPagina;
+            const fin = inicio + registrosPorPagina;
+            registrosPaginados = registros.slice(inicio, fin);
+            return totalPaginas;
+        }
+
+        function actualizarPaginacion(totalPaginas) {
+            const paginationContainer = document.getElementById('paginationContainer');
+            const paginationInfo = document.getElementById('paginationInfo');
+            const btnPrimera = document.getElementById('btnPrimera');
+            const btnAnterior = document.getElementById('btnAnterior');
+            const btnSiguiente = document.getElementById('btnSiguiente');
+            const btnUltima = document.getElementById('btnUltima');
+
+            if (totalPaginas <= 1) {
+                paginationContainer.style.display = 'none';
+                return;
+            }
+
+            paginationContainer.style.display = 'flex';
+            paginationInfo.textContent = `Página ${paginaActual} de ${totalPaginas}`;
+
+            // Habilitar/deshabilitar botones
+            btnPrimera.disabled = paginaActual === 1;
+            btnAnterior.disabled = paginaActual === 1;
+            btnSiguiente.disabled = paginaActual === totalPaginas;
+            btnUltima.disabled = paginaActual === totalPaginas;
+        }
+
+        function irAPagina(pagina) {
+            if (pagina < 1 || pagina > Math.ceil(incidenciasData.length / registrosPorPagina)) {
+                return;
+            }
+            paginaActual = pagina;
+            const totalPaginas = calcularPaginacion(incidenciasData);
+            actualizarPaginacion(totalPaginas);
+            mostrarIncencias();
+        }
 
         // Función de navegación
         function navegarA(pagina) {
@@ -1565,16 +1751,25 @@
         }
 
         // Función para mostrar incidencias en la tabla
-        function mostrarIncencias(incidencias) {
+        function mostrarIncencias(incidencias = null) {
             const tbody = document.getElementById('incidenciasBody');
             tbody.innerHTML = '';
 
-                                                   if (!Array.isArray(incidencias) || incidencias.length === 0) {
-                  tbody.innerHTML = '<tr><td colspan="14" class="text-center">Sin registros</td></tr>';
-                  return;
-              }
+            // Si se pasan incidencias específicas (filtradas), usarlas; sino usar las globales
+            let datosAMostrar = incidencias || incidenciasData;
+            
+            if (!Array.isArray(datosAMostrar) || datosAMostrar.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="16" class="text-center">Sin registros</td></tr>';
+                actualizarPaginacion(0);
+                return;
+            }
 
-            incidencias.forEach(incidencia => {
+            // Calcular paginación
+            const totalPaginas = calcularPaginacion(datosAMostrar);
+            actualizarPaginacion(totalPaginas);
+
+            // Mostrar solo los registros de la página actual
+            registrosPaginados.forEach(incidencia => {
                 const row = document.createElement('tr');
                 
                 // Determinar el color para Incidencias
@@ -1642,6 +1837,15 @@
                       </td>
                       <td>${incidencia.RESPONDIDO_POR || 'N/A'}</td>
                       <td class="colored-cell ${estadoDespachoClass}">${estadoDespachoTexto}</td>
+                      <td>${formatearFechaConAMPM(incidencia.FECHA_REGISTRO_FACTURACION)}</td>
+                      <td>
+                          ${incidencia.OBSERVACIONES_FACTURACION ? 
+                              `<button type="button" class="btn btn-warning btn-sm" onclick="verObservacionesFacturacion('${incidencia.ID_INCIDENCIA}', '${incidencia.OBSERVACIONES_FACTURACION.replace(/'/g, "\\'")}')" title="Ver Observaciones">
+                                  <i class="fas fa-eye"></i>
+                              </button>` : 
+                              'N/A'
+                          }
+                      </td>
                       <td>
                           <button type="button" class="btn btn-info btn-sm" onclick="abrirModalActualizar('${incidencia.ID_INCIDENCIA}')" title="Actualizar">
                               <i class="fas fa-sync-alt"></i>
@@ -1672,6 +1876,30 @@
                 day: '2-digit',
                 hour: '2-digit',
                 minute: '2-digit'
+            });
+        }
+
+        // Función para formatear fecha con AM/PM
+        function formatearFechaConAMPM(fechaString) {
+            // Verificar si la fecha está vacía, es null, undefined o inválida
+            if (!fechaString || fechaString === 'null' || fechaString === 'undefined' || fechaString === '') {
+                return 'N/A';
+            }
+            
+            const fecha = new Date(fechaString);
+            
+            // Verificar si la fecha es válida (no es Invalid Date)
+            if (isNaN(fecha.getTime())) {
+                return 'N/A';
+            }
+            
+            return fecha.toLocaleDateString('es-ES', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true // Esto agrega AM/PM
             });
         }
 
@@ -1715,6 +1943,8 @@
                 );
             }
 
+            // Resetear a la primera página cuando se filtra
+            paginaActual = 1;
             mostrarIncencias(incidenciasFiltradas);
             console.log('🔍 Incidencias filtradas:', incidenciasFiltradas.length);
         }
@@ -2650,11 +2880,29 @@
             document.getElementById('procedimientosModal').style.display = 'none';
         }
 
+        // Función para ver observaciones de facturación
+        function verObservacionesFacturacion(idIncidencia, observaciones) {
+            console.log('🔍 Mostrando observaciones de facturación para incidencia:', idIncidencia);
+            
+            // Mostrar las observaciones en el textarea
+            const observacionesTextarea = document.getElementById('observacionesFacturacionDetalle');
+            observacionesTextarea.value = observaciones || 'Sin observaciones registradas';
+            
+            // Mostrar el modal
+            document.getElementById('observacionesFacturacionModal').style.display = 'block';
+        }
+
+        // Función para cerrar modal de observaciones de facturación
+        function cerrarModalObservacionesFacturacion() {
+            document.getElementById('observacionesFacturacionModal').style.display = 'none';
+        }
+
         // Cerrar modal al hacer clic fuera
         window.onclick = function(event) {
             const modalDetalles = document.getElementById('detallesModal');
             const modalProcedimientos = document.getElementById('procedimientosModal');
             const modalActualizar = document.getElementById('actualizarModal');
+            const modalObservacionesFacturacion = document.getElementById('observacionesFacturacionModal');
             
             if (event.target === modalDetalles) {
                 cerrarModal();
@@ -2666,6 +2914,10 @@
             
             if (event.target === modalActualizar) {
                 cerrarModalActualizar();
+            }
+            
+            if (event.target === modalObservacionesFacturacion) {
+                cerrarModalObservacionesFacturacion();
             }
         }
 
@@ -2696,6 +2948,12 @@
                 mostrarAlerta('Error al cargar la lista de productos', 'error');
             }
             
+            // Event listeners para paginación
+            document.getElementById('btnPrimera').onclick = () => irAPagina(1);
+            document.getElementById('btnAnterior').onclick = () => irAPagina(paginaActual - 1);
+            document.getElementById('btnSiguiente').onclick = () => irAPagina(paginaActual + 1);
+            document.getElementById('btnUltima').onclick = () => irAPagina(Math.ceil(incidenciasData.length / registrosPorPagina));
+
             // Establecer fechas por defecto (últimos 30 días)
             const hoy = new Date();
             const hace30Dias = new Date();
@@ -2711,6 +2969,7 @@
                 const modalDetalles = document.getElementById('detallesModal');
                 const modalProcedimientos = document.getElementById('procedimientosModal');
                 const modalActualizar = document.getElementById('actualizarModal');
+                const modalObservacionesFacturacion = document.getElementById('observacionesFacturacionModal');
                 const modalEdit = document.getElementById('editModal');
                 
                 if (event.target === modalDetalles) {
@@ -2723,6 +2982,10 @@
                 
                 if (event.target === modalActualizar) {
                     cerrarModalActualizar();
+                }
+                
+                if (event.target === modalObservacionesFacturacion) {
+                    cerrarModalObservacionesFacturacion();
                 }
                 
                 if (event.target === modalEdit) {
