@@ -258,28 +258,28 @@
       max-width: 320px;
     }
 
-    .table td:nth-child(9) {
-      /* Canal */
-      min-width: 120px;
-    }
-
-    .table td:nth-child(10) {
-      /* Fecha Recepción */
+    .table td:nth-child(6) {
+      /* Fecha de Incidencias */
       min-width: 130px;
     }
 
-    .table td:nth-child(11) {
+    .table td:nth-child(7) {
       /* Incidencias */
       min-width: 120px;
     }
 
-    .table td:nth-child(7) {
+    .table td:nth-child(8) {
+      /* Estado de Verificación */
+      min-width: 140px;
+    }
+
+    .table td:nth-child(10) {
       /* Observaciones */
       min-width: 80px;
       max-width: 80px;
     }
 
-    .table td:nth-child(8) {
+    .table td:nth-child(11) {
       /* Acciones */
       min-width: 120px;
     }
@@ -596,7 +596,7 @@
       margin: 0;
       border-radius: 16px;
       overflow: hidden;
-      min-width: 1400px;
+      min-width: 1600px;
       /* Ancho mínimo para asegurar que todas las columnas sean visibles */
     }
 
@@ -816,6 +816,9 @@
               <th>Fecha Registro</th>
               <th>N° Despacho</th>
               <th>Solución PDF</th>
+              <th>Fecha de Incidencias</th>
+              <th>Incidencias</th>
+              <th>Estado de Verificación</th>
               <th>Estado de Despacho</th>
               <th>Fecha de Registro</th>
               <th>Observaciones</th>
@@ -824,7 +827,7 @@
           </thead>
           <tbody>
             <tr>
-              <td colspan="8" class="text-center">Cargando...</td>
+              <td colspan="11" class="text-center">Cargando...</td>
             </tr>
           </tbody>
         </table>
@@ -1037,12 +1040,12 @@
 
     function cargarTablaImportaciones(filtrados = null) {
       const tbody = document.querySelector('#tablaImportaciones tbody');
-      tbody.innerHTML = '<tr><td colspan="8" class="text-center">Cargando...</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="11" class="text-center">Cargando...</td></tr>';
       let ultimoId = localStorage.getItem('ultimoIdImportacion');
 
       const render = function (registros) {
         if (!Array.isArray(registros) || registros.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="8" class="text-center">Sin registros</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="11" class="text-center">Sin registros</td></tr>';
           actualizarPaginacion(0);
           return;
         }
@@ -1087,7 +1090,7 @@
           render(registrosGlobal);
         })
         .catch(function (err) {
-          tbody.innerHTML = '<tr><td colspan="8" class="text-danger">Error al cargar datos: ' + err.message + '</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="11" class="text-danger">Error al cargar datos: ' + err.message + '</td></tr>';
         })
         .finally(function () {
           // Habilitar el botón de filtro cuando los datos estén listos
@@ -1114,9 +1117,20 @@
         tdId.textContent = row.ID_IMPORTACIONES;
         tr.appendChild(tdId);
 
-        // Fecha Registro
+        // Fecha Registro - solo fecha sin hora
         const tdFechaRegistro = document.createElement('td');
-        tdFechaRegistro.textContent = row.FECHA_REGISTRO;
+        if (row.FECHA_REGISTRO && row.FECHA_REGISTRO !== 'null' && row.FECHA_REGISTRO !== '') {
+          let fecha = String(row.FECHA_REGISTRO).split(' ')[0];
+          if (fecha.includes('/')) {
+            const partes = fecha.split('/');
+            if (partes.length === 3) {
+              fecha = `${partes[2]}-${partes[1].padStart(2, '0')}-${partes[0].padStart(2, '0')}`;
+            }
+          }
+          tdFechaRegistro.textContent = fecha;
+        } else {
+          tdFechaRegistro.textContent = '';
+        }
         tr.appendChild(tdFechaRegistro);
 
         // N° Despacho
@@ -1132,6 +1146,46 @@
           tdSolucionPdf.textContent = '';
         }
         tr.appendChild(tdSolucionPdf);
+
+        // Fecha de Incidencias
+        const tdFechaIncidencias = document.createElement('td');
+        if (row.INCIDENCIA_REGISTRO && row.INCIDENCIA_REGISTRO !== 'null' && row.INCIDENCIA_REGISTRO !== '') {
+          let fecha = String(row.INCIDENCIA_REGISTRO).split(' ')[0];
+          if (fecha.includes('/')) {
+            const partes = fecha.split('/');
+            if (partes.length === 3) {
+              fecha = `${partes[2]}-${partes[1].padStart(2, '0')}-${partes[0].padStart(2, '0')}`;
+            }
+          }
+          tdFechaIncidencias.textContent = fecha;
+        } else {
+          tdFechaIncidencias.textContent = '';
+        }
+        tr.appendChild(tdFechaIncidencias);
+
+        // Incidencias
+        const tdIncidencias = document.createElement('td');
+        const incidencia = row.INCIDENCIAS || '';
+        if (incidencia && incidencia.trim() !== '') {
+          tdIncidencias.innerHTML = `<span class='estado-incidencia-si'>${incidencia}</span>`;
+        } else {
+          tdIncidencias.textContent = '';
+        }
+        tr.appendChild(tdIncidencias);
+
+        // Estado de Verificación
+        const tdEstadoVerificacion = document.createElement('td');
+        const estadoVerificacion = row.ESTADO_VERIFICACION || '';
+        if (estadoVerificacion === 'VERIFICADO') {
+          tdEstadoVerificacion.innerHTML = `<span class='estado-incidencia-no'>${estadoVerificacion}</span>`;
+        } else if (estadoVerificacion === 'PENDIENTE') {
+          tdEstadoVerificacion.innerHTML = `<span class='estado-produccion'>${estadoVerificacion}</span>`;
+        } else if (estadoVerificacion && estadoVerificacion.trim() !== '') {
+          tdEstadoVerificacion.textContent = estadoVerificacion;
+        } else {
+          tdEstadoVerificacion.textContent = '';
+        }
+        tr.appendChild(tdEstadoVerificacion);
 
         // Estado de Despacho - Mapear desde ESTADO_REGISTRO_FACTURACION
         const tdEstadoDespacho = document.createElement('td');
