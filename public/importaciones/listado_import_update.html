@@ -285,23 +285,23 @@
       text-align: left;
     }
 
-    .table td:nth-child(9) {
+    .table td:nth-child(10) {
       /* Canal */
       min-width: 80px;
       font-weight: bold;
     }
 
-    .table td:nth-child(10) {
+    .table td:nth-child(11) {
       /* Fecha Recepción */
       min-width: 130px;
     }
 
-    .table td:nth-child(11) {
+    .table td:nth-child(12) {
       /* Incidencias */
       min-width: 120px;
     }
 
-    .table td:nth-child(12) {
+    .table td:nth-child(13) {
       /* Acciones */
       min-width: 100px;
     }
@@ -857,6 +857,7 @@
               <th>Archivo_PDF</th>
               <th>Fecha Llegada</th>
               <th>Tipo de Carga</th>
+              <th>Fecha de Almacén</th>
               <th>Estado</th>
               <th>Canal</th>
               <th>Fecha Recepción</th>
@@ -866,7 +867,7 @@
           </thead>
           <tbody>
             <tr>
-              <td colspan="12" class="text-center">Cargando...</td>
+              <td colspan="13" class="text-center">Cargando...</td>
             </tr>
           </tbody>
         </table>
@@ -922,6 +923,10 @@
                 <label class="form-label">Fecha Llegada de Productos</label>
                 <input type="date" class="form-control" id="upd_fecha_llegada" required>
               </div>
+          <div class="col-md-6">
+            <label class="form-label">Fecha de Almacén</label>
+            <input type="date" class="form-control" id="upd_fecha_almacen">
+          </div>
               <div class="col-md-12">
                 <label class="form-label">Productos</label>
                 <textarea class="form-control" id="upd_productos" rows="3" required></textarea>
@@ -1167,6 +1172,7 @@
           row.ARCHIVO_PDF_URL,
           row.FECHA_LLEGADA_PRODUCTOS,
           row.TIPO_CARGA,
+          row.FECHA_ALMACEN,
           row.ESTADO_IMPORTACION,
           row.CANAL,
           row.FECHA_RECEPCION,
@@ -1174,9 +1180,22 @@
         ];
 
         celdas.forEach(function (cell, idx) {
-          const td = document.createElement('td');
+            const td = document.createElement('td');
 
-          if (idx === 3) { // Productos
+            if (idx === 0) { // Fecha Registro - solo fecha sin hora
+              if (cell && cell !== 'null' && cell !== '') {
+                let fecha = String(cell).split(' ')[0];
+                if (fecha.includes('/')) {
+                  const partes = fecha.split('/');
+                  if (partes.length === 3) {
+                    fecha = `${partes[2]}-${partes[1].padStart(2, '0')}-${partes[0].padStart(2, '0')}`;
+                  }
+                }
+                td.textContent = fecha;
+              } else {
+                td.textContent = '';
+              }
+            } else if (idx === 3) { // Productos
             td.style.minWidth = '180px';
             td.style.maxWidth = '320px';
             td.style.whiteSpace = 'pre-line';
@@ -1200,7 +1219,20 @@
             td.textContent = cell;
             td.style.fontWeight = 'bold';
             td.style.color = 'var(--azul-oscuro)';
-          } else if (idx === 7) { // Estado
+          } else if (idx === 7) { // Fecha de Almacén
+            if (cell && cell !== 'null' && cell !== '') {
+              let fecha = cell;
+              if (fecha.includes('/')) {
+                const partes = fecha.split('/');
+                if (partes.length === 3) {
+                  fecha = `${partes[2]}-${partes[1].padStart(2, '0')}-${partes[0].padStart(2, '0')}`;
+                }
+              }
+              td.textContent = fecha;
+            } else {
+              td.textContent = '';
+            }
+          } else if (idx === 8) { // Estado
             let estado = String(cell).toUpperCase();
             if (estado === 'TRANSITO') {
               td.innerHTML = `<span class='estado-transito'>${cell}</span>`;
@@ -1211,7 +1243,7 @@
             } else {
               td.textContent = cell;
             }
-          } else if (idx === 8) { // Canal
+          } else if (idx === 9) { // Canal
             let canal = String(cell).toUpperCase();
             if (canal === 'ROJO') {
               td.innerHTML = `<span class='canal-rojo'>${cell}</span>`;
@@ -1222,7 +1254,7 @@
             } else {
               td.textContent = cell;
             }
-          } else if (idx === 9) { // Fecha Recepción
+          } else if (idx === 10) { // Fecha Recepción
             if (cell && cell !== 'null' && cell !== '') {
               // Convertir formato de fecha si es necesario
               let fecha = cell;
@@ -1236,7 +1268,7 @@
             } else {
               td.textContent = '';
             }
-          } else if (idx === 10) { // Incidencias
+          } else if (idx === 11) { // Incidencias
             let incidencia = String(cell).toUpperCase();
             if (incidencia === 'SI') {
               td.innerHTML = `<span class='estado-incidencia-si'>${cell}</span>`;
@@ -1299,12 +1331,13 @@
           fechaLlegadaFormateada = fechaLlegada;
         }
 
-        const datos = {
+      const datos = {
           productos: document.getElementById('upd_productos').value,
           fecha_llegada_productos: fechaLlegadaFormateada,
           tipo_carga: document.getElementById('upd_tipo_carga').value,
           estado_importacion: document.getElementById('upd_estado').value,
-          canal: document.getElementById('upd_canal').value,
+        canal: document.getElementById('upd_canal').value,
+        fecha_almacen: (document.getElementById('upd_fecha_almacen') && document.getElementById('upd_fecha_almacen').value) ? document.getElementById('upd_fecha_almacen').value : null,
           id: parseInt(id) // Convertir a número
         };
 
@@ -1438,6 +1471,18 @@
         document.getElementById('upd_tipo_carga').value = row.TIPO_CARGA || '';
         document.getElementById('upd_estado').value = row.ESTADO_IMPORTACION || '';
         document.getElementById('upd_canal').value = row.CANAL || '';
+        // Cargar fecha de almacén si existe
+        if (row.FECHA_ALMACEN) {
+          let fAlm = row.FECHA_ALMACEN;
+          if (fAlm && fAlm.includes('/')) {
+            const partes = fAlm.split('/');
+            if (partes.length === 3) {
+              fAlm = `${partes[2]}-${partes[1]}-${partes[0]}`;
+            }
+          }
+          const inpAlm = document.getElementById('upd_fecha_almacen');
+          if (inpAlm) inpAlm.value = fAlm;
+        }
 
         // Mostrar el modal usando Bootstrap
         const modalElement = document.getElementById('modalActualizar');
