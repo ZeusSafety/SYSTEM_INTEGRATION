@@ -138,7 +138,7 @@ function loadMenu() {
     };
 
     // Selecciona todas las cards del sidebar y del dashboard
-    document.querySelectorAll(".menu-item[data-role], .module-card[data-role]").forEach(element => {
+    document.querySelectorAll(".menu-item-group[data-role], .module-card[data-role]").forEach(element => {
         const role = element.getAttribute("data-role");
         
         // Verificar si el rol de la tarjeta está en las secciones permitidas

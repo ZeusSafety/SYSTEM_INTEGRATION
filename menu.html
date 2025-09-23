@@ -33,42 +33,414 @@
             <div class="menu-section">
                 <h6 class="section-title">MÓDULOS</h6>
                 <div class="menu-items">
-                    <a href="gerencia.html" class="menu-item" data-role="gerencia">
-                        <i class="fas fa-shield-alt"></i>
-                        <span>Gerencia</span>
-                    </a>
-                    <a href="administracion.html" class="menu-item" data-role="administracion">
-                        <i class="fas fa-user-shield"></i>
-                        <span>Administración</span>
-                    </a>
-                    <a href="importacion.html" class="menu-item" data-role="importacion">
-                        <i class="fas fa-ship"></i>
-                        <span>Importación</span>
-                    </a>
-                    <a href="logistica.html" class="menu-item" data-role="logistica">
-                        <i class="fas fa-truck"></i>
-                        <span>Logística</span>
-                    </a>
-                    <a href="facturacion.html" class="menu-item" data-role="facturacion">
-                        <i class="fas fa-receipt"></i>
-                        <span>Facturación</span>
-                    </a>
-                    <a href="#" class="menu-item" data-role="marketing">
-                        <i class="fas fa-bullhorn"></i>
-                        <span>Marketing</span>
-                    </a>
-                    <a href="sistemas.html" class="menu-item" data-role="sistemas">
-                        <i class="fas fa-cogs"></i>
-                        <span>Sistemas</span>
-                    </a>
-                    <a href="#" class="menu-item" data-role="recursos_humanos">
-                        <i class="fas fa-users"></i>
-                        <span>Recursos Humanos</span>
-                    </a>
-                    <a href="ventas.html" class="menu-item" data-role="ventas">
-                        <i class="fas fa-chart-line"></i>
-                        <span>Ventas</span>
-                    </a>
+                    <!-- Gerencia -->
+                    <div class="menu-item-group" data-role="gerencia">
+                        <div class="menu-item-header" onclick="toggleSubmenu('gerencia')">
+                            <i class="fas fa-shield-alt"></i>
+                            <span>Gerencia</span>
+                            <i class="fas fa-chevron-down submenu-toggle"></i>
+                        </div>
+                        <div class="submenu" id="gerencia-submenu">
+                            <a href="gerencia.html" class="submenu-item">
+                                <i class="fas fa-home"></i>
+                                <span>Dashboard</span>
+                            </a>
+                            
+                            <!-- Gestión de Usuarios -->
+                            <div class="submenu-group">
+                                <div class="submenu-header" onclick="toggleSubSubmenu('gerencia-usuarios')">
+                                    <i class="fas fa-users"></i>
+                                    <span>Gestión de Usuarios</span>
+                                    <i class="fas fa-chevron-down sub-submenu-toggle"></i>
+                                </div>
+                                <div class="sub-submenu" id="gerencia-usuarios-submenu">
+                                    <a href="public/gerencia/colaboradores_listado.html" class="sub-submenu-item">
+                                        <i class="fas fa-user-shield"></i>
+                                        <span>Accesibilidad y Credenciales</span>
+                                    </a>
+                                </div>
+                            </div>
+                            
+                            <!-- Gestión de Productos -->
+                            <div class="submenu-group">
+                                <div class="submenu-header" onclick="toggleSubSubmenu('gerencia-productos')">
+                                    <i class="fas fa-box"></i>
+                                    <span>Gestión de Productos</span>
+                                    <i class="fas fa-chevron-down sub-submenu-toggle"></i>
+                                </div>
+                                <div class="sub-submenu" id="gerencia-productos-submenu">
+                                    <a href="public/gerencia/productos.html" class="sub-submenu-item">
+                                        <i class="fas fa-user-shield"></i>
+                                        <span>Productos</span>
+                                    </a>
+                                </div>
+                            </div>
+                            
+                            <!-- Reportes y Anomalías -->
+                            <div class="submenu-group">
+                                <div class="submenu-header" onclick="toggleSubSubmenu('gerencia-reportes')">
+                                    <i class="fas fa-chart-bar"></i>
+                                    <span>Reportes y Anomalías</span>
+                                    <i class="fas fa-chevron-down sub-submenu-toggle"></i>
+                                </div>
+                                <div class="sub-submenu" id="gerencia-reportes-submenu">
+                                    <a href="#" class="sub-submenu-item" onclick="showComingSoon('reporte_ventas')">
+                                        <i class="fas fa-chart-line"></i>
+                                        <span>Reporte de Ventas</span>
+                                    </a>
+                                    <a href="#" class="sub-submenu-item" onclick="showComingSoon('anomalias')">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        <span>Anomalías del Sistema</span>
+                                    </a>
+                                    <a href="#" class="sub-submenu-item" onclick="showComingSoon('reporte_importaciones')">
+                                        <i class="fas fa-file-alt"></i>
+                                        <span>Reporte de Importaciones</span>
+                                    </a>
+                                    <a href="#" class="sub-submenu-item" onclick="showComingSoon('reporte_usuarios')">
+                                        <i class="fas fa-users"></i>
+                                        <span>Reporte de Usuarios</span>
+                                    </a>
+                                    <a href="#" class="sub-submenu-item" onclick="showComingSoon('reporte_tiempos')">
+                                        <i class="fas fa-clock"></i>
+                                        <span>Reporte de Tiempos</span>
+                                    </a>
+                                    <a href="#" class="sub-submenu-item" onclick="showComingSoon('reporte_bd')">
+                                        <i class="fas fa-database"></i>
+                                        <span>Reporte de Base de Datos</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Administración -->
+                    <div class="menu-item-group" data-role="administracion">
+                        <div class="menu-item-header" onclick="toggleSubmenu('administracion')">
+                            <i class="fas fa-user-shield"></i>
+                            <span>Administración</span>
+                            <i class="fas fa-chevron-down submenu-toggle"></i>
+                        </div>
+                        <div class="submenu" id="administracion-submenu">
+                            <a href="administracion.html" class="submenu-item">
+                                <i class="fas fa-home"></i>
+                                <span>Dashboard</span>
+                            </a>
+                            
+                            <!-- Incidencias -->
+                            <div class="submenu-group">
+                                <div class="submenu-header" onclick="toggleSubSubmenu('administracion-incidencias')">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    <span>Incidencias</span>
+                                    <i class="fas fa-chevron-down sub-submenu-toggle"></i>
+                                </div>
+                                <div class="sub-submenu" id="administracion-incidencias-submenu">
+                                    <a href="public/administracion/incidencia_listado_logistica.html" class="sub-submenu-item">
+                                        <i class="fas fa-ship"></i>
+                                        <span>Importaciones</span>
+                                    </a>
+                                    <a href="public/administracion/listado_incidencia_proforma.html" class="sub-submenu-item">
+                                        <i class="fas fa-file-invoice-dollar"></i>
+                                        <span>Proformas / Actas</span>
+                                    </a>
+                                </div>
+                            </div>
+                            
+                            <!-- Configuración -->
+                            <div class="submenu-group">
+                                <div class="submenu-header" onclick="toggleSubSubmenu('administracion-configuracion')">
+                                    <i class="fas fa-cogs"></i>
+                                    <span>Configuración</span>
+                                    <i class="fas fa-chevron-down sub-submenu-toggle"></i>
+                                </div>
+                                <div class="sub-submenu" id="administracion-configuracion-submenu">
+                                    <a href="public/gerencia/productos.html" class="sub-submenu-item">
+                                        <i class="fas fa-plus-circle"></i>
+                                        <span>Gestionar Productos</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Importación -->
+                    <div class="menu-item-group" data-role="importacion">
+                        <div class="menu-item-header" onclick="toggleSubmenu('importacion')">
+                            <i class="fas fa-ship"></i>
+                            <span>Importación</span>
+                            <i class="fas fa-chevron-down submenu-toggle"></i>
+                        </div>
+                        <div class="submenu" id="importacion-submenu">
+                            <a href="importacion.html" class="submenu-item">
+                                <i class="fas fa-home"></i>
+                                <span>Dashboard</span>
+                            </a>
+                            
+                            <!-- Importaciones -->
+                            <div class="submenu-group">
+                                <div class="submenu-header" onclick="toggleSubSubmenu('importacion-importaciones')">
+                                    <i class="fas fa-ship"></i>
+                                    <span>Importaciones</span>
+                                    <i class="fas fa-chevron-down sub-submenu-toggle"></i>
+                                </div>
+                                <div class="sub-submenu" id="importacion-importaciones-submenu">
+                                    <a href="#" class="sub-submenu-item" onclick="showComingSoon('importacion')">
+                                        <i class="fas fa-plus-circle"></i>
+                                        <span>Registro</span>
+                                    </a>
+                                    <a href="public/importaciones/listado_import_update.html" class="sub-submenu-item">
+                                        <i class="fas fa-list-alt"></i>
+                                        <span>Listado</span>
+                                    </a>
+                                </div>
+                            </div>
+                            
+                            <!-- Solicitudes -->
+                            <div class="submenu-group">
+                                <div class="submenu-header" onclick="toggleSubSubmenu('importacion-solicitudes')">
+                                    <i class="fas fa-clipboard-list"></i>
+                                    <span>Solicitudes</span>
+                                    <i class="fas fa-chevron-down sub-submenu-toggle"></i>
+                                </div>
+                                <div class="sub-submenu" id="importacion-solicitudes-submenu">
+                                    <a href="public/marketing/listado_solicitudes.html" class="sub-submenu-item">
+                                        <i class="fas fa-list-alt"></i>
+                                        <span>Listado</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Logística -->
+                    <div class="menu-item-group" data-role="logistica">
+                        <div class="menu-item-header" onclick="toggleSubmenu('logistica')">
+                            <i class="fas fa-truck"></i>
+                            <span>Logística</span>
+                            <i class="fas fa-chevron-down submenu-toggle"></i>
+                        </div>
+                        <div class="submenu" id="logistica-submenu">
+                            <a href="logistica.html" class="submenu-item">
+                                <i class="fas fa-home"></i>
+                                <span>Dashboard</span>
+                            </a>
+                            
+                            <!-- Registro de Incidencias -->
+                            <div class="submenu-group">
+                                <div class="submenu-header" onclick="toggleSubSubmenu('logistica-registro')">
+                                    <i class="fas fa-plus-circle"></i>
+                                    <span>Registro de Incidencias</span>
+                                    <i class="fas fa-chevron-down sub-submenu-toggle"></i>
+                                </div>
+                                <div class="sub-submenu" id="logistica-registro-submenu">
+                                    <a href="public/logistica/registro_incidencias_proforma.html" class="sub-submenu-item">
+                                        <i class="fas fa-file-invoice-dollar"></i>
+                                        <span>Proformas</span>
+                                    </a>
+                                    <a href="incidencia_logistica_formulario.html" class="sub-submenu-item">
+                                        <i class="fas fa-ship"></i>
+                                        <span>Importaciones</span>
+                                    </a>
+                                </div>
+                            </div>
+                            
+                            <!-- Ver Listados -->
+                            <div class="submenu-group">
+                                <div class="submenu-header" onclick="toggleSubSubmenu('logistica-listados')">
+                                    <i class="fas fa-clipboard-list"></i>
+                                    <span>Ver Listados</span>
+                                    <i class="fas fa-chevron-down sub-submenu-toggle"></i>
+                                </div>
+                                <div class="sub-submenu" id="logistica-listados-submenu">
+                                    <a href="public/logistica/incidencia_listado_logistica.html" class="sub-submenu-item">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        <span>Incidencias Importaciones</span>
+                                    </a>
+                                    <a href="public/logistica/listado_import.html" class="sub-submenu-item">
+                                        <i class="fas fa-ship"></i>
+                                        <span>Importaciones</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Facturación -->
+                    <div class="menu-item-group" data-role="facturacion">
+                        <div class="menu-item-header" onclick="toggleSubmenu('facturacion')">
+                            <i class="fas fa-receipt"></i>
+                            <span>Facturación</span>
+                            <i class="fas fa-chevron-down submenu-toggle"></i>
+                        </div>
+                        <div class="submenu" id="facturacion-submenu">
+                            <a href="facturacion.html" class="submenu-item">
+                                <i class="fas fa-home"></i>
+                                <span>Dashboard</span>
+                            </a>
+                            <a href="public/facturacion/listado_import_facturacion.html" class="submenu-item">
+                                <i class="fas fa-list-alt"></i>
+                                <span>Listado Importaciones</span>
+                            </a>
+                            <a href="public/facturacion/listado_incidencias_proforma.html" class="submenu-item">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <span>Incidencias Proforma</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Marketing -->
+                    <div class="menu-item-group" data-role="marketing">
+                        <div class="menu-item-header" onclick="toggleSubmenu('marketing')">
+                            <i class="fas fa-bullhorn"></i>
+                            <span>Marketing</span>
+                            <i class="fas fa-chevron-down submenu-toggle"></i>
+                        </div>
+                        <div class="submenu" id="marketing-submenu">
+                            <a href="#" class="submenu-item" onclick="showComingSoon('marketing')">
+                                <i class="fas fa-home"></i>
+                                <span>Dashboard</span>
+                            </a>
+                            <a href="public/marketing/importaciones.html" class="submenu-item">
+                                <i class="fas fa-ship"></i>
+                                <span>Importaciones</span>
+                            </a>
+                            <a href="public/marketing/listado_solicitudes.html" class="submenu-item">
+                                <i class="fas fa-clipboard-list"></i>
+                                <span>Solicitudes</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Sistemas -->
+                    <div class="menu-item-group" data-role="sistemas">
+                        <div class="menu-item-header" onclick="toggleSubmenu('sistemas')">
+                            <i class="fas fa-cogs"></i>
+                            <span>Sistemas</span>
+                            <i class="fas fa-chevron-down submenu-toggle"></i>
+                        </div>
+                        <div class="submenu" id="sistemas-submenu">
+                            <a href="sistemas.html" class="submenu-item">
+                                <i class="fas fa-home"></i>
+                                <span>Dashboard</span>
+                            </a>
+                            
+                            <!-- Pagos -->
+                            <div class="submenu-group">
+                                <div class="submenu-header" onclick="toggleSubSubmenu('sistemas-pagos')">
+                                    <i class="fas fa-credit-card"></i>
+                                    <span>Pagos</span>
+                                    <i class="fas fa-chevron-down sub-submenu-toggle"></i>
+                                </div>
+                                <div class="sub-submenu" id="sistemas-pagos-submenu">
+                                    <a href="public/sistemas/pagos.html" class="sub-submenu-item">
+                                        <i class="fas fa-money-bill-wave"></i>
+                                        <span>Gestión de Pagos</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recursos Humanos -->
+                    <div class="menu-item-group" data-role="recursos_humanos">
+                        <div class="menu-item-header" onclick="toggleSubmenu('recursos_humanos')">
+                            <i class="fas fa-users"></i>
+                            <span>Recursos Humanos</span>
+                            <i class="fas fa-chevron-down submenu-toggle"></i>
+                        </div>
+                        <div class="submenu" id="recursos_humanos-submenu">
+                            <a href="#" class="submenu-item" onclick="showComingSoon('recursos_humanos')">
+                                <i class="fas fa-home"></i>
+                                <span>Dashboard</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Ventas -->
+                    <div class="menu-item-group" data-role="ventas">
+                        <div class="menu-item-header" onclick="toggleSubmenu('ventas')">
+                            <i class="fas fa-chart-line"></i>
+                            <span>Ventas</span>
+                            <i class="fas fa-chevron-down submenu-toggle"></i>
+                        </div>
+                        <div class="submenu" id="ventas-submenu">
+                            <a href="ventas.html" class="submenu-item">
+                                <i class="fas fa-home"></i>
+                                <span>Dashboard</span>
+                            </a>
+                            
+                            <!-- Ventas -->
+                            <div class="submenu-group">
+                                <div class="submenu-header" onclick="toggleSubSubmenu('ventas-ventas')">
+                                    <i class="fas fa-chart-line"></i>
+                                    <span>Ventas</span>
+                                    <i class="fas fa-chevron-down sub-submenu-toggle"></i>
+                                </div>
+                                <div class="sub-submenu" id="ventas-ventas-submenu">
+                                    <a href="public/ventas/ventas/registro.html" class="sub-submenu-item">
+                                        <i class="fas fa-plus-circle"></i>
+                                        <span>Registrar Venta</span>
+                                    </a>
+                                    <a href="public/ventas/ventas/listado_ventas.html" class="sub-submenu-item">
+                                        <i class="fas fa-list-alt"></i>
+                                        <span>Gestionar Venta</span>
+                                    </a>
+                                </div>
+                            </div>
+                            
+                            <!-- Regularización -->
+                            <div class="submenu-group">
+                                <div class="submenu-header" onclick="toggleSubSubmenu('ventas-regularizacion')">
+                                    <i class="fas fa-cogs"></i>
+                                    <span>Regularización</span>
+                                    <i class="fas fa-chevron-down sub-submenu-toggle"></i>
+                                </div>
+                                <div class="sub-submenu" id="ventas-regularizacion-submenu">
+                                    <a href="public/ventas/regularizacion/registro_regularizacion.html" class="sub-submenu-item">
+                                        <i class="fas fa-plus-circle"></i>
+                                        <span>Registrar Regularización</span>
+                                    </a>
+                                    <a href="public/ventas/regularizacion/listado_regularizacion.html" class="sub-submenu-item">
+                                        <i class="fas fa-list-alt"></i>
+                                        <span>Gestionar Regularización</span>
+                                    </a>
+                                </div>
+                            </div>
+                            
+                            <!-- Listados -->
+                            <div class="submenu-group">
+                                <div class="submenu-header" onclick="toggleSubSubmenu('ventas-listados')">
+                                    <i class="fas fa-clipboard-list"></i>
+                                    <span>Listados</span>
+                                    <i class="fas fa-chevron-down sub-submenu-toggle"></i>
+                                </div>
+                                <div class="sub-submenu" id="ventas-listados-submenu">
+                                    <a href="public/facturacion/listado_incidencias_proforma.html" class="sub-submenu-item">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        <span>Incidencia de Proformas</span>
+                                    </a>
+                                    <a href="public/facturacion/listado_import_facturacion.html" class="sub-submenu-item">
+                                        <i class="fas fa-ship"></i>
+                                        <span>Listado de Importaciones</span>
+                                    </a>
+                                </div>
+                            </div>
+                            
+                            <!-- Configuración -->
+                            <div class="submenu-group">
+                                <div class="submenu-header" onclick="toggleSubSubmenu('ventas-configuracion')">
+                                    <i class="fas fa-cogs"></i>
+                                    <span>Configuración</span>
+                                    <i class="fas fa-chevron-down sub-submenu-toggle"></i>
+                                </div>
+                                <div class="sub-submenu" id="ventas-configuracion-submenu">
+                                    <a href="public/ventas/configuracion.html" class="sub-submenu-item">
+                                        <i class="fas fa-plus-circle"></i>
+                                        <span>Gestionar Configuración</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -169,9 +541,9 @@
                                     <span class="status-indicator active"></span>
                                     <span>Disponible</span>
                                 </div>
-                            </div>
-                        </a>
                     </div>
+                </a>
+            </div>
 
                     <div class="module-card" data-role="administracion">
                         <a href="administracion.html" class="module-link">
@@ -185,9 +557,9 @@
                                     <span class="status-indicator active"></span>
                                     <span>Disponible</span>
                                 </div>
-                            </div>
-                        </a>
                     </div>
+                </a>
+            </div>
 
                     <div class="module-card" data-role="importacion">
                         <a href="importacion.html" class="module-link">
@@ -200,10 +572,10 @@
                                 <div class="module-status">
                                     <span class="status-indicator active"></span>
                                     <span>Disponible</span>
-                                </div>
+                </div>
                             </div>
                         </a>
-                    </div>
+            </div>
 
                     <div class="module-card" data-role="logistica">
                         <a href="logistica.html" class="module-link">
@@ -217,9 +589,9 @@
                                     <span class="status-indicator active"></span>
                                     <span>Disponible</span>
                                 </div>
-                            </div>
-                        </a>
-                    </div>
+                </div>
+            </a>
+            </div>
 
                     <div class="module-card" data-role="facturacion">
                         <a href="facturacion.html" class="module-link">
@@ -233,9 +605,9 @@
                                     <span class="status-indicator active"></span>
                                     <span>Disponible</span>
                                 </div>
-                            </div>
-                        </a>
-                    </div>
+                </div>
+            </a>
+            </div>
 
                     <div class="module-card" data-role="marketing">
                         <div class="module-link">
@@ -265,9 +637,9 @@
                                     <span class="status-indicator active"></span>
                                     <span>Disponible</span>
                                 </div>
-                            </div>
-                        </a>
-                    </div>
+                </div>
+            </a>
+            </div>
 
                     <div class="module-card" data-role="recursos_humanos">
                         <div class="module-link">
@@ -305,10 +677,10 @@
         </div>
     </main>
 
-    <script>
+<script>
         // Inicializar dashboard
         document.addEventListener('DOMContentLoaded', function() {
-            loadMenu(); // Cargar menú con filtrado por roles del usuario
+    loadMenu(); // Cargar menú con filtrado por roles del usuario
             updateDateTime(); // Actualizar fecha y hora
             initSidebar(); // Inicializar sidebar
             initSettingsDropdown(); // Inicializar dropdown de configuración
@@ -405,9 +777,29 @@
             });
         }
 
+        // Toggle submenu functionality
+        function toggleSubmenu(moduleName) {
+            const submenu = document.getElementById(moduleName + '-submenu');
+            const header = document.querySelector(`[onclick="toggleSubmenu('${moduleName}')"]`);
+            
+            // Toggle submenu
+            submenu.classList.toggle('open');
+            header.classList.toggle('active');
+        }
+
+        // Toggle sub-submenu functionality
+        function toggleSubSubmenu(submenuName) {
+            const subSubmenu = document.getElementById(submenuName + '-submenu');
+            const header = document.querySelector(`[onclick="toggleSubSubmenu('${submenuName}')"]`);
+            
+            // Toggle sub-submenu
+            subSubmenu.classList.toggle('open');
+            header.classList.toggle('active');
+        }
+
         // Actualizar cada minuto
         setInterval(updateDateTime, 60000);
-    </script>
+</script>
 </body>
 
 </html>
