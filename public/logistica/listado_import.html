@@ -789,6 +789,7 @@
               <th>Estado</th>
               <th>Canal</th>
               <th>Fecha de Recepción</th>
+              <th>Fecha Almacén</th>
               <th>Incidencias</th>
               <th>Fecha de Incidencias</th>
               <th>Acciones</th>
@@ -796,7 +797,7 @@
           </thead>
           <tbody>
             <tr>
-              <td colspan="14" class="text-center">Cargando...</td>
+              <td colspan="15" class="text-center">Cargando...</td>
             </tr>
           </tbody>
         </table>
@@ -993,12 +994,12 @@
 
     function cargarTablaImportaciones(filtrados = null) {
       const tbody = document.querySelector('#tablaImportaciones tbody');
-      tbody.innerHTML = '<tr><td colspan="14" class="text-center">Cargando...</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="15" class="text-center">Cargando...</td></tr>';
       let ultimoId = localStorage.getItem('ultimoIdImportacion');
 
       const render = function (registros) {
         if (!Array.isArray(registros) || registros.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="14" class="text-center">Sin registros</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="15" class="text-center">Sin registros</td></tr>';
           actualizarPaginacion(0);
           return;
         }
@@ -1081,6 +1082,7 @@
           row.ESTADO_IMPORTACION,
           row.CANAL,
           row.FECHA_RECEPCION,
+          row.FECHA_ALMACEN,
           row.INCIDENCIAS,
           row.INCIDENCIA_REGISTRO
         ];
@@ -1093,7 +1095,13 @@
             td.style.fontWeight = 'bold';
             td.style.color = 'var(--azul-oscuro)';
           } else if (idx === 1) { // Fecha Registro
-            td.textContent = cell;
+            // Formatear fecha sin tiempo (eliminar 00:00:00)
+            if (cell && typeof cell === 'string') {
+              const fechaSinTiempo = cell.split(' ')[0]; // Tomar solo la parte de la fecha
+              td.textContent = fechaSinTiempo;
+            } else {
+              td.textContent = cell;
+            }
           } else if (idx === 2) { // N° Despacho
             td.textContent = cell;
             td.style.fontWeight = 'bold';
@@ -1153,7 +1161,13 @@
             } else {
               td.textContent = '';
             }
-          } else if (idx === 11) { // Incidencias
+          } else if (idx === 11) { // Fecha Almacén
+            if (cell && cell !== 'null' && cell !== '') {
+              td.textContent = cell;
+            } else {
+              td.textContent = '';
+            }
+          } else if (idx === 12) { // Incidencias
             let incidencia = String(cell).toUpperCase();
             if (incidencia === 'SI') {
               td.innerHTML = `<span class='estado-incidencia-si'>${cell}</span>`;
@@ -1162,7 +1176,7 @@
             } else {
               td.textContent = cell || '';
             }
-          } else if (idx === 12) { // Fecha Incidencias
+          } else if (idx === 13) { // Fecha Incidencias
             if (cell && cell !== 'null' && cell !== '') {
               td.textContent = formatearFechaConAMPM(cell);
             } else {
