@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ZEUS SAFETY - Sistema de Integración</title>
+    <title>ZEUS SAFETY - Dashboard</title>
     <link rel="icon" type="image/png" href="/Logo de Zeus.png">
     <link rel="stylesheet" href="css/styles.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -13,173 +13,401 @@
     <script src="js/script.js"></script>
 </head>
 
-<style>
-    .logout-btn {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        z-index: 1000;
-        border-radius: 10px;
-        padding: 10px 20px;
-        font-weight: bold;
-    }
-
-    /* Contenedor usuario en header */
-    .user-info {
-        position: absolute;
-        top: 20px;
-        right: 20px;
-        background: #f8f9fa;
-        border: 2px solid #ccc;
-        border-radius: 15px;
-        /* Bordes ondulados */
-        padding: 8px 15px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-weight: bold;
-        font-size: 14px;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-    }
-
-    .user-info i {
-        font-size: 18px;
-        color: #dc3545;
-        /* rojo estilo Bootstrap */
-    }
-
-    .user-info {
-        background: #f8f9fa;
-        border: 2px dashed #6c757d;
-        /* borde ondulado */
-        border-radius: 12px;
-        padding: 6px 12px;
-        font-weight: bold;
-        color: #333;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    }
-
-    .user-info i {
-        font-size: 20px;
-        color: #007bff;
-    }
-</style>
-
 <body>
-    <!-- Header -->
-    <header class="header">
-        <div class="logo-container">
-            <img src="./Logo de Zeus.png" alt="ZEUS SAFETY Logo"
-                class="logo">
+    <!-- Sidebar -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo-container">
+                <img src="./Logo de Zeus.png" alt="ZEUS SAFETY Logo" class="logo">
+                <div class="logo-text">
+                    <h1 class="brand-name">ZEUS SAFETY</h1>
+                    <span class="brand-subtitle">Sistema de Integración</span>
+                </div>
+            </div>
+            <button class="sidebar-toggle d-lg-none" id="sidebarToggle">
+                <i class="fas fa-times"></i>
+            </button>
         </div>
 
-        <div id="user-info" class="user-info d-flex align-items-center">
-            <i class="fas fa-user-circle me-2"></i>
-            <span id="username-display">Usuario</span>
+        <div class="sidebar-menu">
+            <div class="menu-section">
+                <h6 class="section-title">MÓDULOS</h6>
+                <div class="menu-items">
+                    <a href="gerencia.html" class="menu-item" data-role="gerencia">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>Gerencia</span>
+                    </a>
+                    <a href="administracion.html" class="menu-item" data-role="administracion">
+                        <i class="fas fa-user-shield"></i>
+                        <span>Administración</span>
+                    </a>
+                    <a href="importacion.html" class="menu-item" data-role="importacion">
+                        <i class="fas fa-ship"></i>
+                        <span>Importación</span>
+                    </a>
+                    <a href="logistica.html" class="menu-item" data-role="logistica">
+                        <i class="fas fa-truck"></i>
+                        <span>Logística</span>
+                    </a>
+                    <a href="facturacion.html" class="menu-item" data-role="facturacion">
+                        <i class="fas fa-receipt"></i>
+                        <span>Facturación</span>
+                    </a>
+                    <a href="#" class="menu-item" data-role="marketing">
+                        <i class="fas fa-bullhorn"></i>
+                        <span>Marketing</span>
+                    </a>
+                    <a href="sistemas.html" class="menu-item" data-role="sistemas">
+                        <i class="fas fa-cogs"></i>
+                        <span>Sistemas</span>
+                    </a>
+                    <a href="#" class="menu-item" data-role="recursos_humanos">
+                        <i class="fas fa-users"></i>
+                        <span>Recursos Humanos</span>
+                    </a>
+                    <a href="ventas.html" class="menu-item" data-role="ventas">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Ventas</span>
+                    </a>
+                </div>
+            </div>
         </div>
-    </header>
+
+        <div class="sidebar-footer">
+            <div class="user-profile">
+                <div class="user-avatar">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <div class="user-info">
+                    <span class="user-name" id="username-display">Usuario</span>
+                    <span class="user-role">Administrador</span>
+                </div>
+            </div>
+            <button class="logout-btn" onclick="logoutUser()">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Cerrar Sesión</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Overlay para móvil -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
     <!-- Main Content -->
     <main class="main-content">
-        <div class="cards-grid">
-            <!-- Row 1 -->
-            <div class="card" data-role="gerencia">
-                <a href="gerencia.html" class="card-link">
-                <div class="card-content">
-                    <i class="fas fa-shield-alt card-icon"></i>
-                    <h3 class="card-title">GERENCIA</h3>
-                    <p class="card-subtitle">Gestión general y reportes ejecutivos</p>
+        <!-- Header -->
+        <header class="main-header">
+            <div class="header-left">
+                <button class="sidebar-toggle-mobile d-lg-none" id="sidebarToggleMobile">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="breadcrumb">
+                    <span class="breadcrumb-item active">Dashboard</span>
                 </div>
-                </a>
             </div>
-
-            <div class="card" data-role="administracion">
-                <a href="administracion.html" class="card-link">
-                    <div class="card-content">
-                        <i class="fas fa-user-shield card-icon"></i>
-                        <h3 class="card-title">ADMINISTRACIÓN</h3>
-                        <p class="card-subtitle">Control de usuarios, permisos y finanzas</p>
+            <div class="header-right">
+                <div class="header-actions">
+                    <button class="header-btn" title="Notificaciones - Próximamente" onclick="showComingSoon('notificaciones')">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-badge">3</span>
+                    </button>
+                    <div class="header-dropdown">
+                        <button class="header-btn" title="Configuración" id="settingsBtn">
+                            <i class="fas fa-cog"></i>
+                        </button>
+                        <div class="dropdown-menu" id="settingsDropdown">
+                            <a href="#" class="dropdown-item" onclick="logoutUser()">
+                                <i class="fas fa-sign-out-alt"></i>
+                                <span>Cerrar Sesión</span>
+                            </a>
+                        </div>
                     </div>
-                </a>
+                </div>
+                <div class="current-time" id="currentTime"></div>
             </div>
+        </header>
 
-            <div class="card" data-role="importacion">
-                <a href="importacion.html" class="card-link">
-                    <div class="card-content">
-                        <i class="fas fa-ship card-icon"></i>
-                        <h3 class="card-title">IMPORTACIÓN</h3>
-                        <p class="card-subtitle">Seguimiento de despachos y órdenes</p>
+        <!-- Dashboard Content -->
+        <div class="dashboard-content">
+            <!-- Welcome Section -->
+            <div class="welcome-section">
+                <div class="welcome-card">
+                    <div class="welcome-content">
+                        <h1>¡Bienvenido, <span id="welcome-username">Usuario</span>!</h1>
+                        <p>Gestiona todos los módulos del sistema ZEUS SAFETY desde este panel centralizado.</p>
+                        <div class="quick-stats">
+                            <div class="stat-item">
+                                <i class="fas fa-chart-bar"></i>
+                                <span>Panel de Control</span>
+                            </div>
+                            <div class="stat-item">
+                                <i class="fas fa-clock"></i>
+                                <span id="current-date"></span>
+                            </div>
+                        </div>
                     </div>
-                </a>
-            </div>
-
-            <div class="card" data-role="logistica">
-                <a href="logistica.html" class="card-link">
-                    <div class="card-content">
-                        <i class="fas fa-truck card-icon"></i>
-                        <h3 class="card-title">LOGÍSTICA</h3>
-                        <p class="card-subtitle">Inventarios, almacenes y distribución</p>
+                    <div class="welcome-illustration">
+                        <i class="fas fa-rocket"></i>
                     </div>
-                </a>
+                </div>
             </div>
 
-            <div class="card" data-role="facturacion">
-                <a href="facturacion.html" class="card-link">
-                    <div class="card-content">
-                        <i class="fas fa-hard-hat card-icon"></i>
-                        <h3 class="card-title">FACTURACIÓN</h3>
-                        <p class="card-subtitle">Registro de ventas, Regularización, etc</p>
+            <!-- Modules Grid -->
+            <div class="modules-section">
+                <h2 class="section-title">Módulos Disponibles</h2>
+                <div class="modules-grid">
+                    <!-- Module Cards -->
+                    <div class="module-card" data-role="gerencia">
+                        <a href="gerencia.html" class="module-link">
+                            <div class="module-icon">
+                                <i class="fas fa-shield-alt"></i>
+                            </div>
+                            <div class="module-content">
+                                <h3>Gerencia</h3>
+                                <p>Gestión general y reportes ejecutivos</p>
+                                <div class="module-status">
+                                    <span class="status-indicator active"></span>
+                                    <span>Disponible</span>
+                                </div>
+                            </div>
+                        </a>
                     </div>
-                </a>
-            </div>
 
-            <div class="card" data-role="marketing">
-                <div class="card-content">
-                    <i class="fas fa-exclamation-triangle card-icon"></i>
-                    <h3 class="card-title">MARKETING</h3>
-                    <p class="card-subtitle">Publicidad, redes sociales y campañas</p>
+                    <div class="module-card" data-role="administracion">
+                        <a href="administracion.html" class="module-link">
+                            <div class="module-icon">
+                                <i class="fas fa-user-shield"></i>
+                            </div>
+                            <div class="module-content">
+                                <h3>Administración</h3>
+                                <p>Control de usuarios, permisos y finanzas</p>
+                                <div class="module-status">
+                                    <span class="status-indicator active"></span>
+                                    <span>Disponible</span>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+
+                    <div class="module-card" data-role="importacion">
+                        <a href="importacion.html" class="module-link">
+                            <div class="module-icon">
+                                <i class="fas fa-ship"></i>
+                            </div>
+                            <div class="module-content">
+                                <h3>Importación</h3>
+                                <p>Seguimiento de despachos y órdenes</p>
+                                <div class="module-status">
+                                    <span class="status-indicator active"></span>
+                                    <span>Disponible</span>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+
+                    <div class="module-card" data-role="logistica">
+                        <a href="logistica.html" class="module-link">
+                            <div class="module-icon">
+                                <i class="fas fa-truck"></i>
+                            </div>
+                            <div class="module-content">
+                                <h3>Logística</h3>
+                                <p>Inventarios, almacenes y distribución</p>
+                                <div class="module-status">
+                                    <span class="status-indicator active"></span>
+                                    <span>Disponible</span>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+
+                    <div class="module-card" data-role="facturacion">
+                        <a href="facturacion.html" class="module-link">
+                            <div class="module-icon">
+                                <i class="fas fa-receipt"></i>
+                            </div>
+                            <div class="module-content">
+                                <h3>Facturación</h3>
+                                <p>Registro de ventas, Regularización, etc</p>
+                                <div class="module-status">
+                                    <span class="status-indicator active"></span>
+                                    <span>Disponible</span>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+
+                    <div class="module-card" data-role="marketing">
+                        <div class="module-link">
+                            <div class="module-icon">
+                                <i class="fas fa-bullhorn"></i>
+                            </div>
+                            <div class="module-content">
+                                <h3>Marketing</h3>
+                                <p>Publicidad, redes sociales y campañas</p>
+                                <div class="module-status">
+                                    <span class="status-indicator coming-soon"></span>
+                                    <span>Próximamente</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="module-card" data-role="sistemas">
+                        <a href="sistemas.html" class="module-link">
+                            <div class="module-icon">
+                                <i class="fas fa-cogs"></i>
+                            </div>
+                            <div class="module-content">
+                                <h3>Sistemas</h3>
+                                <p>Gestión de sistemas y tecnología</p>
+                                <div class="module-status">
+                                    <span class="status-indicator active"></span>
+                                    <span>Disponible</span>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+
+                    <div class="module-card" data-role="recursos_humanos">
+                        <div class="module-link">
+                            <div class="module-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="module-content">
+                                <h3>Recursos Humanos</h3>
+                                <p>Gestión de personal y nómina</p>
+                                <div class="module-status">
+                                    <span class="status-indicator coming-soon"></span>
+                                    <span>Próximamente</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="module-card" data-role="ventas">
+                        <a href="ventas.html" class="module-link">
+                            <div class="module-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <div class="module-content">
+                                <h3>Ventas</h3>
+                                <p>Gestión de ventas y clientes</p>
+                                <div class="module-status">
+                                    <span class="status-indicator active"></span>
+                                    <span>Disponible</span>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
                 </div>
             </div>
-
-            <div class="card" data-role="sistemas">
-                <a href="sistemas.html" class="card-link">
-                <div class="card-content">
-                    <i class="fas fa-cogs card-icon"></i>
-                    <h3 class="card-title">SISTEMAS</h3>
-                    <p class="card-subtitle">Gestión de sistemas y tecnología</p>
-                </div>
-            </a>
-            </div>
-
-            <div class="card" data-role="recursos_humanos">
-                <a href="" class="card-link">
-                <div class="card-content">
-                    <i class="fas fa-cogs card-icon"></i>
-                    <h3 class="card-title">RECURSOS HUMANOS</h3>
-                    <p class="card-subtitle">Gestión de ...</p>
-                </div>
-            </a>
-            </div>
-
-            <div class="card" data-role="ventas">
-                <a href="ventas.html" class="card-link">
-                <div class="card-content">
-                    <i class="fas fa-cogs card-icon"></i>
-                    <h3 class="card-title">VENTAS</h3>
-                    <p class="card-subtitle">Gestión de ...</p>
-                </div>
-            </a>
-            </div>
-
-
         </div>
-        <!-- botón logout -->
-        <button onclick="logoutUser()" class="btn btn-danger logout-btn">Cerrar sesión</button>
     </main>
-</body>
 
-<script>
-    loadMenu(); // Cargar menú con filtrado por roles del usuario
-</script>
+    <script>
+        // Inicializar dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            loadMenu(); // Cargar menú con filtrado por roles del usuario
+            updateDateTime(); // Actualizar fecha y hora
+            initSidebar(); // Inicializar sidebar
+            initSettingsDropdown(); // Inicializar dropdown de configuración
+        });
+
+        // Actualizar fecha y hora
+        function updateDateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('es-ES', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+            const dateString = now.toLocaleDateString('es-ES', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+            
+            document.getElementById('currentTime').textContent = timeString;
+            document.getElementById('current-date').textContent = dateString;
+        }
+
+        // Inicializar sidebar
+        function initSidebar() {
+            const sidebarToggle = document.getElementById('sidebarToggleMobile');
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+
+            sidebarToggle.addEventListener('click', () => {
+                sidebar.classList.add('active');
+                overlay.classList.add('active');
+            });
+
+            overlay.addEventListener('click', () => {
+                sidebar.classList.remove('active');
+                overlay.classList.remove('active');
+            });
+        }
+
+        // Mostrar mensaje de próximamente
+        function showComingSoon(feature) {
+            const messages = {
+                'notificaciones': 'Las notificaciones estarán disponibles próximamente',
+                'default': 'Esta función estará disponible próximamente'
+            };
+            
+            const message = messages[feature] || messages.default;
+            
+            // Crear toast notification
+            showToast(message, 'info');
+        }
+
+        // Función para mostrar toast notifications
+        function showToast(message, type = 'info') {
+            // Crear elemento toast
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.innerHTML = `
+                <div class="toast-content">
+                    <i class="fas fa-${type === 'info' ? 'info-circle' : 'check-circle'}"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            // Agregar al body
+            document.body.appendChild(toast);
+            
+            // Mostrar con animación
+            setTimeout(() => toast.classList.add('show'), 100);
+            
+            // Remover después de 3 segundos
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => document.body.removeChild(toast), 300);
+            }, 3000);
+        }
+
+        // Inicializar dropdown de configuración
+        function initSettingsDropdown() {
+            const settingsBtn = document.getElementById('settingsBtn');
+            const settingsDropdown = document.getElementById('settingsDropdown');
+            
+            settingsBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                settingsDropdown.classList.toggle('show');
+            });
+            
+            // Cerrar dropdown al hacer click fuera
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.header-dropdown')) {
+                    settingsDropdown.classList.remove('show');
+                }
+            });
+        }
+
+        // Actualizar cada minuto
+        setInterval(updateDateTime, 60000);
+    </script>
+</body>
 
 </html>

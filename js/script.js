@@ -137,9 +137,9 @@ function loadMenu() {
         "FACTURACION": "facturacion"
     };
 
-    // Selecciona todas las cards
-    document.querySelectorAll(".card").forEach(card => {
-        const role = card.getAttribute("data-role");
+    // Selecciona todas las cards del sidebar y del dashboard
+    document.querySelectorAll(".menu-item[data-role], .module-card[data-role]").forEach(element => {
+        const role = element.getAttribute("data-role");
         
         // Verificar si el rol de la tarjeta está en las secciones permitidas
         const isAllowed = allowedSections.some(section => 
@@ -147,13 +147,19 @@ function loadMenu() {
         );
         
         if (!isAllowed) {
-            card.style.display = "none";
+            element.style.display = "none";
         } else {
-            card.style.display = "block";
+            element.style.display = "block";
         }
     });
 
-    document.getElementById("username-display").textContent = username;
+    // Actualizar nombre de usuario en múltiples ubicaciones
+    const usernameElements = document.querySelectorAll("#username-display, #welcome-username");
+    usernameElements.forEach(element => {
+        if (element) {
+            element.textContent = username;
+        }
+    });
 }
 
 
