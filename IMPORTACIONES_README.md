@@ -124,6 +124,30 @@ const modules = [
 - **Consistencia**: Variables CSS unificadas
 - **Eficiencia**: Menos archivos duplicados
 
+## 🆕 Mejoras Implementadas
+
+### Navegación Mejorada
+
+- ✅ **Botón "Volver al Menú"**: Ahora va directamente a `menu.html` en lugar del módulo específico
+- ✅ **Sub-menús Dinámicos**: Se muestran diferentes opciones según el módulo de entrada
+
+### Conexión con Apps Script Restaurada
+
+- ✅ **Registro de Importaciones**: Enlace corregido para redirigir a Apps Script
+- ✅ **Archivo de Formulario**: Creado `incidencia_logistica_formulario.html` para registro
+- ✅ **Configuración**: `config.js` agregado a `menu.html` para funcionamiento correcto
+
+### Sub-menús por Módulo
+
+**Marketing:**
+- Listado Solicitudes
+- Listado Importaciones (activo)
+
+**Ventas:**
+- Incidencias Proformas
+- Listado Importaciones
+- Importaciones Ventas (activo)
+
 ## 🔧 Correcciones Realizadas
 
 ### Intercambio de Contenido Corregido

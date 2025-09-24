@@ -197,6 +197,27 @@
             box-shadow: var(--shadow-md);
         }
         
+        /* Sub-menu styles */
+        .menu-item.active {
+            background: var(--primary-color);
+            color: white;
+            border-radius: var(--border-radius);
+        }
+        
+        .menu-item.active:hover {
+            background: var(--primary-dark);
+        }
+        
+        .menu-item {
+            margin-bottom: 0.5rem;
+            transition: var(--transition);
+        }
+        
+        .menu-item:hover {
+            background: var(--bg-tertiary);
+            border-radius: var(--border-radius);
+        }
+        
         .pagination-container {
             display: flex;
             justify-content: center;
@@ -357,13 +378,9 @@
                         <span>Importaciones</span>
                     </a>
                     
-                    <a href="public/facturacion/listado_incidencias_proforma.html" class="menu-item">
+                    <a href="./public/facturacion/listado_incidencias_proforma.html" class="menu-item">
                         <i class="fas fa-exclamation-triangle"></i>
                         <span>Incidencias Proformas</span>
-                    </a>
-                    <a href="public/facturacion/listado_import_facturacion.html" class="menu-item">
-                        <i class="fas fa-ship"></i>
-                        <span>Listado Importaciones</span>
                     </a>
                     <a href="public/ventas/importaciones.html" class="menu-item active">
                         <i class="fas fa-ship"></i>
