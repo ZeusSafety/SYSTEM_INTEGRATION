@@ -264,19 +264,19 @@
                         </div>
                     </div>
 
-                    <!-- Facturación -->
-                    <div class="menu-item-group" data-role="facturacion">
-                        <div class="menu-item-header" onclick="toggleSubmenu('facturacion')">
+                    <!-- ventas -->
+                    <div class="menu-item-group" data-role="ventas">
+                        <div class="menu-item-header" onclick="toggleSubmenu('ventas')">
                             <i class="fas fa-receipt"></i>
-                            <span>Facturación</span>
+                            <span>Ventas</span>
                             <i class="fas fa-chevron-down submenu-toggle"></i>
                         </div>
-                        <div class="submenu" id="facturacion-submenu">
-                            <a href="facturacion.html" class="submenu-item">
+                        <div class="submenu" id="ventas-submenu">
+                            <a href="ventas.html" class="submenu-item">
                                 <i class="fas fa-home"></i>
                                 <span>Dashboard</span>
                             </a>
-                            <a href="public/facturacion/listado_import_facturacion.html" class="submenu-item">
+                            <a href="public/ventas/importaciones.html" class="submenu-item">
                                 <i class="fas fa-list-alt"></i>
                                 <span>Listado Importaciones</span>
                             </a>
@@ -355,32 +355,32 @@
                         </div>
                     </div>
 
-                    <!-- Ventas -->
-                    <div class="menu-item-group" data-role="ventas">
-                        <div class="menu-item-header" onclick="toggleSubmenu('ventas')">
+                    <!-- Facturación -->
+                    <div class="menu-item-group" data-role="facturacion">
+                        <div class="menu-item-header" onclick="toggleSubmenu('facturacion')">
                             <i class="fas fa-chart-line"></i>
-                            <span>Ventas</span>
+                            <span>Facturación</span>
                             <i class="fas fa-chevron-down submenu-toggle"></i>
                         </div>
-                        <div class="submenu" id="ventas-submenu">
-                            <a href="ventas.html" class="submenu-item">
+                        <div class="submenu" id="facturacion-submenu">
+                            <a href="facturacion.html" class="submenu-item">
                                 <i class="fas fa-home"></i>
                                 <span>Dashboard</span>
                             </a>
                             
                             <!-- Ventas -->
                             <div class="submenu-group">
-                                <div class="submenu-header" onclick="toggleSubSubmenu('ventas-ventas')">
+                                <div class="submenu-header" onclick="toggleSubSubmenu('facturacion-ventas')">
                                     <i class="fas fa-chart-line"></i>
                                     <span>Ventas</span>
                                     <i class="fas fa-chevron-down sub-submenu-toggle"></i>
                                 </div>
-                                <div class="sub-submenu" id="ventas-ventas-submenu">
-                                    <a href="public/ventas/ventas/registro.html" class="sub-submenu-item">
+                                <div class="sub-submenu" id="facturacion-ventas-submenu">
+                                    <a href="public/facturacion/ventass/registro.html" class="sub-submenu-item">
                                         <i class="fas fa-plus-circle"></i>
                                         <span>Registrar Venta</span>
                                     </a>
-                                    <a href="public/ventas/ventas/listado_ventas.html" class="sub-submenu-item">
+                                    <a href="public/facturacion/ventass/listado_ventas.html" class="sub-submenu-item">
                                         <i class="fas fa-list-alt"></i>
                                         <span>Gestionar Venta</span>
                                     </a>
@@ -389,17 +389,17 @@
                             
                             <!-- Regularización -->
                             <div class="submenu-group">
-                                <div class="submenu-header" onclick="toggleSubSubmenu('ventas-regularizacion')">
+                                <div class="submenu-header" onclick="toggleSubSubmenu('facturacion-regularizacion')">
                                     <i class="fas fa-cogs"></i>
                                     <span>Regularización</span>
                                     <i class="fas fa-chevron-down sub-submenu-toggle"></i>
                                 </div>
-                                <div class="sub-submenu" id="ventas-regularizacion-submenu">
-                                    <a href="public/ventas/regularizacion/registro_regularizacion.html" class="sub-submenu-item">
+                                <div class="sub-submenu" id="facturacion-regularizacion-submenu">
+                                    <a href="public/facturacion/regularizacion/registro_regularizacion.html" class="sub-submenu-item">
                                         <i class="fas fa-plus-circle"></i>
                                         <span>Registrar Regularización</span>
                                     </a>
-                                    <a href="public/ventas/regularizacion/listado_regularizacion.html" class="sub-submenu-item">
+                                    <a href="public/facturacion/regularizacion/listado_regularizacion.html" class="sub-submenu-item">
                                         <i class="fas fa-list-alt"></i>
                                         <span>Gestionar Regularización</span>
                                     </a>
@@ -408,12 +408,12 @@
                             
                             <!-- Listados -->
                             <div class="submenu-group">
-                                <div class="submenu-header" onclick="toggleSubSubmenu('ventas-listados')">
+                                <div class="submenu-header" onclick="toggleSubSubmenu('facturacion-listados')">
                                     <i class="fas fa-clipboard-list"></i>
                                     <span>Listados</span>
                                     <i class="fas fa-chevron-down sub-submenu-toggle"></i>
                                 </div>
-                                <div class="sub-submenu" id="ventas-listados-submenu">
+                                <div class="sub-submenu" id="facturacion-listados-submenu">
                                     <a href="public/facturacion/listado_incidencias_proforma.html" class="sub-submenu-item">
                                         <i class="fas fa-exclamation-triangle"></i>
                                         <span>Incidencia de Proformas</span>
@@ -427,13 +427,13 @@
                             
                             <!-- Configuración -->
                             <div class="submenu-group">
-                                <div class="submenu-header" onclick="toggleSubSubmenu('ventas-configuracion')">
+                                <div class="submenu-header" onclick="toggleSubSubmenu('facturacion-configuracion')">
                                     <i class="fas fa-cogs"></i>
                                     <span>Configuración</span>
                                     <i class="fas fa-chevron-down sub-submenu-toggle"></i>
                                 </div>
-                                <div class="sub-submenu" id="ventas-configuracion-submenu">
-                                    <a href="public/ventas/configuracion.html" class="sub-submenu-item">
+                                <div class="sub-submenu" id="facturacion-configuracion-submenu">
+                                    <a href="public/facturacion/regularizacion/configuracion.html" class="sub-submenu-item">
                                         <i class="fas fa-plus-circle"></i>
                                         <span>Gestionar Configuración</span>
                                     </a>
