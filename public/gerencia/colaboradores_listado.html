@@ -491,7 +491,7 @@
         /* Sección: Permisos por Sub Vistas */
         .subviews-container {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(3, 1fr);
             gap: 20px;
             padding: 10px 0;
         }
@@ -502,7 +502,7 @@
             border-radius: 8px;
             overflow: hidden;
             box-shadow: 0 1px 6px rgba(30, 58, 138, 0.06);
-            min-width: 280px;
+            min-width: 320px;
         }
 
         .subviews-header {
@@ -527,13 +527,14 @@
             text-align: left;
             font-weight: 600;
             font-size: 0.85rem;
-            white-space: nowrap;
         }
 
         .subviews-table td {
             padding: 12px 14px;
             border-bottom: 1px solid var(--gris-claro);
             vertical-align: middle;
+            word-wrap: break-word;
+            max-width: 200px;
         }
 
         .subviews-empty {
@@ -1202,11 +1203,10 @@
                             <tr>
                                 <th>ESTADO</th>
                                 <th>NOMBRE</th>
-                                <th>AREA</th>
                             </tr>
                         </thead>
                         <tbody id="subviews-body-${areaKey}">
-                            <tr><td colspan="3" class="subviews-empty">Sin vistas</td></tr>
+                            <tr><td colspan="2" class="subviews-empty">Sin vistas</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -1239,7 +1239,7 @@
                 if (!tbody) return;
                 const items = (grouped && grouped[areaKey]) ? grouped[areaKey] : [];
                 if (!items.length) {
-                    tbody.innerHTML = '<tr><td colspan="3" class="subviews-empty">Sin vistas</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="2" class="subviews-empty">Sin vistas</td></tr>';
                     return;
                 }
                 tbody.innerHTML = items.map((item, index) => {
@@ -1258,7 +1258,6 @@
                                 </div>
                             </td>
                             <td>${safeName}</td>
-                            <td>${areaLabel(safeArea)}</td>
                         </tr>
                     `;
                 }).join('');
