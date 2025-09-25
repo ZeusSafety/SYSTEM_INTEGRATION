@@ -240,8 +240,8 @@
             background: var(--blanco);
             border-radius: 12px;
             box-shadow: 0 10px 40px rgba(30, 58, 138, 0.3);
-            width: 90%;
-            max-width: 800px;
+            width: 95%;
+            max-width: 1400px;
             max-height: 90vh;
             overflow-y: auto;
             animation: slideIn 0.3s ease;
@@ -488,6 +488,61 @@
             }
         }
 
+        /* Sección: Permisos por Sub Vistas */
+        .subviews-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            padding: 10px 0;
+        }
+
+        .subviews-block {
+            background: var(--blanco);
+            border: 1px solid var(--gris-claro);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 6px rgba(30, 58, 138, 0.06);
+            min-width: 280px;
+        }
+
+        .subviews-header {
+            background: linear-gradient(135deg, var(--azul-principal) 0%, var(--azul-oscuro) 100%);
+            color: var(--blanco);
+            padding: 12px 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .subviews-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .subviews-table th {
+            background: var(--azul-claro);
+            color: var(--blanco);
+            padding: 12px 14px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.85rem;
+            white-space: nowrap;
+        }
+
+        .subviews-table td {
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--gris-claro);
+            vertical-align: middle;
+        }
+
+        .subviews-empty {
+            text-align: center;
+            padding: 20px;
+            color: var(--gris-medio);
+            font-size: 0.9rem;
+        }
+
         @media (max-width: 768px) {
             .header-content {
                 flex-direction: column;
@@ -505,7 +560,8 @@
             }
 
             .modal-content {
-                width: 95%;
+                width: 98%;
+                max-width: 95vw;
                 margin: 10px;
             }
 
@@ -516,6 +572,15 @@
             .btn {
                 width: 100%;
                 justify-content: center;
+            }
+
+            .subviews-container {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .subviews-block {
+                min-width: auto;
             }
         }
     </style>
@@ -648,10 +713,36 @@
                         </button>
                     </div>
                 </div>
+
+                <!-- Parte 3: Permisos por Sub Vistas -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <i class="fas fa-sitemap"></i>
+                        Permisos por Sub Vistas
+                        <span class="api-status loading" id="apiStatusSubvistas" style="margin-left: 8px;">
+                            <i class="fas fa-spinner"></i>
+                        </span>
+                    </div>
+
+                    <div class="table-container" style="margin: 0;">
+                        <div id="subviewsContainer" class="subviews-container">
+                            <!-- Los bloques de sub vistas se cargarán dinámicamente -->
+                        </div>
+                    </div>
+
+                    <div class="btn-group" style="margin-top: 20px;">
+                        <button type="button" class="btn btn-success" onclick="saveSubvistas()">
+                            <i class="fas fa-save"></i>
+                            Guardar Sub Vistas
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
+    <!-- Modal: Permisos por Sub Vistas (dentro del modal de permisos) -->
+    <!-- Se agrega dentro del mismo modal, debajo de Permisos por Módulo -->
     <!-- Modal de Agregar Colaborador -->
     <div id="addColaboradorModal" class="modal">
         <div class="modal-content">
@@ -830,6 +921,58 @@
             ]
         };
 
+        // Datos de prueba para permisos por sub vistas (funciones dentro de módulos)
+        const mockSubvistasData = {
+            GERENCIA: [
+                { ESTADO: "1", NOMBRE: "panel_control_gerencia", AREA: "GERENCIA" },
+                { ESTADO: "0", NOMBRE: "reportes_estrategicos", AREA: "GERENCIA" },
+                { ESTADO: "1", NOMBRE: "gestion_objetivos", AREA: "GERENCIA" },
+                { ESTADO: "0", NOMBRE: "analitica_financiera", AREA: "GERENCIA" }
+            ],
+            ADMINISTRACION: [
+                { ESTADO: "1", NOMBRE: "registro_proveedores", AREA: "ADMINISTRACION" },
+                { ESTADO: "1", NOMBRE: "listado_proveedores", AREA: "ADMINISTRACION" },
+                { ESTADO: "0", NOMBRE: "gestion_contratos", AREA: "ADMINISTRACION" },
+                { ESTADO: "0", NOMBRE: "aprobaciones_internas", AREA: "ADMINISTRACION" }
+            ],
+            IMPORTACION: [
+                { ESTADO: "1", NOMBRE: "registro_incidencias_proformas", AREA: "LOGISTICA" },
+                { ESTADO: "1", NOMBRE: "registro_incidencias_importacion", AREA: "LOGISTICA" },
+                { ESTADO: "1", NOMBRE: "listado_incidencias_importacion", AREA: "LOGISTICA" },
+                { ESTADO: "1", NOMBRE: "listado_importaciones", AREA: "LOGISTICA" }
+            ],
+            LOGISTICA: [
+                { ESTADO: "1", NOMBRE: "seguimiento_despachos", AREA: "LOGISTICA" },
+                { ESTADO: "0", NOMBRE: "gestion_bodegas", AREA: "LOGISTICA" },
+                { ESTADO: "1", NOMBRE: "asignacion_rutas", AREA: "LOGISTICA" },
+                { ESTADO: "0", NOMBRE: "inventario_transito", AREA: "LOGISTICA" }
+            ],
+            VENTAS: [
+                { ESTADO: "1", NOMBRE: "registro_oportunidades", AREA: "VENTAS" },
+                { ESTADO: "1", NOMBRE: "listado_clientes", AREA: "VENTAS" },
+                { ESTADO: "0", NOMBRE: "panel_cotizaciones", AREA: "VENTAS" },
+                { ESTADO: "0", NOMBRE: "analitica_ventas", AREA: "VENTAS" }
+            ],
+            MARKETING: [
+                { ESTADO: "1", NOMBRE: "calendario_campanas", AREA: "MARKETING" },
+                { ESTADO: "0", NOMBRE: "gestion_contenido", AREA: "MARKETING" },
+                { ESTADO: "0", NOMBRE: "audiencia_segmentacion", AREA: "MARKETING" },
+                { ESTADO: "1", NOMBRE: "reportes_campanas", AREA: "MARKETING" }
+            ],
+            SISTEMAS: [
+                { ESTADO: "1", NOMBRE: "gestion_usuarios", AREA: "SISTEMAS" },
+                { ESTADO: "1", NOMBRE: "roles_permisos", AREA: "SISTEMAS" },
+                { ESTADO: "0", NOMBRE: "monitor_servicios", AREA: "SISTEMAS" },
+                { ESTADO: "0", NOMBRE: "auditoria_accesos", AREA: "SISTEMAS" }
+            ],
+            FACTURACION: [
+                { ESTADO: "1", NOMBRE: "emision_facturas", AREA: "FACTURACION" },
+                { ESTADO: "0", NOMBRE: "notas_credito", AREA: "FACTURACION" },
+                { ESTADO: "1", NOMBRE: "consulta_facturas", AREA: "FACTURACION" },
+                { ESTADO: "0", NOMBRE: "reporte_cobros", AREA: "FACTURACION" }
+            ]
+        };
+
         // Variables globales
         let currentColaboradorId = null;
         let isUserEditing = false;
@@ -932,6 +1075,8 @@
             
             // Cargar permisos del colaborador
             loadPermissionsData(personaId);
+            // Cargar permisos por sub vistas
+            loadSubvistasData(personaId);
             
             // Mostrar el modal
             document.getElementById('permissionsModal').classList.add('show');
@@ -947,6 +1092,16 @@
             document.getElementById('username').disabled = true;
             document.getElementById('password').disabled = true;
             document.getElementById('saveUserBtn').style.display = 'none';
+            // Reset subvistas UI
+            const apiStatusSub = document.getElementById('apiStatusSubvistas');
+            if (apiStatusSub) {
+                apiStatusSub.className = 'api-status loading';
+                apiStatusSub.innerHTML = '<i class="fas fa-spinner"></i>';
+            }
+            const subviewsContainer = document.getElementById('subviewsContainer');
+            if (subviewsContainer) {
+                subviewsContainer.innerHTML = '';
+            }
         }
 
         // Función para cargar datos de permisos
@@ -998,6 +1153,195 @@
             }
         }
 
+        // Helpers para Sub Vistas
+        const AREAS_KEYS = ['GERENCIA','ADMINISTRACION','IMPORTACION','LOGISTICA','VENTAS','MARKETING','SISTEMAS','FACTURACION'];
+
+        function areaLabel(areaKey) {
+            switch (areaKey) {
+                case 'ADMINISTRACION': return 'ADMINISTRACIÓN';
+                case 'IMPORTACION': return 'IMPORTACIONES';
+                case 'LOGISTICA': return 'LOGÍSTICA';
+                case 'FACTURACION': return 'FACTURACIÓN';
+                default: return areaKey;
+            }
+        }
+
+        function normalizeArea(areaName) {
+            if (!areaName) return '';
+            const upper = areaName.toUpperCase();
+            switch (upper) {
+                case 'ADMINISTRACIÓN':
+                case 'ADMINISTRACION':
+                    return 'ADMINISTRACION';
+                case 'IMPORTANCIONES':
+                case 'IMPORTACIONES':
+                case 'IMPORTACION':
+                    return 'IMPORTACION';
+                case 'LOGÍSTICA':
+                case 'LOGISTICA':
+                    return 'LOGISTICA';
+                case 'FACTURACIÓN':
+                case 'FACTURACION':
+                    return 'FACTURACION';
+                default:
+                    return upper;
+            }
+        }
+
+        function buildSubvistasBlocks() {
+            const container = document.getElementById('subviewsContainer');
+            if (!container) return;
+            container.innerHTML = AREAS_KEYS.map(areaKey => `
+                <div class="subviews-block" id="block-${areaKey}">
+                    <div class="subviews-header">
+                        <i class="fas fa-folder-tree"></i>
+                        ${areaLabel(areaKey)}
+                    </div>
+                    <table class="subviews-table">
+                        <thead>
+                            <tr>
+                                <th>ESTADO</th>
+                                <th>NOMBRE</th>
+                                <th>AREA</th>
+                            </tr>
+                        </thead>
+                        <tbody id="subviews-body-${areaKey}">
+                            <tr><td colspan="3" class="subviews-empty">Sin vistas</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            `).join('');
+        }
+
+        function displaySubvistasData(listOrGrouped) {
+            const apiStatus = document.getElementById('apiStatusSubvistas');
+            if (apiStatus) {
+                apiStatus.className = 'api-status success';
+                apiStatus.innerHTML = '<i class="fas fa-check"></i>';
+            }
+
+            // Asegurar bloques
+            buildSubvistasBlocks();
+
+            // Agrupar por área si viene como lista
+            const grouped = Array.isArray(listOrGrouped)
+                ? listOrGrouped.reduce((acc, item) => {
+                    const key = normalizeArea(item.AREA);
+                    if (!acc[key]) acc[key] = [];
+                    acc[key].push(item);
+                    return acc;
+                }, {})
+                : listOrGrouped;
+
+            // Rellenar cada bloque
+            AREAS_KEYS.forEach(areaKey => {
+                const tbody = document.getElementById(`subviews-body-${areaKey}`);
+                if (!tbody) return;
+                const items = (grouped && grouped[areaKey]) ? grouped[areaKey] : [];
+                if (!items.length) {
+                    tbody.innerHTML = '<tr><td colspan="3" class="subviews-empty">Sin vistas</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = items.map((item, index) => {
+                    const checked = String(item.ESTADO) === '1' ? 'checked' : '';
+                    const safeName = (item.NOMBRE || '').trim();
+                    const safeArea = areaKey;
+                    return `
+                        <tr>
+                            <td>
+                                <div class="permission-status">
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="subvista-${safeArea}-${index}" data-area="${safeArea}" data-nombre="${safeName}" ${checked} onchange="updateSubviewStatus('${safeArea}', ${index})">
+                                        <span class="slider"></span>
+                                    </label>
+                                    <span class="permission-text ${checked ? 'granted' : 'denied'}" id="subvista-status-${safeArea}-${index}">${checked ? 'Concedido' : 'Denegado'}</span>
+                                </div>
+                            </td>
+                            <td>${safeName}</td>
+                            <td>${areaLabel(safeArea)}</td>
+                        </tr>
+                    `;
+                }).join('');
+            });
+        }
+
+        async function loadSubvistasData(personaId) {
+            const apiStatus = document.getElementById('apiStatusSubvistas');
+            if (apiStatus) {
+                apiStatus.className = 'api-status loading';
+                apiStatus.innerHTML = '<i class="fas fa-spinner"></i>';
+            }
+            try {
+                const api = "https://colaboradores-2946605267.us-central1.run.app";
+                const metodo = "subvistas";
+                const response = await fetch(`${api}?metodo=${metodo}&id=${personaId}`);
+                if (response.status === 200) {
+                    const data = await response.json();
+                    const list = Array.isArray(data?.subvistas) ? data.subvistas : (Array.isArray(data) ? data : []);
+                    if (list.length) {
+                        displaySubvistasData(list);
+                        return;
+                    }
+                } else {
+                    console.error('Error en la respuesta de subvistas:', response.status);
+                }
+                // Fallback a mocks
+                displaySubvistasData(mockSubvistasData);
+            } catch (err) {
+                console.error('Error cargando subvistas:', err);
+                displaySubvistasData(mockSubvistasData);
+            }
+        }
+
+        function updateSubviewStatus(areaKey, index) {
+            const checkbox = document.getElementById(`subvista-${areaKey}-${index}`);
+            const statusText = document.getElementById(`subvista-status-${areaKey}-${index}`);
+            if (!checkbox || !statusText) return;
+            if (checkbox.checked) {
+                statusText.textContent = 'Concedido';
+                statusText.className = 'permission-text granted';
+            } else {
+                statusText.textContent = 'Denegado';
+                statusText.className = 'permission-text denied';
+            }
+        }
+
+        async function saveSubvistas() {
+            if (!currentColaboradorId) {
+                alert('Error: No se ha seleccionado un colaborador');
+                return;
+            }
+            // Recopilar todos los toggles
+            const inputs = document.querySelectorAll('#subviewsContainer input[type="checkbox"][data-area][data-nombre]');
+            const subvistas = Array.from(inputs).map(input => ({
+                area: input.getAttribute('data-area'),
+                nombre: input.getAttribute('data-nombre'),
+                estado: input.checked ? 1 : 0
+            }));
+            try {
+                const api = "https://colaboradores-2946605267.us-central1.run.app";
+                const metodo = "subvistas";
+                const body = { subvistas };
+                console.log('Enviando sub vistas:', body);
+                const response = await fetch(`${api}?metodo=${metodo}&id=${currentColaboradorId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                if (response.status === 200) {
+                    alert('Sub vistas guardadas exitosamente');
+                } else {
+                    try {
+                        const errorData = await response.text();
+                        console.error('Detalles del error (subvistas):', errorData);
+                    } catch {}
+                    alert('Error al guardar sub vistas. Intente nuevamente.');
+                }
+            } catch (err) {
+                console.error('Error guardando sub vistas:', err);
+                alert('Error de conexión. Por favor intente nuevamente.');
+            }
+        }
         // Función para mostrar datos de permisos
         function displayPermissionsData(data) {
             const tbody = document.getElementById('permissionsTableBody');
