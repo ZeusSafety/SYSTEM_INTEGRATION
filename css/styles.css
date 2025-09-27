@@ -89,10 +89,14 @@ body {
 }
 
 .logo {
-    width: 56px;
-    height: 56px;
+    width: 80%;
+    height: 40%;
     object-fit: contain;
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-left: 5%;
 }
 
 .brand-name {
