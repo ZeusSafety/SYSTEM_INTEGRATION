@@ -19,33 +19,33 @@
         --primary-dark: #1e40af;
         --secondary-color: #f59e0b;
         --accent-color: #3b82f6;
-        
+
         /* Colores de fondo */
         --bg-primary: #ffffff;
         --bg-secondary: #f8fafc;
         --bg-tertiary: #f1f5f9;
-        
+
         /* Colores de texto */
         --text-primary: #1e293b;
         --text-secondary: #64748b;
         --text-muted: #94a3b8;
-        
+
         /* Colores de estado */
         --success-color: #10b981;
         --warning-color: #f59e0b;
         --danger-color: #ef4444;
         --info-color: #3b82f6;
-        
+
         /* Sombras */
         --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
         --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
         --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
         --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-        
+
         /* Bordes */
         --border-radius: 0.75rem;
         --border-radius-lg: 1rem;
-        
+
         /* Transiciones */
         --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
@@ -93,8 +93,15 @@
     }
 
     .login-info {
-        padding: 2rem;
+        padding: 3rem;
         color: var(--text-primary);
+    }
+
+    .login-card {
+        position: sticky;
+        top: 3rem;
+        /* se queda fijo a 3rem del top */
+        align-self: center;
     }
 
     .login-info h1 {
@@ -389,8 +396,15 @@
 
     /* Animaciones */
     @keyframes float {
-        0%, 100% { transform: translateY(0px) rotate(0deg); }
-        50% { transform: translateY(-20px) rotate(2deg); }
+
+        0%,
+        100% {
+            transform: translateY(0px) rotate(0deg);
+        }
+
+        50% {
+            transform: translateY(-20px) rotate(2deg);
+        }
     }
 
     .login-card {
@@ -402,6 +416,7 @@
             opacity: 0;
             transform: translateY(30px);
         }
+
         to {
             opacity: 1;
             transform: translateY(0);
@@ -428,35 +443,86 @@
     }
 
     @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+
+    /* Estado inicial: oculto */
+    .dropdown-options {
+        max-height: 0;
+        overflow: hidden;
+        opacity: 0;
+        transition: max-height 0.5s ease, opacity 0.5s ease;
+    }
+
+    /* Estado visible con animación */
+    .dropdown-options.show {
+        max-height: 500px;
+        /* suficiente para mostrar su contenido */
+        opacity: 1;
     }
 </style>
+
 <body>
     <div class="login-container">
         <!-- Información de la empresa -->
         <div class="login-info">
-            <h1>ZEUS SAFETY</h1>
-            <p class="subtitle">Sistema de Integración para Importación de Seguridad Industrial</p>
-            
-            <!-- Enlace externo prominente -->
+
+            <!-- Enlace externo prominente con opciones -->
             <div class="external-link-prominent">
-                <a href="https://docs.google.com/forms/d/e/1FAIpQLSe5HsHQuLxnePCLxMWY3GdsAPNRTaXVYsYMjuIBieWC1xtwxQ/viewform?usp=sf_link" 
-                   target="_blank" 
-                   class="external-link-main">
+                <div class="external-link-main" onclick="toggleOptions()">
                     <div class="external-link-icon">
                         <i class="fas fa-clipboard-list"></i>
                     </div>
                     <div class="external-link-content">
                         <h3>¿Necesitas Registrar una solicitud y/o permiso?</h3>
-                        <p>Registra tu solicitud aquí</p>
+                        <p>Selecciona una opción</p>
                     </div>
                     <div class="external-link-arrow">
-                        <i class="fas fa-arrow-right"></i>
+                        <i class="fas fa-chevron-down"></i>
                     </div>
-                </a>
+                </div>
+                <br>
+
+                <!-- Opciones desplegables con animación -->
+                <div id="linkOptions" class="dropdown-options">
+                    <!-- Opción 1: Registrar Permisos -->
+                    <a href="https://docs.google.com/forms/d/e/1FAIpQLSe5HsHQuLxnePCLxMWY3GdsAPNRTaXVYsYMjuIBieWC1xtwxQ/viewform?usp=sf_link"
+                        target="_blank" class="external-link-main" style="margin-bottom: 1rem;">
+                        <div class="external-link-icon">
+                            <i class="fas fa-user-check"></i>
+                        </div>
+                        <div class="external-link-content">
+                            <h3>Registrar Permisos</h3>
+                            <p>Accede al formulario de permisos</p>
+                        </div>
+                        <div class="external-link-arrow">
+                            <i class="fas fa-arrow-right"></i>
+                        </div>
+                    </a>
+
+                    <!-- Opción 2: Registrar Solicitud o Incidencia -->
+                    <a href="https://cibertecedgar.github.io/registro-solis-incis/" target="_blank"
+                        class="external-link-main">
+                        <div class="external-link-icon">
+                            <i class="fas fa-file-signature"></i>
+                        </div>
+                        <div class="external-link-content">
+                            <h3>Registrar Solicitud o Incidencia</h3>
+                            <p>Ingresa al formulario de registro</p>
+                        </div>
+                        <div class="external-link-arrow">
+                            <i class="fas fa-arrow-right"></i>
+                        </div>
+                    </a>
+                </div>
             </div>
-            
+
             <ul class="features-list">
                 <li>
                     <i class="fas fa-shield-alt"></i>
@@ -496,14 +562,14 @@
                         <i class="fas fa-user me-2"></i>Usuario
                     </label>
                 </div>
-                
+
                 <div class="form-floating mb-4">
                     <input type="password" class="form-control" id="contrasena" placeholder="Contraseña" required />
                     <label for="contrasena">
                         <i class="fas fa-lock me-2"></i>Contraseña
                     </label>
                 </div>
-                
+
                 <button type="submit" class="btn btn-login">
                     <i class="fas fa-sign-in-alt me-2"></i>Ingresar al Sistema
                 </button>
@@ -515,104 +581,119 @@
 
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Mejorar la experiencia de usuario
-    const form = document.getElementById("loginForm");
-    const submitBtn = form.querySelector('button[type="submit"]');
-    const usuarioInput = document.getElementById("usuario");
-    const contrasenaInput = document.getElementById("contrasena");
+    function toggleOptions() {
+        const options = document.getElementById("linkOptions");
+        const arrow = document.querySelector(".external-link-arrow i");
 
-    // Animación de entrada para los campos
-    const inputs = form.querySelectorAll('.form-control');
-    inputs.forEach((input, index) => {
-        input.style.opacity = '0';
-        input.style.transform = 'translateY(20px)';
-        setTimeout(() => {
-            input.style.transition = 'all 0.5s ease';
-            input.style.opacity = '1';
-            input.style.transform = 'translateY(0)';
-        }, 200 + (index * 100));
-    });
+        options.classList.toggle("show");
 
-    // Validación en tiempo real
-    usuarioInput.addEventListener('input', function() {
-        if (this.value.length > 0) {
-            this.classList.add('is-valid');
-            this.classList.remove('is-invalid');
+        if (options.classList.contains("show")) {
+            arrow.classList.remove("fa-chevron-down");
+            arrow.classList.add("fa-chevron-up");
         } else {
-            this.classList.remove('is-valid');
+            arrow.classList.remove("fa-chevron-up");
+            arrow.classList.add("fa-chevron-down");
         }
-    });
+    }
 
-    contrasenaInput.addEventListener('input', function() {
-        if (this.value.length >= 6) {
-            this.classList.add('is-valid');
-            this.classList.remove('is-invalid');
-        } else if (this.value.length > 0) {
-            this.classList.add('is-invalid');
-            this.classList.remove('is-valid');
-        } else {
-            this.classList.remove('is-valid', 'is-invalid');
-        }
-    });
+    document.addEventListener('DOMContentLoaded', function () {
+        // Mejorar la experiencia de usuario
+        const form = document.getElementById("loginForm");
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const usuarioInput = document.getElementById("usuario");
+        const contrasenaInput = document.getElementById("contrasena");
 
-    // Manejo del envío del formulario
-    form.addEventListener("submit", async function(e) {
-        e.preventDefault();
-        
-        const usuario = usuarioInput.value.trim();
-        const contrasena = contrasenaInput.value;
+        // Animación de entrada para los campos
+        const inputs = form.querySelectorAll('.form-control');
+        inputs.forEach((input, index) => {
+            input.style.opacity = '0';
+            input.style.transform = 'translateY(20px)';
+            setTimeout(() => {
+                input.style.transition = 'all 0.5s ease';
+                input.style.opacity = '1';
+                input.style.transform = 'translateY(0)';
+            }, 200 + (index * 100));
+        });
 
-        // Validación básica
-        if (!usuario || !contrasena) {
-            showNotification('Por favor, completa todos los campos', 'warning');
-            return;
-        }
-
-        // Mostrar estado de carga
-        const originalContent = submitBtn.innerHTML;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Verificando...';
-        submitBtn.disabled = true;
-        submitBtn.classList.add('loading');
-
-        try {
-            const loginSuccess = await loginUser(usuario, contrasena);
-            if (loginSuccess) {
-                showNotification('¡Bienvenido! Redirigiendo...', 'success');
-                setTimeout(() => {
-                    window.location.href = "menu.html";
-                }, 1000);
+        // Validación en tiempo real
+        usuarioInput.addEventListener('input', function () {
+            if (this.value.length > 0) {
+                this.classList.add('is-valid');
+                this.classList.remove('is-invalid');
             } else {
-                showNotification('Usuario o contraseña incorrectos', 'error');
-                // Agregar efecto de shake al formulario
-                form.classList.add('shake');
-                setTimeout(() => form.classList.remove('shake'), 500);
+                this.classList.remove('is-valid');
             }
-        } catch (error) {
-            console.error("Error en el login:", error);
-            showNotification('Error al conectar con el servidor. Intente nuevamente.', 'error');
-        } finally {
-            // Restaurar botón
-            submitBtn.innerHTML = originalContent;
-            submitBtn.disabled = false;
-            submitBtn.classList.remove('loading');
-        }
-    });
+        });
 
-    // Función para mostrar notificaciones
-    function showNotification(message, type = 'info') {
-        // Crear elemento de notificación
-        const notification = document.createElement('div');
-        notification.className = `notification notification-${type}`;
-        notification.innerHTML = `
+        contrasenaInput.addEventListener('input', function () {
+            if (this.value.length >= 6) {
+                this.classList.add('is-valid');
+                this.classList.remove('is-invalid');
+            } else if (this.value.length > 0) {
+                this.classList.add('is-invalid');
+                this.classList.remove('is-valid');
+            } else {
+                this.classList.remove('is-valid', 'is-invalid');
+            }
+        });
+
+        // Manejo del envío del formulario
+        form.addEventListener("submit", async function (e) {
+            e.preventDefault();
+
+            const usuario = usuarioInput.value.trim();
+            const contrasena = contrasenaInput.value;
+
+            // Validación básica
+            if (!usuario || !contrasena) {
+                showNotification('Por favor, completa todos los campos', 'warning');
+                return;
+            }
+
+            // Mostrar estado de carga
+            const originalContent = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Verificando...';
+            submitBtn.disabled = true;
+            submitBtn.classList.add('loading');
+
+            try {
+                const loginSuccess = await loginUser(usuario, contrasena);
+                if (loginSuccess) {
+                    showNotification('¡Bienvenido! Redirigiendo...', 'success');
+                    setTimeout(() => {
+                        window.location.href = "menu.html";
+                    }, 1000);
+                } else {
+                    showNotification('Usuario o contraseña incorrectos', 'error');
+                    // Agregar efecto de shake al formulario
+                    form.classList.add('shake');
+                    setTimeout(() => form.classList.remove('shake'), 500);
+                }
+            } catch (error) {
+                console.error("Error en el login:", error);
+                showNotification('Error al conectar con el servidor. Intente nuevamente.', 'error');
+            } finally {
+                // Restaurar botón
+                submitBtn.innerHTML = originalContent;
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('loading');
+            }
+        });
+
+        // Función para mostrar notificaciones
+        function showNotification(message, type = 'info') {
+            // Crear elemento de notificación
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.innerHTML = `
             <div class="notification-content">
                 <i class="fas fa-${getIconForType(type)}"></i>
                 <span>${message}</span>
             </div>
         `;
-        
-        // Agregar estilos
-        notification.style.cssText = `
+
+            // Agregar estilos
+            notification.style.cssText = `
             position: fixed;
             top: 20px;
             right: 20px;
@@ -630,51 +711,51 @@ document.addEventListener('DOMContentLoaded', function() {
             align-items: center;
             gap: 0.75rem;
         `;
-        
-        document.body.appendChild(notification);
-        
-        // Mostrar con animación
-        setTimeout(() => {
-            notification.style.opacity = '1';
-            notification.style.transform = 'translateX(0)';
-        }, 100);
-        
-        // Remover después de 4 segundos
-        setTimeout(() => {
-            notification.style.opacity = '0';
-            notification.style.transform = 'translateX(100%)';
+
+            document.body.appendChild(notification);
+
+            // Mostrar con animación
             setTimeout(() => {
-                if (notification.parentNode) {
-                    notification.parentNode.removeChild(notification);
-                }
-            }, 300);
-        }, 4000);
-    }
+                notification.style.opacity = '1';
+                notification.style.transform = 'translateX(0)';
+            }, 100);
 
-    function getIconForType(type) {
-        const icons = {
-            'success': 'check-circle',
-            'error': 'exclamation-circle',
-            'warning': 'exclamation-triangle',
-            'info': 'info-circle'
-        };
-        return icons[type] || 'info-circle';
-    }
+            // Remover después de 4 segundos
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 300);
+            }, 4000);
+        }
 
-    function getColorForType(type) {
-        const colors = {
-            'success': '#10b981',
-            'error': '#ef4444',
-            'warning': '#f59e0b',
-            'info': '#3b82f6'
-        };
-        return colors[type] || '#3b82f6';
-    }
-});
+        function getIconForType(type) {
+            const icons = {
+                'success': 'check-circle',
+                'error': 'exclamation-circle',
+                'warning': 'exclamation-triangle',
+                'info': 'info-circle'
+            };
+            return icons[type] || 'info-circle';
+        }
 
-// Agregar estilos para las animaciones
-const style = document.createElement('style');
-style.textContent = `
+        function getColorForType(type) {
+            const colors = {
+                'success': '#10b981',
+                'error': '#ef4444',
+                'warning': '#f59e0b',
+                'info': '#3b82f6'
+            };
+            return colors[type] || '#3b82f6';
+        }
+    });
+
+    // Agregar estilos para las animaciones
+    const style = document.createElement('style');
+    style.textContent = `
     .shake {
         animation: shake 0.5s ease-in-out;
     }
@@ -705,7 +786,7 @@ style.textContent = `
         font-size: 1.25rem;
     }
 `;
-document.head.appendChild(style);
+    document.head.appendChild(style);
 </script>
 
 
