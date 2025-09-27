@@ -1271,23 +1271,44 @@
                 apiStatus.innerHTML = '<i class="fas fa-spinner"></i>';
             }
             try {
+                console.log('Cargando subvistas disponibles desde API...');
                 const api = "https://colaboradores-2946605267.us-central1.run.app";
-                const metodo = "subvistas";
-                const response = await fetch(`${api}?metodo=${metodo}&id=${personaId}`);
+                const metodo = "sub_vistas";
+                
+                const response = await fetch(`${api}?metodo=${metodo}`);
+                console.log('Status de respuesta subvistas:', response.status);
+                
                 if (response.status === 200) {
                     const data = await response.json();
-                    const list = Array.isArray(data?.subvistas) ? data.subvistas : (Array.isArray(data) ? data : []);
-                    if (list.length) {
-                        displaySubvistasData(list);
+                    console.log('Datos de subvistas cargados desde API:', data);
+                    
+                    // Procesar las subvistas según el formato de la API
+                    const subvistasList = Array.isArray(data) ? data : [];
+                    
+                    if (subvistasList.length > 0) {
+                        // Convertir formato de API a formato interno y configurar todas como habilitadas
+                        const subvistasHabilitadas = subvistasList.map(item => ({
+                            ID: item.ID,
+                            NOMBRE: item.SUB_VISTA, // Mapear SUB_VISTA a NOMBRE
+                            AREA: item.AREA,
+                            ESTADO: "1" // Todas habilitadas por defecto
+                        }));
+                        
+                        console.log('Subvistas procesadas:', subvistasHabilitadas);
+                        displaySubvistasData(subvistasHabilitadas);
                         return;
                     }
                 } else {
                     console.error('Error en la respuesta de subvistas:', response.status);
                 }
-                // Fallback a mocks
+                
+                // Fallback a mocks si la API falla
+                console.log('Usando datos de prueba como respaldo para subvistas...');
                 displaySubvistasData(mockSubvistasData);
             } catch (err) {
-                console.error('Error cargando subvistas:', err);
+                console.error('Error cargando subvistas desde API:', err);
+                // Fallback a mocks si hay error de red
+                console.log('Error de red, usando datos de prueba para subvistas...');
                 displaySubvistasData(mockSubvistasData);
             }
         }
