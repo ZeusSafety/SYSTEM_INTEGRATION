@@ -155,20 +155,6 @@
             color: white;
         }
         
-        .canal-rojo {
-            background: var(--danger-color);
-            color: white;
-        }
-        
-        .canal-verde {
-            background: var(--success-color);
-            color: white;
-        }
-        
-        .canal-amarillo {
-            background: var(--warning-color);
-            color: var(--text-primary);
-        }
         
         .incidencia-si {
             background: var(--danger-color);
@@ -180,22 +166,6 @@
             color: white;
         }
         
-        .btn-action {
-            background: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: var(--border-radius);
-            padding: 0.5rem 1rem;
-            font-size: 0.875rem;
-            font-weight: 500;
-            transition: var(--transition);
-        }
-        
-        .btn-action:hover {
-            background: var(--primary-dark);
-            transform: translateY(-1px);
-            box-shadow: var(--shadow-md);
-        }
         
         /* Sub-menu styles */
         .menu-item.active {
@@ -258,27 +228,6 @@
             margin: 0 1rem;
         }
         
-        /* Modal styles */
-        .modal-content {
-            border-radius: var(--border-radius-lg);
-            border: none;
-            box-shadow: var(--shadow-xl);
-        }
-        
-        .modal-header {
-            background: var(--primary-color);
-            color: white;
-            border-bottom: none;
-            border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
-        }
-        
-        .modal-title {
-            font-weight: 700;
-        }
-        
-        .btn-close {
-            filter: invert(1);
-        }
         
         /* Responsive Design */
         @media (max-width: 768px) {
@@ -309,41 +258,124 @@
             
             .table-container {
                 font-size: 0.875rem;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            .table {
+                min-width: 800px;
             }
             
             .table thead th,
             .table td {
                 padding: 0.5rem 0.25rem;
+                white-space: nowrap;
+            }
+            
+            .table thead th:nth-child(4),
+            .table td:nth-child(4) {
+                max-width: 150px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
             }
             
             .pagination-container {
                 flex-wrap: wrap;
                 gap: 0.25rem;
+                padding: 0.75rem;
             }
             
             .pagination-info {
                 margin: 0.5rem 0;
                 width: 100%;
                 text-align: center;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .page-title {
-                font-size: 1.25rem;
-            }
-            
-            .table {
-                font-size: 0.75rem;
+                font-size: 0.875rem;
             }
             
             .status-badge {
                 font-size: 0.625rem;
                 padding: 0.125rem 0.5rem;
             }
+        }
+        
+        @media (max-width: 480px) {
+            .page-header {
+                padding: 1rem 0.75rem;
+            }
             
-            .btn-action {
-                padding: 0.375rem 0.75rem;
+            .page-title {
+                font-size: 1.25rem;
+            }
+            
+            .page-subtitle {
+                font-size: 0.875rem;
+            }
+            
+            .filters-section {
+                padding: 0.75rem;
+            }
+            
+            .form-control {
+                padding: 0.5rem;
+                font-size: 0.875rem;
+            }
+            
+            .btn-primary {
+                padding: 0.5rem 1rem;
+                font-size: 0.875rem;
+            }
+            
+            .table {
+                font-size: 0.75rem;
+                min-width: 700px;
+            }
+            
+            .table thead th,
+            .table td {
+                padding: 0.375rem 0.125rem;
+                font-size: 0.75rem;
+            }
+            
+            .status-badge {
+                font-size: 0.625rem;
+                padding: 0.125rem 0.375rem;
+            }
+            
+            .pagination-btn {
+                padding: 0.375rem 0.5rem;
+                font-size: 0.75rem;
+            }
+            
+            .pagination-info {
+                font-size: 0.75rem;
+            }
+        }
+        
+        /* Mejoras adicionales para UX móvil */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 280px;
+            }
+            
+            .main-content {
+                margin-left: 0;
+                padding: 0;
+            }
+            
+            .dashboard-content {
+                padding: 0.5rem;
+            }
+            
+            .breadcrumb {
+                font-size: 0.875rem;
+            }
+            
+            .header-right {
+                gap: 0.5rem;
+            }
+            
+            .current-time {
                 font-size: 0.75rem;
             }
         }
@@ -474,18 +506,15 @@
                                 <th>Productos</th>
                                 <th>Archivo_PDF</th>
                                 <th>Fecha Llegada</th>
-                                <th>Tipo de Carga</th>
                                 <th>Fecha de Almacén</th>
                                 <th>Estado</th>
-                                <th>Canal</th>
                                 <th>Fecha Recepción</th>
                                 <th>Incidencias</th>
-                                <th>Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td colspan="13" class="text-center">Cargando...</td>
+                                <td colspan="10" class="text-center">Cargando...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -511,86 +540,6 @@
         </div>
     </main>
 
-    <!-- Modal Actualizar -->
-    <div class="modal fade" id="modalActualizar" tabindex="-1" aria-labelledby="modalActualizarLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modalActualizarLabel">
-                        <i class="fas fa-edit"></i> Actualizar Importación
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="formActualizar">
-                        <input type="hidden" id="upd_id">
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label class="form-label">Fecha Registro</label>
-                                <input type="text" class="form-control" id="upd_fecha_registro" readonly
-                                    style="background-color: var(--bg-tertiary);">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">N° Despacho</label>
-                                <input type="text" class="form-control" id="upd_despacho" readonly 
-                                    style="background-color: var(--bg-tertiary);">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Redactado por</label>
-                                <input type="text" class="form-control" id="upd_redactado" readonly 
-                                    style="background-color: var(--bg-tertiary);">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Fecha Llegada de Productos</label>
-                                <input type="date" class="form-control" id="upd_fecha_llegada" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Fecha de Almacén</label>
-                                <input type="date" class="form-control" id="upd_fecha_almacen">
-                            </div>
-                            <div class="col-md-12">
-                                <label class="form-label">Productos</label>
-                                <textarea class="form-control" id="upd_productos" rows="3" required></textarea>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Tipo de Carga</label>
-                                <select class="form-control" id="upd_tipo_carga" required>
-                                    <option value="">Seleccione el Tipo de Carga</option>
-                                    <option value="1 CONTENEDOR 40 HQ">1 CONTENEDOR 40 HQ</option>
-                                    <option value="1 CONTENEDOR 40 NOR">1 CONTENEDOR 40 NOR</option>
-                                    <option value="1 CONTENEDOR 20 ST">1 CONTENEDOR 20 ST</option>
-                                    <option value="CONSOLIDADO">CONSOLIDADO</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Estado</label>
-                                <select class="form-control" id="upd_estado" required>
-                                    <option value="PRODUCCION">PRODUCCIÓN</option>
-                                    <option value="TRANSITO">TRÁNSITO</option>
-                                    <option value="ETA">ETA</option>
-                                </select>
-                            </div>
-                            <div class="col-md-12">
-                                <label class="form-label">Canal</label>
-                                <select class="form-control" id="upd_canal">
-                                    <option value="">Seleccione un canal</option>
-                                    <option value="ROJO">ROJO</option>
-                                    <option value="VERDE">VERDE</option>
-                                    <option value="AMARILLO">AMARILLO</option>
-                                </select>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-primary" id="btnGuardarActualizacion">
-                        <i class="fas fa-save"></i> Guardar Cambios
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

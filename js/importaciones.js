@@ -110,13 +110,13 @@ async function actualizarDatosAPI(datos) {
 
 function cargarTablaImportaciones(filtrados = null) {
     const tbody = document.querySelector('#tablaImportaciones tbody');
-    tbody.innerHTML = '<tr><td colspan="13" class="text-center">Cargando...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="10" class="text-center">Cargando...</td></tr>';
     
     let ultimoId = localStorage.getItem('ultimoIdImportacion');
 
     const render = function (registros) {
         if (!Array.isArray(registros) || registros.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="13" class="text-center">Sin registros</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="10" class="text-center">Sin registros</td></tr>';
             actualizarPaginacion(0);
             return;
         }
@@ -166,7 +166,7 @@ function cargarTablaImportaciones(filtrados = null) {
             document.getElementById('btnFiltrar').disabled = false;
         })
         .catch(function (err) {
-            tbody.innerHTML = '<tr><td colspan="13" class="text-danger">Error al cargar datos: ' + err.message + '</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="10" class="text-danger">Error al cargar datos: ' + err.message + '</td></tr>';
             document.getElementById('btnFiltrar').disabled = false;
         });
 }
@@ -184,7 +184,7 @@ function renderizarTabla(ultimoId) {
             tr.classList.add('fila-nueva');
         }
 
-        // Crear las celdas en el orden correcto
+        // Crear las celdas en el orden correcto (sin TIPO_CARGA, CANAL, ACCIONES)
         const celdas = [
             row.FECHA_REGISTRO,
             row.NUMERO_DESPACHO,
@@ -192,10 +192,8 @@ function renderizarTabla(ultimoId) {
             row.PRODUCTOS,
             row.ARCHIVO_PDF_URL,
             row.FECHA_LLEGADA_PRODUCTOS,
-            row.TIPO_CARGA,
             row.FECHA_ALMACEN,
             row.ESTADO_IMPORTACION,
-            row.CANAL,
             row.FECHA_RECEPCION,
             row.INCIDENCIAS
         ];
@@ -236,11 +234,7 @@ function renderizarTabla(ultimoId) {
                 } else {
                     td.textContent = cell;
                 }
-            } else if (idx === 6) { // Tipo de Carga
-                td.textContent = cell;
-                td.style.fontWeight = 'bold';
-                td.style.color = 'var(--primary-color)';
-            } else if (idx === 7) { // Fecha de Almacén
+            } else if (idx === 6) { // Fecha de Almacén
                 if (cell && cell !== 'null' && cell !== '') {
                     let fecha = cell;
                     if (fecha.includes('/')) {
@@ -253,7 +247,7 @@ function renderizarTabla(ultimoId) {
                 } else {
                     td.textContent = '';
                 }
-            } else if (idx === 8) { // Estado
+            } else if (idx === 7) { // Estado
                 let estado = String(cell).toUpperCase();
                 if (estado === 'TRANSITO') {
                     td.innerHTML = `<span class='status-badge status-transito'>${cell}</span>`;
@@ -264,18 +258,7 @@ function renderizarTabla(ultimoId) {
                 } else {
                     td.textContent = cell;
                 }
-            } else if (idx === 9) { // Canal
-                let canal = String(cell).toUpperCase();
-                if (canal === 'ROJO') {
-                    td.innerHTML = `<span class='status-badge canal-rojo'>${cell}</span>`;
-                } else if (canal === 'VERDE') {
-                    td.innerHTML = `<span class='status-badge canal-verde'>${cell}</span>`;
-                } else if (canal === 'AMARILLO') {
-                    td.innerHTML = `<span class='status-badge canal-amarillo'>${cell}</span>`;
-                } else {
-                    td.textContent = cell;
-                }
-            } else if (idx === 10) { // Fecha Recepción
+            } else if (idx === 8) { // Fecha Recepción
                 if (cell && cell !== 'null' && cell !== '') {
                     let fecha = cell;
                     if (cell.includes('/')) {
@@ -288,7 +271,7 @@ function renderizarTabla(ultimoId) {
                 } else {
                     td.textContent = '';
                 }
-            } else if (idx === 11) { // Incidencias
+            } else if (idx === 9) { // Incidencias
                 let incidencia = String(cell).toUpperCase();
                 if (incidencia === 'SI') {
                     td.innerHTML = `<span class='status-badge incidencia-si'>${cell}</span>`;
@@ -303,84 +286,10 @@ function renderizarTabla(ultimoId) {
             tr.appendChild(td);
         });
 
-        // Columna ACCIONES
-        const tdAcciones = document.createElement('td');
-        const rowData = JSON.stringify(row);
-        const button = document.createElement('button');
-        button.className = 'btn-action';
-        button.innerHTML = '<i class="fas fa-edit"></i> Actualizar';
-        button.onclick = function () {
-            abrirModalActualizar(rowData);
-        };
-        tdAcciones.appendChild(button);
-        tr.appendChild(tdAcciones);
-        console.log('Botón de actualizar agregado para fila:', row.ID_IMPORTACIONES);
         tbody.appendChild(tr);
     });
 }
 
-function abrirModalActualizar(rowData) {
-    console.log('Abriendo modal para:', rowData);
-    try {
-        let row;
-        if (typeof rowData === 'string') {
-            const cleanData = rowData.replace(/[\u0000-\u001F\u007F-\u009F]/g, '');
-            row = JSON.parse(cleanData);
-        } else {
-            row = rowData;
-        }
-        console.log('Datos parseados:', row);
-
-        // Cargar datos en el modal
-        document.getElementById('upd_id').value = row.ID_IMPORTACIONES || '';
-        document.getElementById('upd_fecha_registro').value = row.FECHA_REGISTRO || '';
-        document.getElementById('upd_despacho').value = row.NUMERO_DESPACHO || '';
-        document.getElementById('upd_redactado').value = row.RESPONSABLE || '';
-        document.getElementById('upd_productos').value = row.PRODUCTOS || '';
-
-        // Convertir fecha de llegada
-        if (row.FECHA_LLEGADA_PRODUCTOS) {
-            let fechaLlegada = row.FECHA_LLEGADA_PRODUCTOS;
-            if (fechaLlegada && fechaLlegada.includes('/')) {
-                let partes = fechaLlegada.split('/');
-                if (partes.length === 3) {
-                    fechaLlegada = partes[2] + '-' + partes[1] + '-' + partes[0];
-                }
-            }
-            document.getElementById('upd_fecha_llegada').value = fechaLlegada;
-        } else {
-            document.getElementById('upd_fecha_llegada').value = '';
-        }
-
-        document.getElementById('upd_tipo_carga').value = row.TIPO_CARGA || '';
-        document.getElementById('upd_estado').value = row.ESTADO_IMPORTACION || '';
-        document.getElementById('upd_canal').value = row.CANAL || '';
-        
-        // Cargar fecha de almacén si existe
-        if (row.FECHA_ALMACEN) {
-            let fAlm = row.FECHA_ALMACEN;
-            if (fAlm && fAlm.includes('/')) {
-                const partes = fAlm.split('/');
-                if (partes.length === 3) {
-                    fAlm = `${partes[2]}-${partes[1]}-${partes[0]}`;
-                }
-            }
-            const inpAlm = document.getElementById('upd_fecha_almacen');
-            if (inpAlm) inpAlm.value = fAlm;
-        }
-
-        // Mostrar el modal
-        const modalElement = document.getElementById('modalActualizar');
-        const modal = new bootstrap.Modal(modalElement);
-        modal.show();
-
-        console.log('Modal abierto correctamente');
-    } catch (error) {
-        console.error('Error al abrir modal:', error);
-        console.error('Datos que causaron el error:', rowData);
-        alert('Error al abrir el modal de actualización: ' + error.message);
-    }
-}
 
 // Event listeners
 document.addEventListener('DOMContentLoaded', function () {
@@ -390,64 +299,6 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('btnSiguiente').onclick = () => irAPagina(paginaActual + 1);
     document.getElementById('btnUltima').onclick = () => irAPagina(Math.ceil(registrosGlobal.length / registrosPorPagina));
     
-    // Event listener para el botón de guardar actualización
-    document.getElementById('btnGuardarActualizacion').onclick = function () {
-        console.log('Botón Guardar Cambios clickeado');
-        const id = document.getElementById('upd_id').value;
-        const fechaLlegada = document.getElementById('upd_fecha_llegada').value;
-        
-        console.log('ID:', id);
-        console.log('Fecha llegada:', fechaLlegada);
-
-        let fechaLlegadaFormateada = '';
-        if (fechaLlegada) {
-            fechaLlegadaFormateada = fechaLlegada;
-        }
-
-        const datos = {
-            productos: document.getElementById('upd_productos').value,
-            fecha_llegada_productos: fechaLlegadaFormateada,
-            tipo_carga: document.getElementById('upd_tipo_carga').value,
-            estado_importacion: document.getElementById('upd_estado').value,
-            canal: document.getElementById('upd_canal').value,
-            fecha_almacen: (document.getElementById('upd_fecha_almacen') && document.getElementById('upd_fecha_almacen').value) ? document.getElementById('upd_fecha_almacen').value : null,
-            id: parseInt(id)
-        };
-
-        // Validar campos requeridos
-        if (!datos.productos || !datos.fecha_llegada_productos || !datos.tipo_carga || !datos.estado_importacion) {
-            alert('Por favor complete todos los campos requeridos.');
-            return;
-        }
-
-        if (!datos.canal) {
-            datos.canal = '';
-        }
-
-        if (!datos.id) {
-            alert('Error: ID de importación no encontrado.');
-            return;
-        }
-
-        console.log('Datos a enviar:', datos);
-
-        // Usar la API para actualizar
-        actualizarDatosAPI(datos)
-            .then(function (result) {
-                var modal = bootstrap.Modal.getInstance(document.getElementById('modalActualizar'));
-                modal.hide();
-                cargarTablaImportaciones();
-                if (typeof result === 'string' && result.includes('correctamente')) {
-                    alert(result);
-                } else {
-                    alert('Importación actualizada correctamente.');
-                }
-            })
-            .catch(function (err) {
-                console.error('Error al actualizar:', err);
-                alert('Error al actualizar: ' + (err.message || err));
-            });
-    };
 
     // Event listener para filtros
     document.getElementById('btnFiltrar').onclick = function () {
