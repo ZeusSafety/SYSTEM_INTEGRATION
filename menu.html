@@ -828,25 +828,8 @@
             });
         }
 
-        // Toggle submenu functionality
-        function toggleSubmenu(moduleName) {
-            const submenu = document.getElementById(moduleName + '-submenu');
-            const header = document.querySelector(`[onclick="toggleSubmenu('${moduleName}')"]`);
-            
-            // Toggle submenu
-            submenu.classList.toggle('open');
-            header.classList.toggle('active');
-        }
-
-        // Toggle sub-submenu functionality
-        function toggleSubSubmenu(submenuName) {
-            const subSubmenu = document.getElementById(submenuName + '-submenu');
-            const header = document.querySelector(`[onclick="toggleSubSubmenu('${submenuName}')"]`);
-            
-            // Toggle sub-submenu
-            subSubmenu.classList.toggle('open');
-            header.classList.toggle('active');
-        }
+        // Las funciones toggleSubmenu y toggleSubSubmenu ahora están en script.js
+        // con mejoras para responsive móvil
 
         // Actualizar cada minuto
         setInterval(updateDateTime, 60000);

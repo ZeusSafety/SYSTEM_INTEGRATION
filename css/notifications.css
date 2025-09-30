@@ -18,6 +18,13 @@
     animation: dropdownSlideIn 0.3s ease-out;
 }
 
+/* Asegurar que no cause overflow horizontal en desktop */
+@media (min-width: 769px) {
+    .notification-dropdown {
+        max-width: calc(100vw - 2rem);
+    }
+}
+
 @keyframes dropdownSlideIn {
     from {
         opacity: 0;
@@ -362,8 +369,13 @@
 /* Responsive */
 @media (max-width: 768px) {
     .notification-dropdown {
-        width: 350px;
-        right: -100px;
+        width: calc(100vw - 1rem);
+        max-width: 400px;
+        right: 0.5rem;
+        left: 0.5rem;
+        margin: 0 auto;
+        position: fixed;
+        top: 60px;
     }
     
     .notification-header {
@@ -406,9 +418,14 @@
 
 @media (max-width: 480px) {
     .notification-dropdown {
-        width: 300px;
-        right: -100px;
-        max-height: 80vh;
+        width: calc(100vw - 0.5rem);
+        max-width: none;
+        right: 0.25rem;
+        left: 0.25rem;
+        margin: 0;
+        position: fixed;
+        top: 60px;
+        max-height: calc(100vh - 80px);
     }
     
     .notification-header {
@@ -425,6 +442,48 @@
     
     .notification-body-text p {
         font-size: 0.85rem;
+    }
+    
+    .notification-type {
+        font-size: 0.7rem;
+        padding: 0.2rem 0.5rem;
+    }
+    
+    .notification-actions {
+        gap: 0.25rem;
+    }
+    
+    .btn-action, .btn-mark-read {
+        width: 1.75rem;
+        height: 1.75rem;
+        font-size: 0.7rem;
+    }
+}
+
+@media (max-width: 360px) {
+    .notification-dropdown {
+        width: calc(100vw - 0.25rem);
+        right: 0.125rem;
+        left: 0.125rem;
+        max-width: none;
+        position: fixed;
+        top: 60px;
+    }
+    
+    .notification-header {
+        padding: 0.3rem 0.5rem;
+    }
+    
+    .notification-item {
+        padding: 0.4rem 0.5rem;
+    }
+    
+    .notification-title h4 {
+        font-size: 0.85rem;
+    }
+    
+    .notification-body-text p {
+        font-size: 0.8rem;
     }
 }
 
@@ -455,6 +514,45 @@
     font-weight: 600;
     border: 2px solid white;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Estilos adicionales para móviles */
+@media (max-width: 768px) {
+    /* Asegurar que el body no tenga scroll horizontal */
+    body.notifications-open {
+        overflow-x: hidden;
+    }
+    
+    /* Mejorar el posicionamiento del dropdown */
+    .notification-container {
+        position: relative;
+    }
+    
+    /* Ajustar el contenido para que no se desborde */
+    .notification-body {
+        overflow-x: hidden;
+    }
+    
+    .notification-item {
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+    }
+    
+    .notification-title-text,
+    .notification-body-text p {
+        word-break: break-word;
+        hyphens: auto;
+    }
+    
+    /* Asegurar que los botones no se desborden */
+    .notification-type {
+        word-break: break-all;
+        white-space: normal;
+        min-height: 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
 }
 
 /* Efecto de pulso para notificaciones no leídas */

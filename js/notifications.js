@@ -130,8 +130,15 @@ class NotificationManager {
         }
         
         dropdown.style.display = 'flex';
+
+        // Ajustar posición si se sale de la pantalla
+        this.adjustDropdownPosition(dropdown);
+
         await this.renderNotifications();
-        
+
+        // Reajustar posición después de renderizar
+        this.adjustDropdownPosition(dropdown);
+
         // Cerrar dropdown al hacer clic fuera
         this.setupClickOutside(dropdown);
     }
@@ -141,6 +148,48 @@ class NotificationManager {
         const dropdown = document.querySelector('.notification-dropdown');
         if (dropdown) {
             dropdown.style.display = 'none';
+        }
+        
+        // Remover clase del body para restaurar scroll horizontal
+        document.body.classList.remove('notifications-open');
+    }
+
+    // Ajustar posición del dropdown si se sale de la pantalla
+    adjustDropdownPosition(dropdown) {
+        const rect = dropdown.getBoundingClientRect();
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+        const isMobile = window.innerWidth <= 768;
+
+        if (isMobile) {
+            // En móviles, centrar el dropdown y ajustar al ancho de la pantalla
+            dropdown.style.position = 'fixed';
+            dropdown.style.top = '60px';
+            dropdown.style.left = '0.5rem';
+            dropdown.style.right = '0.5rem';
+            dropdown.style.width = 'calc(100vw - 1rem)';
+            dropdown.style.maxWidth = 'none';
+            dropdown.style.margin = '0';
+            
+            // Ajustar altura máxima para móviles
+            const maxHeight = viewportHeight - 80;
+            dropdown.style.maxHeight = Math.max(300, maxHeight) + 'px';
+            
+            // Agregar clase al body para prevenir scroll horizontal
+            document.body.classList.add('notifications-open');
+        } else {
+            // En desktop, usar el comportamiento original
+            // Si se sale por la derecha, ajustar a la izquierda
+            if (rect.right > viewportWidth) {
+                dropdown.style.left = '0';
+                dropdown.style.right = 'auto';
+            }
+
+            // Si se sale por abajo, ajustar altura máxima
+            if (rect.bottom > viewportHeight) {
+                const maxHeight = viewportHeight - rect.top - 20;
+                dropdown.style.maxHeight = Math.max(200, maxHeight) + 'px';
+            }
         }
     }
 
@@ -152,7 +201,7 @@ class NotificationManager {
                 document.removeEventListener('click', handleClickOutside);
             }
         };
-        
+
         // Usar setTimeout para evitar que se cierre inmediatamente
         setTimeout(() => {
             document.addEventListener('click', handleClickOutside);
@@ -311,3 +360,11 @@ async function loadNotificationsOnLogin(username) {
         console.error('Error cargando notificaciones al login:', error);
     }
 }
+
+// Manejar resize de ventana para reajustar notificaciones
+window.addEventListener('resize', function() {
+    const dropdown = document.querySelector('.notification-dropdown');
+    if (dropdown && dropdown.style.display === 'flex') {
+        notificationManager.adjustDropdownPosition(dropdown);
+    }
+});

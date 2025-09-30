@@ -162,7 +162,112 @@ function loadMenu() {
     });
 }
 
+// FUNCIONES MEJORADAS PARA EL MENÚ RESPONSIVE
+function toggleSubmenu(moduleName) {
+    const submenu = document.getElementById(moduleName + '-submenu');
+    const header = document.querySelector(`[onclick="toggleSubmenu('${moduleName}')"]`);
+    
+    if (!submenu || !header) return;
+    
+    const isOpen = submenu.classList.contains('open');
+    
+    // Cerrar otros submenús abiertos en móviles para evitar overflow
+    if (window.innerWidth <= 768 && !isOpen) {
+        document.querySelectorAll('.submenu.open').forEach(openSubmenu => {
+            if (openSubmenu !== submenu) {
+                openSubmenu.classList.remove('open');
+                const openHeader = document.querySelector(`[onclick*="${openSubmenu.id.replace('-submenu', '')}"]`);
+                if (openHeader) openHeader.classList.remove('active');
+            }
+        });
+    }
+    
+    // Toggle submenu
+    submenu.classList.toggle('open');
+    header.classList.toggle('active');
+    
+    // Smooth scroll para asegurar que el contenido sea visible en móviles
+    if (window.innerWidth <= 768 && submenu.classList.contains('open')) {
+        setTimeout(() => {
+            header.scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'nearest',
+                inline: 'nearest'
+            });
+        }, 100);
+    }
+}
 
+function toggleSubSubmenu(submenuName) {
+    const subSubmenu = document.getElementById(submenuName + '-submenu');
+    const header = document.querySelector(`[onclick="toggleSubSubmenu('${submenuName}')"]`);
+    
+    if (!subSubmenu || !header) return;
+    
+    const isOpen = subSubmenu.classList.contains('open');
+    
+    // Cerrar otros sub-submenús abiertos en móviles
+    if (window.innerWidth <= 768 && !isOpen) {
+        document.querySelectorAll('.sub-submenu.open').forEach(openSubSubmenu => {
+            if (openSubSubmenu !== subSubmenu) {
+                openSubSubmenu.classList.remove('open');
+                const openHeader = document.querySelector(`[onclick*="${openSubSubmenu.id.replace('-submenu', '')}"]`);
+                if (openHeader) openHeader.classList.remove('active');
+            }
+        });
+    }
+    
+    // Toggle sub-submenu
+    subSubmenu.classList.toggle('open');
+    header.classList.toggle('active');
+    
+    // Smooth scroll para móviles
+    if (window.innerWidth <= 768 && subSubmenu.classList.contains('open')) {
+        setTimeout(() => {
+            header.scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'nearest',
+                inline: 'nearest'
+            });
+        }, 100);
+    }
+}
 
+// Cerrar menús cuando se hace clic fuera en móviles
+document.addEventListener('click', function(event) {
+    if (window.innerWidth <= 768) {
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebarToggleMobile');
+        
+        // Si el clic no es dentro del sidebar ni en el botón de toggle
+        if (sidebar && !sidebar.contains(event.target) && 
+            sidebarToggle && !sidebarToggle.contains(event.target)) {
+            
+            // Cerrar sidebar si está abierto
+            if (sidebar.classList.contains('active')) {
+                sidebar.classList.remove('active');
+                document.getElementById('sidebarOverlay')?.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        }
+    }
+});
+
+// Manejar resize de ventana
+window.addEventListener('resize', function() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    
+    // Si cambiamos a desktop, asegurar que el sidebar esté en su estado correcto
+    if (window.innerWidth >= 1024) {
+        if (sidebar) {
+            sidebar.classList.remove('active');
+        }
+        if (overlay) {
+            overlay.classList.remove('active');
+        }
+        document.body.style.overflow = '';
+    }
+});
 
 
