@@ -44,15 +44,32 @@ class NotificationManager {
     // Marcar notificación como leída
     async markAsRead(notificationId) {
         try {
-            // Aquí implementarías la llamada a la API para marcar como leída
-            // Por ahora, actualizamos localmente
+            // Llamada a la API para marcar como leída
+            const response = await fetch(`${this.apiUrl}?metodo=notificacion_leida&id=${notificationId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({}) // Cuerpo vacío como requiere la API
+            });
+
+            if (!response.ok) {
+                throw new Error('Error al marcar notificación como leída');
+            }
+
+            // Actualizar localmente solo si la API responde correctamente
             const notification = this.notifications.find(n => n.ID == notificationId);
             if (notification) {
                 notification.ESTADO_LECTURA = "1";
                 this.updateUnreadCount();
+                this.showToast('Notificación marcada como leída', 'success');
+                
+                // Actualizar la vista inmediatamente
+                this.renderNotifications();
             }
         } catch (error) {
             console.error('Error marcando notificación como leída:', error);
+            this.showToast('Error al marcar como leída', 'error');
         }
     }
 
@@ -66,9 +83,6 @@ class NotificationManager {
                 <div class="notification-actions">
                     <button class="btn-refresh" onclick="notificationManager.refreshNotifications()" title="Actualizar">
                         <i class="fas fa-sync-alt"></i>
-                    </button>
-                    <button class="btn-close" onclick="notificationManager.closeDropdown()">
-                        <i class="fas fa-times"></i>
                     </button>
                 </div>
             </div>
@@ -89,6 +103,13 @@ class NotificationManager {
     // Mostrar dropdown de notificaciones
     async showDropdown() {
         let dropdown = document.querySelector('.notification-dropdown');
+        
+        // Si el dropdown ya está abierto, cerrarlo
+        if (dropdown && dropdown.style.display === 'flex') {
+            this.closeDropdown();
+            return;
+        }
+        
         if (!dropdown) {
             dropdown = this.createNotificationDropdown();
             // Agregar el dropdown al contenedor de notificaciones
