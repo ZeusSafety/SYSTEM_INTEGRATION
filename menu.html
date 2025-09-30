@@ -473,6 +473,9 @@
                 <button class="sidebar-toggle-mobile d-lg-none" id="sidebarToggleMobile">
                     <i class="fas fa-bars"></i>
                 </button>
+                <button class="sidebar-toggle-desktop d-none d-lg-block" id="sidebarToggleDesktop" title="Ocultar/Mostrar Menú">
+                    <i class="fas fa-bars"></i>
+                </button>
                 <div class="logo-text">
                     <h1 class="brand-name">SISTEMA DE INTEGRACIÓN ⚡</h1>
                 </div>
@@ -712,18 +715,60 @@
 
         // Inicializar sidebar
         function initSidebar() {
-            const sidebarToggle = document.getElementById('sidebarToggleMobile');
+            const sidebarToggleMobile = document.getElementById('sidebarToggleMobile');
+            const sidebarToggleDesktop = document.getElementById('sidebarToggleDesktop');
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebarOverlay');
+            const sidebarToggleClose = document.getElementById('sidebarToggle');
 
-            sidebarToggle.addEventListener('click', () => {
+            let sidebarHidden = false;
+
+            const openSidebar = () => {
                 sidebar.classList.add('active');
                 overlay.classList.add('active');
-            });
+                document.body.style.overflow = 'hidden'; // Prevenir scroll
+            };
 
-            overlay.addEventListener('click', () => {
+            const closeSidebar = () => {
                 sidebar.classList.remove('active');
                 overlay.classList.remove('active');
+                document.body.style.overflow = ''; // Restaurar scroll
+            };
+
+            const toggleSidebarDesktop = () => {
+                sidebarHidden = !sidebarHidden;
+                if (sidebarHidden) {
+                    sidebar.classList.add('hidden');
+                    sidebarToggleDesktop.innerHTML = '<i class="fas fa-bars"></i>';
+                    sidebarToggleDesktop.title = 'Mostrar Menú';
+                } else {
+                    sidebar.classList.remove('hidden');
+                    sidebarToggleDesktop.innerHTML = '<i class="fas fa-times"></i>';
+                    sidebarToggleDesktop.title = 'Ocultar Menú';
+                }
+            };
+
+            // Eventos para móvil
+            if (sidebarToggleMobile) {
+                sidebarToggleMobile.addEventListener('click', openSidebar);
+            }
+
+            // Eventos para escritorio
+            if (sidebarToggleDesktop) {
+                sidebarToggleDesktop.addEventListener('click', toggleSidebarDesktop);
+            }
+
+            if (sidebarToggleClose) {
+                sidebarToggleClose.addEventListener('click', closeSidebar);
+            }
+
+            overlay.addEventListener('click', closeSidebar);
+
+            // Cerrar sidebar con tecla Escape
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && sidebar.classList.contains('active')) {
+                    closeSidebar();
+                }
             });
         }
 
