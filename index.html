@@ -10,6 +10,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="js/script.js"></script>
+    <script src="js/notifications.js"></script>
 </head>
 
 <style>
@@ -659,7 +660,13 @@
             try {
                 const loginSuccess = await loginUser(usuario, contrasena);
                 if (loginSuccess) {
-                    showNotification('¡Bienvenido! Redirigiendo...', 'success');
+                    // Guardar usuario en localStorage para las notificaciones
+                    localStorage.setItem('currentUser', usuario);
+                    
+                    // Cargar notificaciones antes de redirigir
+                    showNotification('¡Bienvenido! Cargando notificaciones...', 'success');
+                    await loadNotificationsOnLogin(usuario);
+                    
                     setTimeout(() => {
                         window.location.href = "menu.html";
                     }, 1000);
