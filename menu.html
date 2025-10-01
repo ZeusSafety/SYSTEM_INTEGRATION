@@ -467,7 +467,7 @@
                                 <i class="fas fa-home"></i><span>Registro de Permisos</span>
                             </a>
 
-                            <a href="https://cibertecedgar.github.io/registro-solis-incis/" target="_blank"
+                            <a href="https://cibertecedgar.github.io/GAAAAAA/" target="_blank"
                                 class="submenu-item">
                                 <i class="fas fa-clipboard-list"></i><span>Registro de Solicitudes e Incidencias</span>
                             </a>
@@ -506,7 +506,8 @@
                 <button class="sidebar-toggle-mobile d-lg-none" id="sidebarToggleMobile">
                     <i class="fas fa-bars"></i>
                 </button>
-                <button class="sidebar-toggle-desktop d-none d-lg-block" id="sidebarToggleDesktop" title="Ocultar/Mostrar Menú">
+                <button class="sidebar-toggle-desktop d-none d-lg-block" id="sidebarToggleDesktop"
+                    title="Ocultar/Mostrar Menú">
                     <i class="fas fa-bars"></i>
                 </button>
                 <div class="logo-text">
@@ -648,7 +649,7 @@
                     </div>
 
                     <div class="module-card" data-role="marketing">
-                        <div class="module-link">
+                        <a href="marketing.html" class="module-link">
                             <div class="module-icon">
                                 <i class="fas fa-bullhorn"></i>
                             </div>
@@ -656,11 +657,11 @@
                                 <h3>Marketing</h3>
                                 <p>Publicidad, redes sociales y campañas</p>
                                 <div class="module-status">
-                                    <span class="status-indicator coming-soon"></span>
-                                    <span>Próximamente</span>
+                                    <span class="status-indicator active"></span>
+                                    <span>Disponible</span>
                                 </div>
                             </div>
-                        </div>
+                        </a>
                     </div>
 
                     <div class="module-card" data-role="sistemas">
@@ -717,14 +718,13 @@
 
     <script>
         // Inicializar dashboard
+
         document.addEventListener('DOMContentLoaded', function () {
-            loadMenu(); // Cargar menú con filtrado por roles del usuario
-        document.addEventListener('DOMContentLoaded', function() {
             loadMenu(); // Cargar menú con filtrado por roles del usuario
             updateDateTime(); // Actualizar fecha y hora
             initSidebar(); // Inicializar sidebar
             initSettingsDropdown(); // Inicializar dropdown de configuración
-            
+
             // Cargar notificaciones al inicializar el dashboard
             const currentUser = localStorage.getItem('currentUser') || 'hervinzeus';
             loadNotificationsOnLogin(currentUser);
@@ -863,12 +863,53 @@
             });
         }
 
-        // Las funciones toggleSubmenu y toggleSubSubmenu ahora están en script.js
-        // con mejoras para responsive móvil
+        // Función de toggle (no necesita estar expuesta globalmente)
+        function togglePermisosSubmenu() {
+            const submenu = document.getElementById('permisos-submenu');
+            const header = document.getElementById('permisos-header');
+            const icon = header ? header.querySelector('.submenu-toggle') : null;
+
+            if (!submenu || !header) return;
+
+            const isOpen = submenu.classList.contains('open') || submenu.style.display === 'block';
+
+            if (!isOpen) {
+                submenu.style.display = 'block';
+                submenu.classList.add('open');
+                header.classList.add('active');
+                header.setAttribute('aria-expanded', 'true');
+                if (icon) icon.classList.replace('fa-chevron-down', 'fa-chevron-up');
+            } else {
+                submenu.style.display = 'none';
+                submenu.classList.remove('open');
+                header.classList.remove('active');
+                header.setAttribute('aria-expanded', 'false');
+                if (icon) icon.classList.replace('fa-chevron-up', 'fa-chevron-down');
+            }
+        }
+
+        // Adjuntar listener en DOMContentLoaded (evita problemas de scope/module)
+        document.addEventListener('DOMContentLoaded', function () {
+            const header = document.getElementById('permisos-header');
+            if (!header) return;
+
+            header.addEventListener('click', function (e) {
+                e.preventDefault();
+                togglePermisosSubmenu();
+            });
+
+            // Soporte teclado (Enter / Space)
+            header.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    togglePermisosSubmenu();
+                }
+            });
+        });
 
         // Actualizar cada minuto
         setInterval(updateDateTime, 60000);
-</script>
+    </script>
 </body>
 
 </html>
