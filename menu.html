@@ -7,11 +7,13 @@
     <title>ZEUS SAFETY - Dashboard</title>
     <link rel="icon" type="image/png" href="/Logo de Zeus.png">
     <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/notifications.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="js/config.js"></script>
     <script src="js/script.js"></script>
+    <script src="js/notifications.js"></script>
 </head>
 
 <body>
@@ -504,17 +506,21 @@
                 <button class="sidebar-toggle-mobile d-lg-none" id="sidebarToggleMobile">
                     <i class="fas fa-bars"></i>
                 </button>
+                <button class="sidebar-toggle-desktop d-none d-lg-block" id="sidebarToggleDesktop" title="Ocultar/Mostrar Menú">
+                    <i class="fas fa-bars"></i>
+                </button>
                 <div class="logo-text">
                     <h1 class="brand-name">SISTEMA DE INTEGRACIÓN ⚡</h1>
                 </div>
             </div>
             <div class="header-right">
                 <div class="header-actions">
-                    <button class="header-btn" title="Notificaciones - Próximamente"
-                        onclick="showComingSoon('notificaciones')">
-                        <i class="fas fa-bell"></i>
-                        <span class="notification-badge">3</span>
-                    </button>
+                    <div class="notification-container">
+                        <button class="header-btn" title="Notificaciones" onclick="showNotifications()">
+                            <i class="fas fa-bell"></i>
+                            <span class="notification-badge" style="display: none;">0</span>
+                        </button>
+                    </div>
                     <div class="header-dropdown">
                         <button class="header-btn" title="Configuración" id="settingsBtn">
                             <i class="fas fa-cog"></i>
@@ -713,9 +719,15 @@
         // Inicializar dashboard
         document.addEventListener('DOMContentLoaded', function () {
             loadMenu(); // Cargar menú con filtrado por roles del usuario
+        document.addEventListener('DOMContentLoaded', function() {
+            loadMenu(); // Cargar menú con filtrado por roles del usuario
             updateDateTime(); // Actualizar fecha y hora
             initSidebar(); // Inicializar sidebar
             initSettingsDropdown(); // Inicializar dropdown de configuración
+            
+            // Cargar notificaciones al inicializar el dashboard
+            const currentUser = localStorage.getItem('currentUser') || 'hervinzeus';
+            loadNotificationsOnLogin(currentUser);
         });
 
         // Actualizar fecha y hora
@@ -738,18 +750,60 @@
 
         // Inicializar sidebar
         function initSidebar() {
-            const sidebarToggle = document.getElementById('sidebarToggleMobile');
+            const sidebarToggleMobile = document.getElementById('sidebarToggleMobile');
+            const sidebarToggleDesktop = document.getElementById('sidebarToggleDesktop');
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebarOverlay');
+            const sidebarToggleClose = document.getElementById('sidebarToggle');
 
-            sidebarToggle.addEventListener('click', () => {
+            let sidebarHidden = false;
+
+            const openSidebar = () => {
                 sidebar.classList.add('active');
                 overlay.classList.add('active');
-            });
+                document.body.style.overflow = 'hidden'; // Prevenir scroll
+            };
 
-            overlay.addEventListener('click', () => {
+            const closeSidebar = () => {
                 sidebar.classList.remove('active');
                 overlay.classList.remove('active');
+                document.body.style.overflow = ''; // Restaurar scroll
+            };
+
+            const toggleSidebarDesktop = () => {
+                sidebarHidden = !sidebarHidden;
+                if (sidebarHidden) {
+                    sidebar.classList.add('hidden');
+                    sidebarToggleDesktop.innerHTML = '<i class="fas fa-bars"></i>';
+                    sidebarToggleDesktop.title = 'Mostrar Menú';
+                } else {
+                    sidebar.classList.remove('hidden');
+                    sidebarToggleDesktop.innerHTML = '<i class="fas fa-times"></i>';
+                    sidebarToggleDesktop.title = 'Ocultar Menú';
+                }
+            };
+
+            // Eventos para móvil
+            if (sidebarToggleMobile) {
+                sidebarToggleMobile.addEventListener('click', openSidebar);
+            }
+
+            // Eventos para escritorio
+            if (sidebarToggleDesktop) {
+                sidebarToggleDesktop.addEventListener('click', toggleSidebarDesktop);
+            }
+
+            if (sidebarToggleClose) {
+                sidebarToggleClose.addEventListener('click', closeSidebar);
+            }
+
+            overlay.addEventListener('click', closeSidebar);
+
+            // Cerrar sidebar con tecla Escape
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && sidebar.classList.contains('active')) {
+                    closeSidebar();
+                }
             });
         }
 
@@ -809,74 +863,12 @@
             });
         }
 
-        // Toggle submenu functionality
-        function toggleSubmenu(moduleName) {
-            const submenu = document.getElementById(moduleName + '-submenu');
-            const header = document.querySelector(`[onclick="toggleSubmenu('${moduleName}')"]`);
-
-            // Toggle submenu
-            submenu.classList.toggle('open');
-            header.classList.toggle('active');
-        }
-
-        // Toggle sub-submenu functionality
-        function toggleSubSubmenu(submenuName) {
-            const subSubmenu = document.getElementById(submenuName + '-submenu');
-            const header = document.querySelector(`[onclick="toggleSubSubmenu('${submenuName}')"]`);
-
-            // Toggle sub-submenu
-            subSubmenu.classList.toggle('open');
-            header.classList.toggle('active');
-        }
+        // Las funciones toggleSubmenu y toggleSubSubmenu ahora están en script.js
+        // con mejoras para responsive móvil
 
         // Actualizar cada minuto
         setInterval(updateDateTime, 60000);
-
-        // Función de toggle (no necesita estar expuesta globalmente)
-        function togglePermisosSubmenu() {
-            const submenu = document.getElementById('permisos-submenu');
-            const header = document.getElementById('permisos-header');
-            const icon = header ? header.querySelector('.submenu-toggle') : null;
-
-            if (!submenu || !header) return;
-
-            const isOpen = submenu.classList.contains('open') || submenu.style.display === 'block';
-
-            if (!isOpen) {
-                submenu.style.display = 'block';
-                submenu.classList.add('open');
-                header.classList.add('active');
-                header.setAttribute('aria-expanded', 'true');
-                if (icon) icon.classList.replace('fa-chevron-down', 'fa-chevron-up');
-            } else {
-                submenu.style.display = 'none';
-                submenu.classList.remove('open');
-                header.classList.remove('active');
-                header.setAttribute('aria-expanded', 'false');
-                if (icon) icon.classList.replace('fa-chevron-up', 'fa-chevron-down');
-            }
-        }
-
-        // Adjuntar listener en DOMContentLoaded (evita problemas de scope/module)
-        document.addEventListener('DOMContentLoaded', function () {
-            const header = document.getElementById('permisos-header');
-            if (!header) return;
-
-            header.addEventListener('click', function (e) {
-                e.preventDefault();
-                togglePermisosSubmenu();
-            });
-
-            // Soporte teclado (Enter / Space)
-            header.addEventListener('keydown', function (e) {
-                if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    togglePermisosSubmenu();
-                }
-            });
-        });
-
-    </script>
+</script>
 </body>
 
 </html>

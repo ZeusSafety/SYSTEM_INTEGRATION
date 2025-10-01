@@ -705,6 +705,7 @@
             <table class="table" id="mainTable">
                 <thead>
                     <tr>
+                        <th>ID</th>
                         <th>CÓDIGO</th>
                         <th>NOMBRE</th>
                         <th>CATEGORÍA</th>
@@ -718,7 +719,7 @@
                 </thead>
                 <tbody id="mainTableBody">
                     <tr>
-                        <td colspan="9" class="loading">
+                        <td colspan="10" class="loading">
                             <i class="fas fa-spinner"></i>
                             <p>Cargando productos...</p>
                         </td>
@@ -980,7 +981,7 @@
             if (!productosFiltrados || productosFiltrados.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="9" class="no-data">
+                        <td colspan="10" class="no-data">
                             <i class="fas fa-inbox"></i>
                             <p>No hay productos disponibles</p>
                         </td>
@@ -991,6 +992,7 @@
 
             tbody.innerHTML = productosFiltrados.map(producto => `
                 <tr data-id="${producto.CODIGO}">
+                    <td><strong>${producto.ID || ''}</strong></td>
                     <td><strong>${producto.CODIGO || ''}</strong></td>
                     <td>${producto.NOMBRE || ''}</td>
                     <td>${producto.CATEGORIA || ''}</td>
@@ -1092,9 +1094,10 @@
 
             try {
                 const api = "https://productoscrud-2946605267.us-central1.run.app";
-                const metodo = "actualizar";
+                const metodo = "actualizar_producto";
                 
                 const data = {
+                    id: productoActual.ID,
                     codigo: formData.get('codigo'),
                     nombre: formData.get('nombre'),
                     categoria: formData.get('categoria'),
@@ -1106,7 +1109,11 @@
 
                 console.log('Enviando datos de actualización:', data);
 
-                const response = await fetch(`${api}?metodo=${metodo}`, {
+                // Crear URL con parámetros
+                const urlWithParams = new URL(api);
+                urlWithParams.searchParams.append('metodo', metodo);
+                
+                const response = await fetch(urlWithParams, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1156,7 +1163,7 @@
 
             try {
                 const api = "https://productoscrud-2946605267.us-central1.run.app";
-                const metodo = "eliminar";
+                const metodo = "eliminar_producto";
                 
                 const data = {
                     codigo: productoActual.CODIGO
@@ -1164,7 +1171,11 @@
 
                 console.log('Enviando datos de eliminación:', data);
 
-                const response = await fetch(`${api}?metodo=${metodo}`, {
+                // Crear URL con parámetros
+                const urlWithParams = new URL(api);
+                urlWithParams.searchParams.append('metodo', metodo);
+
+                const response = await fetch(urlWithParams, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1198,7 +1209,7 @@
             const tbody = document.getElementById('mainTableBody');
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="9" class="no-data">
+                    <td colspan="10" class="no-data">
                         <i class="fas fa-exclamation-triangle"></i>
                         <p>${mensaje}</p>
                     </td>
