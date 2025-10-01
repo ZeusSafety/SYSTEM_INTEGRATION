@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +9,7 @@
     <link rel="stylesheet" href="css/ventas.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
+
 <body>
     <a href="menu.html" class="btn-back">Volver al Menú</a>
 
@@ -129,6 +131,28 @@
                     </div>
                 </div>
             </div>
+
+
+            <!-- Sección Solicitudes/Incidencias -->
+            <div class="primary-section" id="soli-section">
+                <div class="section-header" onclick="toggleSection('soli')">
+                    <i class="fas fa-clipboard-list"></i>
+                    <h2>Solicitudes/Incidencias</h2>
+                    <i class="fas fa-chevron-down toggle-icon"></i>
+                </div>
+                <div class="section-content" id="soli-content">
+                    <div class="menu-grid">
+                        <div class="menu-card">
+                            <i class="fas fa-ship icon"></i>
+                            <h3>Listado de Solicitudes/Incidencias</h3>
+                            <p>Ver y gestionar Solicitudes/Incidencias</p>
+                            <a href="public/facturacion/soli_inci_general_facturacion.html" class="btn">
+                                <i class="fas fa-eye"></i> Ver Solicitudes/Incidencias
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -138,10 +162,10 @@
             const section = document.getElementById(sectionName + '-section');
             const content = document.getElementById(sectionName + '-content');
             const toggleIcon = section.querySelector('.toggle-icon');
-            
+
             // Toggle la clase active
             section.classList.toggle('active');
-            
+
             // Toggle la visibilidad del contenido
             if (content.style.maxHeight) {
                 content.style.maxHeight = null;
@@ -153,9 +177,10 @@
         }
 
         // Todas las secciones cerradas por defecto
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             // No abrir ninguna sección automáticamente
         });
     </script>
 </body>
+
 </html>
