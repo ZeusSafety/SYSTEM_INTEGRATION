@@ -220,6 +220,12 @@
 
   <div class="table-container">
     <div class="header-actions me-3">
+
+      <button class="btn btn-danger text-white rounded-pill px-3 ms-2" style="background-color:#1a62c0; border:none;"
+        onclick="window.history.back()">
+        <i class="fas fa-arrow-left"></i> Volver
+      </button>
+
       <button class="btn btn-info text-white rounded-pill px-3" style="background-color:#17a2b8; border:none;"
         data-bs-toggle="modal" data-bs-target="#modalProcedimiento">
         📖 Procedimientos
@@ -271,8 +277,6 @@
         </div>
       </div>
     </div>
-
-
 
     <div class="table-responsive">
       <table class="table table-hover align-middle" id="tablaSolicitudes">
@@ -731,7 +735,7 @@
     datosFiltradosGlobal = datosGlobales.filter(solicitud => {
       const cumpleArea = !areaSeleccionada || solicitud.AREA_RECEPCION === areaSeleccionada;
       const cumpleEstado = !estadoSeleccionado || solicitud.ESTADO === estadoSeleccionado;
-      const cumpleRegistrado = !registradoTexto || solicitud.REGISTRADO_POR.toLowerCase().includes(registradoTexto);
+      const cumpleRegistrado = !registradoTexto || (solicitud.REGISTRADO_POR && solicitud.REGISTRADO_POR.toLowerCase().includes(registradoTexto));
       const cumpleIncidencia = !soloIncidencias || (solicitud.RES_INCIDENCIA && solicitud.RES_INCIDENCIA.trim() !== "");
       return cumpleArea && cumpleEstado && cumpleRegistrado && cumpleIncidencia;
     });
