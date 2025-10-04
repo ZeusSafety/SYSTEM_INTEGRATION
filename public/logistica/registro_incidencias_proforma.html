@@ -6,7 +6,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Área de Logística: Registro de incidencia de proformas y actas</title>
-  <link rel="icon" type="image/png" href="/Logo de Zeus.png">
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="https://cibertecedgar.github.io/marcalogo/logozeus.png">
   <style>
     :root {
       --azul-oscuro: #17375d;
@@ -672,6 +673,100 @@
 
     
   }
+
+
+  header-logo {
+    display: flex;
+    align-items: center;
+  }
+
+  .header-logo img {
+    max-width: 150px;
+    object-fit: contain;
+    transition: transform 0.3s ease;
+  }
+
+  .header-logo img:hover {
+    transform: scale(1.05);
+  }
+
+  .header-title {
+    flex: 1;
+    text-align: center;
+    margin: 0 20px;
+  }
+
+  .header-spacer {
+    width: 150px; /* Mismo ancho que el logo para mantener centrado el título */
+  }
+
+  .header-title h1 {
+    color: white;
+    font-weight: 700;
+    font-size: 28px;
+    margin: 0;
+    text-shadow: 0 2px 4px rgba(20, 33, 61, 0.1);
+  }
+
+ /* Header */
+        .header-container {
+            background: linear-gradient(135deg, #17375d 0%, #1e4d7a 100%);
+            box-shadow: 0 2px 20px rgba(25, 67, 158, 0.1);
+            padding-top: 1px;
+            padding-left: 20px;
+            padding-bottom: 0px;
+            padding-right: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+            width: 100vw;
+            margin-left: calc(-50vw + 50%);
+            margin-right: calc(-50vw + 50%);
+            margin-top: -20px;
+        }
+
+/* Responsive */
+  @media (max-width: 768px) {
+    .btn-volver {
+      padding: 10px 16px;
+      font-size: 14px;
+    }
+
+    .btn-listado-flotante {
+      bottom: 20px;
+      right: 20px;
+      padding: 12px 20px;
+      font-size: 14px;
+    }
+
+    .card {
+      margin-top: 20px;
+    }
+
+    .header-container {
+      flex-direction: column;
+      gap: 15px;
+      padding: 20px;
+      margin-left: calc(-50vw + 50%);
+      margin-right: calc(-50vw + 50%);
+      margin-top: -20px;
+    }
+
+    .header-title h1 {
+      font-size: 24px;
+    }
+
+    .header-logo img {
+      max-width: 120px;
+    }
+
+    .header-spacer {
+      display: none;
+    }
+  }
   </style>
 </head>
 
@@ -680,7 +775,7 @@
   <!-- Header con Logo y Título -->
   <div class="header-container">
     <div class="header-logo">
-      <img src="../../Logo de Zeus.png"
+      <img src="https://cibertecedgar.github.io/marcalogo/logozeus.png"
         alt="Logo Zeus">
     </div>
     <div class="header-title">
