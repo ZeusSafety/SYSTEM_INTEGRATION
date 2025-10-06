@@ -444,6 +444,32 @@
     }
 
     document.addEventListener("DOMContentLoaded", function () {
+        // Mapeo de usuarios a nombres completos
+        const userMapping = {
+            'hervinzeus': 'HERVIN',
+            'kimberly': 'KIMBERLY',
+            'evelyn': 'EVELYN',
+            'joseph': 'JOSEPH',
+            'alvaro': 'ALVARO',
+            'victorzeus': 'VICTOR',
+            'manuel': 'MANUEL',
+            'eliaszeus': 'ELIAS',
+            'sebastianzeus': 'SEBASTIAN',
+            'sandrazeus': 'SANDRA',
+            'joaquinzeus': 'JOAQUIN',
+            'edgarzeus': 'EDGAR',
+            'joselyn': 'JOSELYN'
+        };
+
+        // Función para obtener el nombre completo del usuario actual
+        function getCurrentUserFullName() {
+            // Asume que 'loggedUser' se almacena en localStorage al iniciar sesión
+            const loggedUser = localStorage.getItem('loggedUser');
+            if (!loggedUser) return null;
+            // Retorna el nombre mapeado en mayúsculas, o el loggedUser si no está mapeado
+            return userMapping[loggedUser.toLowerCase()] ? userMapping[loggedUser.toLowerCase()].toUpperCase() : loggedUser.toUpperCase();
+        }
+
         const fechaInput = document.getElementById("FECHA_CONSULTA");
         const ahora = new Date();
         // Formato dd/mm/yyyy hh:mm AM/PM
@@ -459,7 +485,15 @@
 
         // Inicializar campos ocultos
         document.getElementById('NUMERO_SOLICITUD').value = '';
-        document.getElementById('ESTADO').value = 'PENDIENTE';
+        document.getElementById('ESTADO').value = 'Pendiente';
+
+        //  Lógica para inicializar el campo REGISTRADO_POR 
+        const inputRegistradoPor = document.getElementById('REGISTRADO_POR');
+        const nombreUsuario = getCurrentUserFullName();
+        if (nombreUsuario) {
+            // Inicializa el campo con el nombre completo del usuario detectado
+            inputRegistradoPor.value = nombreUsuario;
+        }
 
         // Manejar cambio de área para actualizar número de solicitud
         document.getElementById('AREA').addEventListener('change', function () {
@@ -478,7 +512,7 @@
             campo.style.display = this.checked ? "block" : "none";
         });
 
-        const inputRegistradoPor = document.getElementById('REGISTRADO_POR');
+        // Manejo avanzado del datalist para REGISTRADO_POR
         const datalistId = 'sugerenciasColaboradores';
 
         // 1. Quitar el atributo 'list' inicialmente (previniendo que se muestre al cargar)

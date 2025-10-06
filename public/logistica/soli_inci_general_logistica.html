@@ -284,7 +284,7 @@
     <div class="table-responsive">
       <table class="table table-hover align-middle" id="tablaSolicitudes">
         <thead class="table-info">
-          <tr style="text-align: center">
+          <tr style="text-align: center; --bs-table-color: #f3f3f3; --bs-table-bg: #1350a0;">
             <th>Fecha Consulta</th>
             <th>N° Solicitud</th>
             <th>Registrado Por</th>
@@ -809,7 +809,7 @@
         <td>${solicitud.AREA || '-'}</td>
         <td>${solicitud.RES_INCIDENCIA || '-'}</td>
         <td>
-          <button class="btn btn-sm btn-info rounded-md me-2" title="Ver Requerimientos" onclick="mostrarTextoEnModal('${escapeHtml(solicitud.REQUERIMIENTOS || 'No especificado.')}', 'Requerimientos')">
+          <button class="btn btn-sm btn-info rounded-md me-2" title="Ver Requerimientos" onclick="mostrarTextoEnModal('${escapeForOnclick(solicitud.REQUERIMIENTOS || 'No especificado.')}', 'Requerimientos')">
             <i class="fas fa-eye"></i>
           </button>
           ${solicitud.INFORME_SOLICITUD ?
@@ -821,7 +821,7 @@
         <td>${fechaRespuestaDisplay}</td>
         <td>${solicitud.RESPONDIDO_POR || '-'}</td>
         <td>
-          <button class="btn btn-sm btn-info rounded-md me-2" title="Ver Respuesta" onclick="mostrarTextoEnModal('${escapeHtml(solicitud.RESPUESTA_R || 'No especificado.')}', 'Respuesta')">
+          <button class="btn btn-sm btn-info rounded-md me-2" title="Ver Respuesta" onclick="mostrarTextoEnModal('${escapeForOnclick(solicitud.RESPUESTA_R || 'No especificado.')}', 'Respuesta')">
             <i class="fas fa-eye"></i>
           </button>
           ${solicitud.INFORME_RESPUESTA ?
@@ -1449,10 +1449,13 @@
   }
 
   /**
-   * Función de utilidad para escapar HTML y prevenir XSS.
-   * Útil cuando se inserta texto directamente en innerText o value.
-   */
+     * Función de utilidad para escapar HTML y prevenir XSS.
+     * Útil cuando se inserta texto directamente en innerText o value.
+     */
   function escapeHtml(text) {
+    if (text === null || text === undefined) return '';
+    text = String(text);
+    // Primero escapamos caracteres HTML
     const map = {
       '&': '&amp;',
       '<': '&lt;',
@@ -1460,8 +1463,28 @@
       '"': '&quot;',
       "'": '&#039;'
     };
-    return text.replace(/[&<>"']/g, function (m) { return map[m]; });
+    text = text.replace(/[&<>"']/g, function (m) { return map[m]; });
+
+    // Luego escapamos caracteres que pueden romper el JavaScript
+    text = text.replace(/\r?\n/g, '\\n')
+      .replace(/\r/g, '\\r')
+      .replace(/"/g, '\\"')
+      .replace(/'/g, "\\'");
+    return text;
   }
+
+  // Función para escapar texto para atributos onclick
+  function escapeForOnclick(text) {
+    if (!text) return '';
+    return String(text)
+      .replace(/\\/g, '\\\\')  // Escapar barras invertidas
+      .replace(/'/g, "\\'")     // Escapar comillas simples
+      .replace(/"/g, '\\"')     // Escapar comillas dobles
+      .replace(/\n/g, '\\n')    // Escapar saltos de línea
+      .replace(/\r/g, '\\r')    // Escapar retornos de carro
+      .replace(/\t/g, '\\t');   // Escapar tabulaciones
+  }
+
 
   /**
    * Limpia todos los campos de reprogramación
@@ -1546,8 +1569,8 @@
 
       // Información adicional de la solicitud (contexto)
       const solicitud = currentRowForReprog || {};
-      const numSolicitud = solicitud.NUM_SOLICITUD || '';
-      const idMarketing = solicitud.ID_MARKETING || '';
+      const numSolicitud = solicitud.NUMERO_SOLICITUD || '';
+      const idMarketing = solicitud.ID_SOLICITUD || '';
       const registradoPor = solicitud.REGISTRADO_POR || '';
 
       // Crear PDF con jsPDF
@@ -1677,7 +1700,7 @@
     // Extraer SOLO los datos filtrados que están en datosFiltradosGlobal
     const dataExport = datosFiltradosGlobal.map(solicitud => [
       solicitud.FECHA_CONSULTA || "-",
-      solicitud.NUM_SOLICITUD || "-",
+      solicitud.NUMERO_SOLICITUD || "-",
       solicitud.REGISTRADO_POR || "-",
       solicitud.AREA || "-",
       solicitud.RES_INCIDENCIA || "-",
