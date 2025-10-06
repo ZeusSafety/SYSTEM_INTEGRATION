@@ -181,12 +181,12 @@
     min-width: 0;
 }
 
-.notification-title {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
+.notification-type-row {
+    margin-bottom: 0.25rem;
+}
+
+.notification-title-row {
     margin-bottom: 0.5rem;
-    gap: 1rem;
 }
 
 .notification-title h4 {
@@ -199,10 +199,15 @@
 
 /* Truncamiento de textos largos */
 .notification-title-text {
-    max-width: 65%;
+    max-width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.4;
 }
 
 .notification-type {
@@ -213,8 +218,8 @@
     font-size: 0.75rem;
     font-weight: 500;
     white-space: nowrap;
-    flex-shrink: 0;
-    max-width: 35%;
+    display: inline-block;
+    max-width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
 }
@@ -392,16 +397,23 @@
         gap: 0.75rem;
     }
     
-    .notification-title {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.5rem;
+    .notification-type-row {
+        margin-bottom: 0.25rem;
     }
+    
+    .notification-title-row {
+        margin-bottom: 0.5rem;
+    }
+    
     .notification-title-text {
         max-width: 100%;
+        font-size: 0.9rem;
     }
+    
     .notification-type {
         max-width: 100%;
+        font-size: 0.7rem;
+        padding: 0.2rem 0.5rem;
     }
     
     .notification-actions {
@@ -436,8 +448,8 @@
         padding: 0.5rem 0.75rem;
     }
     
-    .notification-title h4 {
-        font-size: 0.9rem;
+    .notification-title-text {
+        font-size: 0.85rem;
     }
     
     .notification-body-text p {
@@ -478,8 +490,8 @@
         padding: 0.4rem 0.5rem;
     }
     
-    .notification-title h4 {
-        font-size: 0.85rem;
+    .notification-title-text {
+        font-size: 0.8rem;
     }
     
     .notification-body-text p {

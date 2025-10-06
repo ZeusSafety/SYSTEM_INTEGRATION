@@ -238,9 +238,11 @@ class NotificationManager {
             <div class="notification-item ${notification.ESTADO_LECTURA === "0" ? 'unread' : 'read'}" 
                  data-id="${notification.ID}">
                 <div class="notification-content">
-                    <div class="notification-title">
-                        <h4 class="notification-title-text" title="${this.escapeHtml(notification.TITULO)}">${this.escapeHtml(notification.TITULO)}</h4>
+                    <div class="notification-type-row">
                         <span class="notification-type" title="${this.escapeHtml(notification.TIPO)}">${this.escapeHtml(notification.TIPO)}</span>
+                    </div>
+                    <div class="notification-title-row">
+                        <h4 class="notification-title-text" title="${this.escapeHtml(notification.TITULO)}">${this.escapeHtml(notification.TITULO)}</h4>
                     </div>
                     <div class="notification-body-text">
                         <p>${this.escapeHtml(notification.CUERPO)}</p>
