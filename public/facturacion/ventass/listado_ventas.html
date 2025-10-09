@@ -290,6 +290,28 @@
             box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
         }
 
+        .delete-btn {
+            background: var(--rojo-error);
+            color: var(--blanco);
+        }
+
+        .delete-btn:hover {
+            background: #dc2626;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+
+        .payment-btn {
+            background: var(--verde-exito);
+            color: var(--blanco);
+        }
+
+        .payment-btn:hover {
+            background: #059669;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
         .loading {
             text-align: center;
             padding: 40px;
@@ -404,6 +426,56 @@
             font-size: 1rem;
             color: var(--gris-oscuro);
             font-weight: 500;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid var(--gris-claro);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--azul-claro);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .form-input:disabled {
+            background-color: var(--gris-claro);
+            cursor: not-allowed;
+        }
+
+        .detail-item.editable .detail-value {
+            display: none;
+        }
+
+        .detail-item.editable .form-input {
+            display: block;
+        }
+
+        .detail-item:not(.editable) .form-input {
+            display: none;
+        }
+
+        .btn-secondary {
+            background: var(--gris-medio);
+            color: var(--blanco);
+        }
+
+        .btn-secondary:hover {
+            background: var(--gris-oscuro);
+        }
+
+        .btn-edit {
+            background: var(--amarillo-advertencia);
+            color: var(--blanco);
+        }
+
+        .btn-edit:hover {
+            background: #d97706;
         }
 
         .modal-footer {
@@ -629,7 +701,59 @@
                 </div>
             </div>
             <div class="modal-footer">
+                <button class="btn btn-edit" id="btnEditarDetalles" onclick="editarDetalles()">
+                    <i class="fas fa-edit"></i>
+                    Editar
+                </button>
+                <button class="btn btn-secondary" id="btnCancelarDetalles" onclick="cancelarEdicionDetalles()" style="display: none;">
+                    <i class="fas fa-times"></i>
+                    Cancelar
+                </button>
+                <button class="btn btn-success" id="btnGuardarDetalles" onclick="guardarDetalles()" style="display: none;">
+                    <i class="fas fa-save"></i>
+                    Guardar Cambios
+                </button>
                 <button class="btn btn-primary" onclick="closeModal()">
+                    <i class="fas fa-times"></i>
+                    Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Estado de Pago -->
+    <div id="paymentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">
+                    <i class="fas fa-dollar-sign"></i>
+                    Estado de Pago
+                </h3>
+                <span class="close" onclick="closePaymentModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="detail-grid" id="paymentGrid">
+                    <!-- Los detalles de pago se insertarán dinámicamente -->
+                    <div class="loading">
+                        <i class="fas fa-spinner"></i>
+                        <p>Cargando información de pago...</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-edit" id="btnEditarPago" onclick="editarPago()">
+                    <i class="fas fa-edit"></i>
+                    Editar
+                </button>
+                <button class="btn btn-secondary" id="btnCancelarPago" onclick="cancelarEdicionPago()" style="display: none;">
+                    <i class="fas fa-times"></i>
+                    Cancelar
+                </button>
+                <button class="btn btn-success" id="btnGuardarPago" onclick="guardarPago()" style="display: none;">
+                    <i class="fas fa-save"></i>
+                    Guardar Cambios
+                </button>
+                <button class="btn btn-primary" onclick="closePaymentModal()">
                     <i class="fas fa-times"></i>
                     Cerrar
                 </button>
@@ -643,6 +767,10 @@
         let ventasFiltradas = [];
         let paginaActual = 1;
         const registrosPorPagina = 20;
+        let ventaActual = null;
+        let pagoActual = null;
+        let datosOriginalesVenta = null;
+        let datosOriginalesPago = null;
 
         // Función para cargar datos desde la API
         async function cargarVentas() {
@@ -723,9 +851,14 @@
                         </span>
                     </td>
                     <td>
-                        <button class="action-btn view-btn" onclick='verDetalles(${JSON.stringify(venta).replace(/'/g, "&apos;")})'>
+                        <button class="action-btn view-btn" onclick='verDetalles(${JSON.stringify(venta).replace(/'/g, "&apos;")})' title="Ver detalles">
                             <i class="fas fa-eye"></i>
-                            Ver Detalles
+                        </button>
+                        <button class="action-btn payment-btn" onclick='verEstadoPago("${venta.N_COMPROBANTE}", ${venta.ID_VENTA})' title="Estado de pago">
+                            <i class="fas fa-dollar-sign"></i>
+                        </button>
+                        <button class="action-btn delete-btn" onclick='confirmarEliminacion(${venta.ID_VENTA})' title="Eliminar">
+                            <i class="fas fa-trash"></i>
                         </button>
                     </td>
                 </tr>
@@ -736,86 +869,385 @@
 
         // Función para mostrar detalles en el modal
         function verDetalles(venta) {
+            ventaActual = JSON.parse(JSON.stringify(venta)); // Copia profunda
+            datosOriginalesVenta = JSON.parse(JSON.stringify(venta));
+            
             const detailsGrid = document.getElementById('detailsGrid');
             
             detailsGrid.innerHTML = `
-                <div class="detail-item">
+                <div class="detail-item" data-field="ID_VENTA">
                     <div class="detail-label">ID Venta</div>
                     <div class="detail-value">${venta.ID_VENTA || 'N/A'}</div>
+                    <input type="text" class="form-input" value="${venta.ID_VENTA || ''}" disabled>
                 </div>
-                <div class="detail-item">
+                <div class="detail-item" data-field="CLIENTE">
                     <div class="detail-label">Cliente</div>
                     <div class="detail-value">${venta.CLIENTE || 'N/A'}</div>
+                    <input type="text" class="form-input" value="${venta.CLIENTE || ''}">
                 </div>
-                <div class="detail-item">
+                <div class="detail-item" data-field="FECHA">
                     <div class="detail-label">Fecha</div>
                     <div class="detail-value">${formatearFecha(venta.FECHA)}</div>
+                    <input type="date" class="form-input" value="${venta.FECHA || ''}">
                 </div>
-                <div class="detail-item">
+                <div class="detail-item" data-field="CLASIFICACION">
                     <div class="detail-label">Clasificación</div>
                     <div class="detail-value">${venta.CLASIFICACION || 'N/A'}</div>
+                    <input type="text" class="form-input" value="${venta.CLASIFICACION || ''}">
                 </div>
-                <div class="detail-item">
+                <div class="detail-item" data-field="ASESOR">
                     <div class="detail-label">Asesor</div>
                     <div class="detail-value">${venta.ASESOR || 'N/A'}</div>
+                    <input type="text" class="form-input" value="${venta.ASESOR || ''}">
                 </div>
-                <div class="detail-item">
+                <div class="detail-item" data-field="N_COMPROBANTE">
                     <div class="detail-label">N° Comprobante</div>
                     <div class="detail-value">${venta.N_COMPROBANTE || 'N/A'}</div>
+                    <input type="text" class="form-input" value="${venta.N_COMPROBANTE || ''}">
                 </div>
-                <div class="detail-item">
+                <div class="detail-item" data-field="REGION">
                     <div class="detail-label">Región</div>
                     <div class="detail-value">${venta.REGION || 'N/A'}</div>
+                    <input type="text" class="form-input" value="${venta.REGION || ''}">
                 </div>
-                <div class="detail-item">
+                <div class="detail-item" data-field="DISTRITO">
                     <div class="detail-label">Distrito</div>
                     <div class="detail-value">${venta.DISTRITO || 'N/A'}</div>
+                    <input type="text" class="form-input" value="${venta.DISTRITO || ''}">
                 </div>
-                <div class="detail-item">
+                <div class="detail-item" data-field="LUGAR">
                     <div class="detail-label">Lugar</div>
                     <div class="detail-value">${venta.LUGAR || 'N/A'}</div>
+                    <input type="text" class="form-input" value="${venta.LUGAR || ''}">
                 </div>
-                <div class="detail-item">
+                <div class="detail-item" data-field="SALIDA_DE_PEDIDO">
                     <div class="detail-label">Salida de Pedido</div>
                     <div class="detail-value">${venta.SALIDA_DE_PEDIDO || 'N/A'}</div>
+                    <input type="text" class="form-input" value="${venta.SALIDA_DE_PEDIDO || ''}">
                 </div>
-                <div class="detail-item">
+                <div class="detail-item" data-field="ESTADO">
                     <div class="detail-label">Estado</div>
                     <div class="detail-value">
                         <span class="status-badge status-${(venta.ESTADO || 'pendiente').toLowerCase()}">
                             ${venta.ESTADO || 'PENDIENTE'}
                         </span>
                     </div>
+                    <select class="form-input">
+                        <option value="COMPLETADO" ${venta.ESTADO === 'COMPLETADO' ? 'selected' : ''}>COMPLETADO</option>
+                        <option value="PENDIENTE" ${venta.ESTADO === 'PENDIENTE' ? 'selected' : ''}>PENDIENTE</option>
+                        <option value="CANCELADO" ${venta.ESTADO === 'CANCELADO' ? 'selected' : ''}>CANCELADO</option>
+                    </select>
                 </div>
-                <div class="detail-item">
+                <div class="detail-item" data-field="CANCELADO">
                     <div class="detail-label">Cancelado</div>
                     <div class="detail-value">
                         <span class="status-badge cancelado-${(venta.CANCELADO || 'NO').toLowerCase() === 'si' ? 'si' : 'no'}">
                             ${venta.CANCELADO || 'NO'}
                         </span>
                     </div>
+                    <select class="form-input">
+                        <option value="SI" ${venta.CANCELADO === 'SI' ? 'selected' : ''}>SI</option>
+                        <option value="NO" ${venta.CANCELADO === 'NO' ? 'selected' : ''}>NO</option>
+                    </select>
                 </div>
-                ${venta.OBSERVACIONES ? `
-                <div class="detail-item" style="grid-column: 1 / -1;">
+                <div class="detail-item" data-field="OBSERVACIONES" style="grid-column: 1 / -1;">
                     <div class="detail-label">Observaciones</div>
-                    <div class="detail-value">${venta.OBSERVACIONES}</div>
+                    <div class="detail-value">${venta.OBSERVACIONES || 'N/A'}</div>
+                    <textarea class="form-input" rows="3">${venta.OBSERVACIONES || ''}</textarea>
                 </div>
-                ` : ''}
             `;
+
+            // Resetear botones
+            document.getElementById('btnEditarDetalles').style.display = 'inline-flex';
+            document.getElementById('btnCancelarDetalles').style.display = 'none';
+            document.getElementById('btnGuardarDetalles').style.display = 'none';
 
             document.getElementById('detailsModal').classList.add('show');
         }
 
-        // Función para cerrar modal
+        // Función para cerrar modal de detalles
         function closeModal() {
             document.getElementById('detailsModal').classList.remove('show');
+            ventaActual = null;
+            datosOriginalesVenta = null;
         }
 
-        // Cerrar modal al hacer clic fuera
+        // Función para cerrar modal de pago
+        function closePaymentModal() {
+            document.getElementById('paymentModal').classList.remove('show');
+            pagoActual = null;
+            datosOriginalesPago = null;
+        }
+
+        // Función para editar detalles
+        function editarDetalles() {
+            const detailItems = document.querySelectorAll('#detailsGrid .detail-item');
+            detailItems.forEach(item => {
+                if (item.dataset.field !== 'ID_VENTA') {
+                    item.classList.add('editable');
+                }
+            });
+
+            document.getElementById('btnEditarDetalles').style.display = 'none';
+            document.getElementById('btnCancelarDetalles').style.display = 'inline-flex';
+            document.getElementById('btnGuardarDetalles').style.display = 'inline-flex';
+        }
+
+        // Función para cancelar edición de detalles
+        function cancelarEdicionDetalles() {
+            const detailItems = document.querySelectorAll('#detailsGrid .detail-item');
+            detailItems.forEach(item => {
+                item.classList.remove('editable');
+            });
+
+            document.getElementById('btnEditarDetalles').style.display = 'inline-flex';
+            document.getElementById('btnCancelarDetalles').style.display = 'none';
+            document.getElementById('btnGuardarDetalles').style.display = 'none';
+        }
+
+        // Función para guardar cambios de detalles
+        async function guardarDetalles() {
+            if (!ventaActual) return;
+
+            // Recopilar datos del formulario
+            const detailItems = document.querySelectorAll('#detailsGrid .detail-item');
+            const datosActualizados = { ID_VENTA: ventaActual.ID_VENTA };
+
+            detailItems.forEach(item => {
+                const field = item.dataset.field;
+                if (field && field !== 'ID_VENTA') {
+                    const input = item.querySelector('.form-input');
+                    if (input) {
+                        datosActualizados[field] = input.value;
+                    }
+                }
+            });
+
+            console.log('Datos a actualizar:', datosActualizados);
+
+            // Aquí deberías hacer la llamada a la API para actualizar
+            // Por ahora solo simulamos
+            mostrarToast('Función de guardado pendiente de implementar con API', 'info');
+            
+            // Cancelar modo edición
+            cancelarEdicionDetalles();
+        }
+
+        // Función para ver estado de pago
+        async function verEstadoPago(comprobante, idVenta) {
+            const paymentGrid = document.getElementById('paymentGrid');
+            
+            // Mostrar loading
+            paymentGrid.innerHTML = `
+                <div class="loading">
+                    <i class="fas fa-spinner"></i>
+                    <p>Cargando información de pago...</p>
+                </div>
+            `;
+
+            document.getElementById('paymentModal').classList.add('show');
+
+            try {
+                const api = "https://crudventas-2946605267.us-central1.run.app";
+                const area = "ventas";
+                
+                const response = await fetch(`${api}?area=${area}&id=${idVenta}`);
+                console.log('Status de respuesta pago:', response.status);
+                
+                if (response.status === 200) {
+                    const data = await response.json();
+                    console.log('Datos de pago cargados:', data);
+                    
+                    if (data && data.length > 0) {
+                        const pago = data[0];
+                        pagoActual = JSON.parse(JSON.stringify(pago));
+                        datosOriginalesPago = JSON.parse(JSON.stringify(pago));
+                        
+                        paymentGrid.innerHTML = `
+                            <div class="detail-item" data-field="ID_PAGO">
+                                <div class="detail-label">ID Pago</div>
+                                <div class="detail-value">${pago.ID_PAGO || 'N/A'}</div>
+                                <input type="text" class="form-input" value="${pago.ID_PAGO || ''}" disabled>
+                            </div>
+                            <div class="detail-item" data-field="N_COMPROBANTE">
+                                <div class="detail-label">N° Comprobante</div>
+                                <div class="detail-value">${pago.N_COMPROBANTE || 'N/A'}</div>
+                                <input type="text" class="form-input" value="${pago.N_COMPROBANTE || ''}">
+                            </div>
+                            <div class="detail-item" data-field="COMPROBANTE">
+                                <div class="detail-label">Tipo Comprobante</div>
+                                <div class="detail-value">${pago.COMPROBANTE || 'N/A'}</div>
+                                <select class="form-input">
+                                    <option value="FACTURA" ${pago.COMPROBANTE === 'FACTURA' ? 'selected' : ''}>FACTURA</option>
+                                    <option value="BOLETA" ${pago.COMPROBANTE === 'BOLETA' ? 'selected' : ''}>BOLETA</option>
+                                    <option value="RECIBO" ${pago.COMPROBANTE === 'RECIBO' ? 'selected' : ''}>RECIBO</option>
+                                </select>
+                            </div>
+                            <div class="detail-item" data-field="TIPO_DE_PAGO">
+                                <div class="detail-label">Tipo de Pago</div>
+                                <div class="detail-value">${pago.TIPO_DE_PAGO || 'N/A'}</div>
+                                <select class="form-input">
+                                    <option value="EFECTIVO" ${pago.TIPO_DE_PAGO === 'EFECTIVO' ? 'selected' : ''}>EFECTIVO</option>
+                                    <option value="TRANSFERENCIA" ${pago.TIPO_DE_PAGO === 'TRANSFERENCIA' ? 'selected' : ''}>TRANSFERENCIA</option>
+                                    <option value="TARJETA" ${pago.TIPO_DE_PAGO === 'TARJETA' ? 'selected' : ''}>TARJETA</option>
+                                    <option value="CHEQUE" ${pago.TIPO_DE_PAGO === 'CHEQUE' ? 'selected' : ''}>CHEQUE</option>
+                                </select>
+                            </div>
+                            <div class="detail-item" data-field="FECHA_DE_PAGO">
+                                <div class="detail-label">Fecha de Pago</div>
+                                <div class="detail-value">${pago.FECHA_DE_PAGO ? formatearFecha(pago.FECHA_DE_PAGO) : 'N/A'}</div>
+                                <input type="date" class="form-input" value="${pago.FECHA_DE_PAGO || ''}">
+                            </div>
+                            <div class="detail-item" data-field="REGULARIZADO">
+                                <div class="detail-label">Regularizado</div>
+                                <div class="detail-value">
+                                    <span class="status-badge cancelado-${(pago.REGULARIZADO || 'NO').toLowerCase() === 'si' ? 'si' : 'no'}">
+                                        ${pago.REGULARIZADO || 'NO'}
+                                    </span>
+                                </div>
+                                <select class="form-input">
+                                    <option value="SI" ${pago.REGULARIZADO === 'SI' ? 'selected' : ''}>SI</option>
+                                    <option value="NO" ${pago.REGULARIZADO === 'NO' ? 'selected' : ''}>NO</option>
+                                </select>
+                            </div>
+                            <div class="detail-item" data-field="CANCELADO">
+                                <div class="detail-label">Cancelado</div>
+                                <div class="detail-value">
+                                    <span class="status-badge cancelado-${(pago.CANCELADO || 'NO').toLowerCase() === 'si' ? 'si' : 'no'}">
+                                        ${pago.CANCELADO || 'NO'}
+                                    </span>
+                                </div>
+                                <select class="form-input">
+                                    <option value="SI" ${pago.CANCELADO === 'SI' ? 'selected' : ''}>SI</option>
+                                    <option value="NO" ${pago.CANCELADO === 'NO' ? 'selected' : ''}>NO</option>
+                                </select>
+                            </div>
+                            <div class="detail-item" data-field="ESTADO">
+                                <div class="detail-label">Estado</div>
+                                <div class="detail-value">
+                                    <span class="status-badge status-${(pago.ESTADO || 'pendiente').toLowerCase()}">
+                                        ${pago.ESTADO || 'PENDIENTE'}
+                                    </span>
+                                </div>
+                                <select class="form-input">
+                                    <option value="COMPLETADO" ${pago.ESTADO === 'COMPLETADO' ? 'selected' : ''}>COMPLETADO</option>
+                                    <option value="PENDIENTE" ${pago.ESTADO === 'PENDIENTE' ? 'selected' : ''}>PENDIENTE</option>
+                                    <option value="CANCELADO" ${pago.ESTADO === 'CANCELADO' ? 'selected' : ''}>CANCELADO</option>
+                                </select>
+                            </div>
+                        `;
+
+                        // Resetear botones
+                        document.getElementById('btnEditarPago').style.display = 'inline-flex';
+                        document.getElementById('btnCancelarPago').style.display = 'none';
+                        document.getElementById('btnGuardarPago').style.display = 'none';
+                    } else {
+                        paymentGrid.innerHTML = `
+                            <div class="no-data">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <p>No se encontró información de pago</p>
+                            </div>
+                        `;
+                    }
+                } else {
+                    paymentGrid.innerHTML = `
+                        <div class="no-data">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <p>Error al cargar información de pago</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error cargando estado de pago:', error);
+                paymentGrid.innerHTML = `
+                    <div class="no-data">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>Error de conexión</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Función para editar pago
+        function editarPago() {
+            const detailItems = document.querySelectorAll('#paymentGrid .detail-item');
+            detailItems.forEach(item => {
+                if (item.dataset.field !== 'ID_PAGO') {
+                    item.classList.add('editable');
+                }
+            });
+
+            document.getElementById('btnEditarPago').style.display = 'none';
+            document.getElementById('btnCancelarPago').style.display = 'inline-flex';
+            document.getElementById('btnGuardarPago').style.display = 'inline-flex';
+        }
+
+        // Función para cancelar edición de pago
+        function cancelarEdicionPago() {
+            const detailItems = document.querySelectorAll('#paymentGrid .detail-item');
+            detailItems.forEach(item => {
+                item.classList.remove('editable');
+            });
+
+            document.getElementById('btnEditarPago').style.display = 'inline-flex';
+            document.getElementById('btnCancelarPago').style.display = 'none';
+            document.getElementById('btnGuardarPago').style.display = 'none';
+        }
+
+        // Función para guardar cambios de pago
+        async function guardarPago() {
+            if (!pagoActual) return;
+
+            // Recopilar datos del formulario
+            const detailItems = document.querySelectorAll('#paymentGrid .detail-item');
+            const datosActualizados = { ID_PAGO: pagoActual.ID_PAGO };
+
+            detailItems.forEach(item => {
+                const field = item.dataset.field;
+                if (field && field !== 'ID_PAGO') {
+                    const input = item.querySelector('.form-input');
+                    if (input) {
+                        datosActualizados[field] = input.value;
+                    }
+                }
+            });
+
+            console.log('Datos de pago a actualizar:', datosActualizados);
+
+            // Aquí deberías hacer la llamada a la API para actualizar
+            // Por ahora solo simulamos
+            mostrarToast('Función de guardado de pago pendiente de implementar con API', 'info');
+            
+            // Cancelar modo edición
+            cancelarEdicionPago();
+        }
+
+        // Función para confirmar eliminación
+        function confirmarEliminacion(idVenta) {
+            if (confirm('¿Está seguro de que desea eliminar esta venta?')) {
+                eliminarVenta(idVenta);
+            }
+        }
+
+        // Función para eliminar venta
+        async function eliminarVenta(idVenta) {
+            console.log('Eliminar venta:', idVenta);
+            
+            // Aquí deberías hacer la llamada a la API para eliminar
+            // Por ahora solo simulamos
+            mostrarToast('Función de eliminación pendiente de implementar con API', 'info');
+        }
+
+        // Cerrar modales al hacer clic fuera
         window.onclick = function(event) {
-            const modal = document.getElementById('detailsModal');
-            if (event.target === modal) {
+            const detailsModal = document.getElementById('detailsModal');
+            const paymentModal = document.getElementById('paymentModal');
+            
+            if (event.target === detailsModal) {
                 closeModal();
+            }
+            if (event.target === paymentModal) {
+                closePaymentModal();
             }
         }
 
