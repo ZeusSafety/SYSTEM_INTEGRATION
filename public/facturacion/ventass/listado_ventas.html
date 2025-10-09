@@ -370,6 +370,10 @@
             animation: slideIn 0.3s ease;
         }
 
+        .modal-content.large {
+            max-width: 1400px;
+        }
+
         .modal-header {
             background: linear-gradient(135deg, var(--azul-principal) 0%, var(--azul-oscuro) 100%);
             color: var(--blanco);
@@ -399,6 +403,98 @@
 
         .modal-body {
             padding: 20px;
+        }
+
+        .modal-body-split {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .modal-section {
+            background: var(--gris-claro);
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        .section-header {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--azul-principal);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 2px solid var(--azul-claro);
+            padding-bottom: 10px;
+        }
+
+        .section-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid var(--gris-medio);
+        }
+
+        .productos-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--blanco);
+            border-radius: 8px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .productos-table th {
+            background: var(--azul-principal);
+            color: var(--blanco);
+            padding: 10px 8px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+
+        .productos-table td {
+            padding: 8px;
+            border-bottom: 1px solid var(--gris-claro);
+            font-size: 0.85rem;
+        }
+
+        .productos-table tbody tr:hover {
+            background-color: var(--azul-muy-claro);
+        }
+
+        .productos-table input {
+            width: 100%;
+            padding: 6px;
+            border: 1px solid var(--gris-claro);
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+
+        .productos-table input:focus {
+            outline: none;
+            border-color: var(--azul-claro);
+        }
+
+        .editable-cell input {
+            display: none;
+        }
+
+        .editable-cell.editing input {
+            display: block;
+        }
+
+        .editable-cell.editing .cell-value {
+            display: none;
+        }
+
+        @media (max-width: 1200px) {
+            .modal-body-split {
+                grid-template-columns: 1fr;
+            }
         }
 
         .detail-grid {
@@ -687,7 +783,7 @@
 
     <!-- Modal de Detalles -->
     <div id="detailsModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content large">
             <div class="modal-header">
                 <h3 class="modal-title">
                     <i class="fas fa-info-circle"></i>
@@ -695,27 +791,64 @@
                 </h3>
                 <span class="close" onclick="closeModal()">&times;</span>
             </div>
-            <div class="modal-body">
-                <div class="detail-grid" id="detailsGrid">
-                    <!-- Los detalles se insertarán dinámicamente -->
+            <div class="modal-body-split">
+                <!-- Sección de Datos de Venta -->
+                <div class="modal-section">
+                    <div class="section-header">
+                        <i class="fas fa-file-alt"></i>
+                        Datos de la Venta
+                    </div>
+                    <div class="detail-grid" id="detailsGrid">
+                        <!-- Los detalles se insertarán dinámicamente -->
+                    </div>
+                    <div class="section-buttons">
+                        <button class="btn btn-edit" id="btnEditarDetalles" onclick="editarDetalles()">
+                            <i class="fas fa-edit"></i>
+                            Editar
+                        </button>
+                        <button class="btn btn-secondary" id="btnCancelarDetalles" onclick="cancelarEdicionDetalles()" style="display: none;">
+                            <i class="fas fa-times"></i>
+                            Cancelar
+                        </button>
+                        <button class="btn btn-success" id="btnGuardarDetalles" onclick="guardarDetalles()" style="display: none;">
+                            <i class="fas fa-save"></i>
+                            Guardar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Sección de Productos Comprados -->
+                <div class="modal-section">
+                    <div class="section-header">
+                        <i class="fas fa-shopping-basket"></i>
+                        Productos Comprados
+                    </div>
+                    <div id="productosContainer">
+                        <div class="loading">
+                            <i class="fas fa-spinner"></i>
+                            <p>Cargando productos...</p>
+                        </div>
+                    </div>
+                    <div class="section-buttons">
+                        <button class="btn btn-edit" id="btnEditarProductos" onclick="editarProductos()">
+                            <i class="fas fa-edit"></i>
+                            Editar
+                        </button>
+                        <button class="btn btn-secondary" id="btnCancelarProductos" onclick="cancelarEdicionProductos()" style="display: none;">
+                            <i class="fas fa-times"></i>
+                            Cancelar
+                        </button>
+                        <button class="btn btn-success" id="btnGuardarProductos" onclick="guardarProductos()" style="display: none;">
+                            <i class="fas fa-save"></i>
+                            Guardar
+                        </button>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-edit" id="btnEditarDetalles" onclick="editarDetalles()">
-                    <i class="fas fa-edit"></i>
-                    Editar
-                </button>
-                <button class="btn btn-secondary" id="btnCancelarDetalles" onclick="cancelarEdicionDetalles()" style="display: none;">
-                    <i class="fas fa-times"></i>
-                    Cancelar
-                </button>
-                <button class="btn btn-success" id="btnGuardarDetalles" onclick="guardarDetalles()" style="display: none;">
-                    <i class="fas fa-save"></i>
-                    Guardar Cambios
-                </button>
                 <button class="btn btn-primary" onclick="closeModal()">
                     <i class="fas fa-times"></i>
-                    Cerrar
+                    Cerrar Modal
                 </button>
             </div>
         </div>
@@ -769,8 +902,10 @@
         const registrosPorPagina = 20;
         let ventaActual = null;
         let pagoActual = null;
+        let productosActuales = [];
         let datosOriginalesVenta = null;
         let datosOriginalesPago = null;
+        let datosOriginalesProductos = [];
 
         // Función para cargar datos desde la API
         async function cargarVentas() {
@@ -957,19 +1092,139 @@
                 </div>
             `;
 
-            // Resetear botones
+            // Resetear botones de detalles
             document.getElementById('btnEditarDetalles').style.display = 'inline-flex';
             document.getElementById('btnCancelarDetalles').style.display = 'none';
             document.getElementById('btnGuardarDetalles').style.display = 'none';
 
+            // Cargar productos
+            cargarProductos(venta.ID_VENTA);
+
             document.getElementById('detailsModal').classList.add('show');
+        }
+
+        // Función para cargar productos
+        async function cargarProductos(idVenta) {
+            const productosContainer = document.getElementById('productosContainer');
+            
+            // Mostrar loading
+            productosContainer.innerHTML = `
+                <div class="loading">
+                    <i class="fas fa-spinner"></i>
+                    <p>Cargando productos...</p>
+                </div>
+            `;
+
+            try {
+                const api = "https://crudventas-2946605267.us-central1.run.app";
+                const area = "detalle_productos";
+                
+                const response = await fetch(`${api}?area=${area}&id=${idVenta}`);
+                console.log('Status de respuesta productos:', response.status);
+                
+                if (response.status === 200) {
+                    const data = await response.json();
+                    console.log('Productos cargados:', data);
+                    
+                    productosActuales = Array.isArray(data) ? data : [data];
+                    datosOriginalesProductos = JSON.parse(JSON.stringify(productosActuales));
+                    
+                    mostrarProductos();
+                } else {
+                    productosContainer.innerHTML = `
+                        <div class="no-data">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <p>Error al cargar productos</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error cargando productos:', error);
+                productosContainer.innerHTML = `
+                    <div class="no-data">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>Error de conexión</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Función para mostrar productos en tabla
+        function mostrarProductos() {
+            const productosContainer = document.getElementById('productosContainer');
+            
+            if (!productosActuales || productosActuales.length === 0) {
+                productosContainer.innerHTML = `
+                    <div class="no-data">
+                        <i class="fas fa-inbox"></i>
+                        <p>No hay productos registrados</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Calcular el total general
+            const totalGeneral = productosActuales.reduce((sum, prod) => sum + (parseFloat(prod.TOTAL) || 0), 0);
+
+            productosContainer.innerHTML = `
+                <table class="productos-table">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Producto</th>
+                            <th>Cantidad</th>
+                            <th>Precio</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${productosActuales.map((prod, index) => `
+                            <tr data-index="${index}">
+                                <td class="editable-cell" data-field="CODIGO">
+                                    <span class="cell-value">${prod.CODIGO || 'N/A'}</span>
+                                    <input type="text" value="${prod.CODIGO || ''}" />
+                                </td>
+                                <td class="editable-cell" data-field="PRODUCTO">
+                                    <span class="cell-value">${prod.PRODUCTO || 'N/A'}</span>
+                                    <input type="text" value="${prod.PRODUCTO || ''}" />
+                                </td>
+                                <td class="editable-cell" data-field="CANTIDAD">
+                                    <span class="cell-value">${prod.CANTIDAD || 0}</span>
+                                    <input type="number" value="${prod.CANTIDAD || 0}" min="0" step="1" />
+                                </td>
+                                <td class="editable-cell" data-field="PRECIO_VENTA">
+                                    <span class="cell-value">S/ ${parseFloat(prod.PRECIO_VENTA || 0).toFixed(2)}</span>
+                                    <input type="number" value="${prod.PRECIO_VENTA || 0}" min="0" step="0.01" />
+                                </td>
+                                <td class="editable-cell" data-field="TOTAL">
+                                    <span class="cell-value">S/ ${parseFloat(prod.TOTAL || 0).toFixed(2)}</span>
+                                    <input type="number" value="${prod.TOTAL || 0}" min="0" step="0.01" />
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                    <tfoot>
+                        <tr style="background: var(--azul-muy-claro); font-weight: bold;">
+                            <td colspan="4" style="text-align: right; padding: 12px;">TOTAL GENERAL:</td>
+                            <td style="padding: 12px;">S/ ${totalGeneral.toFixed(2)}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            `;
+
+            // Resetear botones de productos
+            document.getElementById('btnEditarProductos').style.display = 'inline-flex';
+            document.getElementById('btnCancelarProductos').style.display = 'none';
+            document.getElementById('btnGuardarProductos').style.display = 'none';
         }
 
         // Función para cerrar modal de detalles
         function closeModal() {
             document.getElementById('detailsModal').classList.remove('show');
             ventaActual = null;
+            productosActuales = [];
             datosOriginalesVenta = null;
+            datosOriginalesProductos = [];
         }
 
         // Función para cerrar modal de pago
@@ -1031,6 +1286,68 @@
             
             // Cancelar modo edición
             cancelarEdicionDetalles();
+        }
+
+        // Función para editar productos
+        function editarProductos() {
+            const cells = document.querySelectorAll('.productos-table .editable-cell');
+            cells.forEach(cell => {
+                cell.classList.add('editing');
+            });
+
+            document.getElementById('btnEditarProductos').style.display = 'none';
+            document.getElementById('btnCancelarProductos').style.display = 'inline-flex';
+            document.getElementById('btnGuardarProductos').style.display = 'inline-flex';
+        }
+
+        // Función para cancelar edición de productos
+        function cancelarEdicionProductos() {
+            const cells = document.querySelectorAll('.productos-table .editable-cell');
+            cells.forEach(cell => {
+                cell.classList.remove('editing');
+            });
+
+            // Restaurar datos originales
+            productosActuales = JSON.parse(JSON.stringify(datosOriginalesProductos));
+            mostrarProductos();
+        }
+
+        // Función para guardar cambios de productos
+        async function guardarProductos() {
+            // Recopilar datos del formulario
+            const rows = document.querySelectorAll('.productos-table tbody tr');
+            const productosActualizados = [];
+
+            rows.forEach(row => {
+                const index = row.dataset.index;
+                const producto = { ID_DETALLE: productosActuales[index].ID_DETALLE };
+                
+                row.querySelectorAll('.editable-cell').forEach(cell => {
+                    const field = cell.dataset.field;
+                    const input = cell.querySelector('input');
+                    if (input) {
+                        producto[field] = input.value;
+                    }
+                });
+
+                productosActualizados.push(producto);
+            });
+
+            console.log('Productos a actualizar:', productosActualizados);
+
+            // Aquí deberías hacer la llamada a la API para actualizar
+            // Por ahora solo simulamos
+            mostrarToast('Función de guardado de productos pendiente de implementar con API', 'info');
+            
+            // Cancelar modo edición
+            const cells = document.querySelectorAll('.productos-table .editable-cell');
+            cells.forEach(cell => {
+                cell.classList.remove('editing');
+            });
+
+            document.getElementById('btnEditarProductos').style.display = 'inline-flex';
+            document.getElementById('btnCancelarProductos').style.display = 'none';
+            document.getElementById('btnGuardarProductos').style.display = 'none';
         }
 
         // Función para ver estado de pago
