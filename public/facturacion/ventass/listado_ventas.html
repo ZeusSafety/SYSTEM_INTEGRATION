@@ -266,6 +266,79 @@
             color: #166534;
         }
 
+        /* Estilos para la sección de meses */
+        .meses-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .mes-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 6px;
+            transition: background-color 0.3s ease;
+        }
+
+        .mes-checkbox:hover {
+            background-color: var(--azul-muy-claro);
+        }
+
+        .mes-checkbox input[type="checkbox"]:checked + span {
+            font-weight: 600;
+            color: var(--azul-principal);
+        }
+
+        /* Estilos para checkboxes personalizados */
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: var(--azul-claro);
+        }
+
+        input[type="checkbox"]:checked {
+            background-color: var(--azul-claro);
+            border-color: var(--azul-claro);
+        }
+
+        /* Estilos para el área de estado de descarga */
+        .download-status {
+            text-align: center;
+            padding: 40px;
+            color: var(--gris-medio);
+        }
+
+        .download-status i {
+            font-size: 2rem;
+            margin-bottom: 15px;
+            color: var(--azul-claro);
+            animation: spin 1s linear infinite;
+        }
+
+        .download-status.success {
+            color: var(--verde-exito);
+        }
+
+        .download-status.success i {
+            color: var(--verde-exito);
+            animation: none;
+        }
+
+        .download-status.error {
+            color: var(--rojo-error);
+        }
+
+        .download-status.error i {
+            color: var(--rojo-error);
+            animation: none;
+        }
+
         .action-btn {
             padding: 6px 12px;
             border: none;
@@ -497,6 +570,18 @@
             }
         }
 
+        @media (max-width: 768px) {
+            .meses-container {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .mes-checkbox {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
         .detail-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -708,7 +793,7 @@
                 <img src="../../../Logo de Zeus.png" alt="ZEUS SAFETY Logo" class="logo">
                 <h1 class="header-title">Listado de Ventas</h1>
             </div>
-            <a href="../../../ventas.html" class="back-button">
+            <a href="../../../facturacion.html" class="back-button">
                 <i class="fas fa-arrow-left"></i>
                 Volver
             </a>
@@ -778,6 +863,148 @@
                 Siguiente
                 <i class="fas fa-chevron-right"></i>
             </button>
+        </div>
+    </div>
+
+    <!-- Sección de Búsqueda Detallada -->
+    <div class="container">
+        <div class="section-title">
+            <i class="fas fa-search"></i>
+            Búsqueda Detallada
+        </div>
+        
+        <!-- Formulario de búsqueda -->
+        <div class="search-container">
+            <div class="search-form">
+                <div class="search-input-group">
+                    <input type="text" id="searchDetallada" class="search-input" placeholder="Ingrese su búsqueda...">
+                    <select id="tipoBusqueda" class="search-input" style="flex: 0 0 150px;">
+                        <option value="comprobante">Comprobante</option>
+                        <option value="cliente">Cliente</option>
+                    </select>
+                    <button type="button" class="btn btn-primary" onclick="buscarDetallado()">
+                        <i class="fas fa-search"></i>
+                        Buscar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla de resultados de búsqueda detallada -->
+        <div class="table-container">
+            <table class="table" id="searchDetalladaTable">
+                <thead>
+                    <tr>
+                        <th>CLIENTE</th>
+                        <th>FECHA</th>
+                        <th>ASESOR</th>
+                        <th>COMPROBANTE</th>
+                        <th>ESTADO</th>
+                        <th>CANCELADO</th>
+                        <th>ACCIONES</th>
+                    </tr>
+                </thead>
+                <tbody id="searchDetalladaTableBody">
+                    <tr>
+                        <td colspan="7" class="no-data">
+                            <i class="fas fa-search"></i>
+                            <p>Ingrese un criterio de búsqueda</p>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Sección de Ventas por Mes -->
+    <div class="container">
+        <div class="section-title">
+            <i class="fas fa-calendar-alt"></i>
+            Ventas por Mes
+        </div>
+        
+        <!-- Formulario de selección de meses y año -->
+        <div class="search-container">
+            <div class="search-form">
+                <div class="search-input-group" style="flex-direction: column; gap: 20px;">
+                    <!-- Selección de meses -->
+                    <div class="meses-container">
+                        <label class="mes-checkbox">
+                            <input type="checkbox" id="mesVenta1" value="1">
+                            <span>Enero</span>
+                        </label>
+                        <label class="mes-checkbox">
+                            <input type="checkbox" id="mesVenta2" value="2">
+                            <span>Febrero</span>
+                        </label>
+                        <label class="mes-checkbox">
+                            <input type="checkbox" id="mesVenta3" value="3">
+                            <span>Marzo</span>
+                        </label>
+                        <label class="mes-checkbox">
+                            <input type="checkbox" id="mesVenta4" value="4">
+                            <span>Abril</span>
+                        </label>
+                        <label class="mes-checkbox">
+                            <input type="checkbox" id="mesVenta5" value="5">
+                            <span>Mayo</span>
+                        </label>
+                        <label class="mes-checkbox">
+                            <input type="checkbox" id="mesVenta6" value="6">
+                            <span>Junio</span>
+                        </label>
+                        <label class="mes-checkbox">
+                            <input type="checkbox" id="mesVenta7" value="7">
+                            <span>Julio</span>
+                        </label>
+                        <label class="mes-checkbox">
+                            <input type="checkbox" id="mesVenta8" value="8">
+                            <span>Agosto</span>
+                        </label>
+                        <label class="mes-checkbox">
+                            <input type="checkbox" id="mesVenta9" value="9">
+                            <span>Septiembre</span>
+                        </label>
+                        <label class="mes-checkbox">
+                            <input type="checkbox" id="mesVenta10" value="10">
+                            <span>Octubre</span>
+                        </label>
+                        <label class="mes-checkbox">
+                            <input type="checkbox" id="mesVenta11" value="11">
+                            <span>Noviembre</span>
+                        </label>
+                        <label class="mes-checkbox">
+                            <input type="checkbox" id="mesVenta12" value="12">
+                            <span>Diciembre</span>
+                        </label>
+                    </div>
+                    
+                    <!-- Selección de año y botón -->
+                    <div style="display: flex; gap: 15px; justify-content: center; align-items: center; flex-wrap: wrap;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <label for="anioVenta" style="font-weight: 600; color: var(--gris-oscuro);">Año:</label>
+                            <select id="anioVenta" class="search-input" style="width: auto; min-width: 120px;">
+                                <option value="2024">2024</option>
+                                <option value="2025" selected>2025</option>
+                            </select>
+                        </div>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
+                            <button type="button" class="btn btn-success" onclick="generarReporteVentasMensual()">
+                                <i class="fas fa-file-excel"></i>
+                                Descargar Excel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Área de estado de descarga -->
+        <div class="table-container" id="downloadVentasStatusContainer" style="display: none;">
+            <div class="download-status" id="downloadVentasStatus">
+                <i class="fas fa-spinner"></i>
+                <p>Generando reporte Excel...</p>
+            </div>
         </div>
     </div>
 
@@ -1595,6 +1822,13 @@
             }
         });
 
+        // Búsqueda detallada al presionar Enter
+        document.getElementById('searchDetallada').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                buscarDetallado();
+            }
+        });
+
         // Función para cambiar página
         function cambiarPagina(direccion) {
             const totalPaginas = Math.ceil(ventasFiltradas.length / registrosPorPagina);
@@ -1728,11 +1962,249 @@
             `;
         }
 
+        // Función para búsqueda detallada
+        async function buscarDetallado() {
+            const criterio = document.getElementById('searchDetallada').value.trim();
+            const tipoBusqueda = document.getElementById('tipoBusqueda').value;
+            const tbody = document.getElementById('searchDetalladaTableBody');
+            
+            if (!criterio) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="no-data">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <p>Por favor ingrese un criterio de búsqueda</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            // Mostrar estado de carga
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="loading">
+                        <i class="fas fa-spinner"></i>
+                        <p>Buscando por ${tipoBusqueda}: ${criterio}</p>
+                    </td>
+                </tr>
+            `;
+
+            // Filtrar en los datos cargados
+            const resultados = ventasData.filter(venta => {
+                if (tipoBusqueda === 'comprobante') {
+                    return (venta.N_COMPROBANTE || '').toLowerCase().includes(criterio.toLowerCase());
+                } else if (tipoBusqueda === 'cliente') {
+                    return (venta.CLIENTE || '').toLowerCase().includes(criterio.toLowerCase());
+                }
+                return false;
+            });
+
+            if (resultados.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="no-data">
+                            <i class="fas fa-search"></i>
+                            <p>No se encontraron resultados para: ${criterio}</p>
+                            <p><small>Tipo de búsqueda: ${tipoBusqueda}</small></p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = resultados.map(venta => `
+                <tr>
+                    <td>${venta.CLIENTE || 'N/A'}</td>
+                    <td>${formatearFecha(venta.FECHA)}</td>
+                    <td>${venta.ASESOR || 'N/A'}</td>
+                    <td>${venta.N_COMPROBANTE || 'N/A'}</td>
+                    <td>
+                        <span class="status-badge status-${(venta.ESTADO || 'pendiente').toLowerCase()}">
+                            ${venta.ESTADO || 'PENDIENTE'}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="status-badge cancelado-${(venta.CANCELADO || 'NO').toLowerCase() === 'si' ? 'si' : 'no'}">
+                            ${venta.CANCELADO || 'NO'}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="action-btn view-btn" onclick='verDetalles(${JSON.stringify(venta).replace(/'/g, "&apos;")})' title="Ver detalles">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="action-btn payment-btn" onclick='verEstadoPago("${venta.N_COMPROBANTE}", ${venta.ID_VENTA})' title="Estado de pago">
+                            <i class="fas fa-dollar-sign"></i>
+                        </button>
+                        <button class="action-btn delete-btn" onclick='confirmarEliminacion(${venta.ID_VENTA})' title="Eliminar">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Función para generar reporte mensual de ventas
+        async function generarReporteVentasMensual() {
+            const downloadStatusContainer = document.getElementById('downloadVentasStatusContainer');
+            const downloadStatus = document.getElementById('downloadVentasStatus');
+            
+            // Obtener meses seleccionados
+            const mesesSeleccionados = [];
+            for (let i = 1; i <= 12; i++) {
+                const checkbox = document.getElementById(`mesVenta${i}`);
+                if (checkbox.checked) {
+                    mesesSeleccionados.push(parseInt(checkbox.value));
+                }
+            }
+            
+            // Obtener año seleccionado
+            const anio = document.getElementById('anioVenta').value;
+            
+            // Validar que se haya seleccionado al menos un mes
+            if (mesesSeleccionados.length === 0) {
+                mostrarToast('Por favor seleccione al menos un mes para generar el reporte', 'error');
+                return;
+            }
+            
+            // Ordenar meses de menor a mayor
+            mesesSeleccionados.sort((a, b) => a - b);
+            
+            console.log('Meses seleccionados:', mesesSeleccionados);
+            console.log('Año:', anio);
+            
+            // Mostrar estado de carga
+            downloadStatusContainer.style.display = 'block';
+            downloadStatus.className = 'download-status';
+            downloadStatus.innerHTML = `
+                <i class="fas fa-spinner"></i>
+                <p>Generando reporte Excel para ${mesesSeleccionados.length} mes(es) del año ${anio}...</p>
+            `;
+
+            // Filtrar ventas por mes y año
+            const ventasFiltradas = ventasData.filter(venta => {
+                if (!venta.FECHA) return false;
+                const fecha = new Date(venta.FECHA + 'T00:00:00');
+                const mes = fecha.getMonth() + 1; // getMonth() devuelve 0-11
+                const año = fecha.getFullYear();
+                
+                return año === parseInt(anio) && mesesSeleccionados.includes(mes);
+            });
+
+            if (ventasFiltradas.length === 0) {
+                downloadStatus.className = 'download-status error';
+                downloadStatus.innerHTML = `
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>No se encontraron ventas para el período seleccionado</p>
+                    <p><small>Meses: ${mesesSeleccionados.join(', ')} | Año: ${anio}</small></p>
+                `;
+                
+                setTimeout(() => {
+                    downloadStatusContainer.style.display = 'none';
+                }, 5000);
+                return;
+            }
+
+            // Generar Excel
+            try {
+                generarExcelVentas(ventasFiltradas, mesesSeleccionados, anio);
+                
+                // Mostrar éxito
+                downloadStatus.className = 'download-status success';
+                downloadStatus.innerHTML = `
+                    <i class="fas fa-check-circle"></i>
+                    <p>Reporte Excel generado exitosamente</p>
+                    <p><small>${ventasFiltradas.length} ventas encontradas</small></p>
+                `;
+                
+                setTimeout(() => {
+                    downloadStatusContainer.style.display = 'none';
+                }, 3000);
+            } catch (error) {
+                console.error('Error generando reporte:', error);
+                downloadStatus.className = 'download-status error';
+                downloadStatus.innerHTML = `
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>Error al generar el reporte</p>
+                    <p><small>${error.message}</small></p>
+                `;
+                
+                setTimeout(() => {
+                    downloadStatusContainer.style.display = 'none';
+                }, 5000);
+            }
+        }
+
+        // Función para generar archivo Excel de ventas
+        function generarExcelVentas(data, mesesSeleccionados, anio) {
+            // Verificar que SheetJS esté disponible
+            if (typeof XLSX === 'undefined') {
+                throw new Error('La librería SheetJS no está cargada');
+            }
+
+            // Convertir meses a nombres para el nombre del archivo
+            const nombresMeses = [
+                'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+            ];
+            
+            const mesesNombres = mesesSeleccionados.map(mes => nombresMeses[mes - 1]).join('-');
+            
+            // Preparar datos para Excel
+            const excelData = data.map(venta => ({
+                'ID VENTA': venta.ID_VENTA || '',
+                'CLIENTE': venta.CLIENTE || '',
+                'FECHA': formatearFecha(venta.FECHA),
+                'CLASIFICACIÓN': venta.CLASIFICACION || '',
+                'ASESOR': venta.ASESOR || '',
+                'N° COMPROBANTE': venta.N_COMPROBANTE || '',
+                'REGIÓN': venta.REGION || '',
+                'DISTRITO': venta.DISTRITO || '',
+                'LUGAR': venta.LUGAR || '',
+                'SALIDA DE PEDIDO': venta.SALIDA_DE_PEDIDO || '',
+                'ESTADO': venta.ESTADO || '',
+                'CANCELADO': venta.CANCELADO || '',
+                'OBSERVACIONES': venta.OBSERVACIONES || ''
+            }));
+
+            // Crear workbook y worksheet
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.json_to_sheet(excelData);
+
+            // Configurar anchos de columnas
+            const colWidths = [
+                { wch: 12 }, // ID VENTA
+                { wch: 40 }, // CLIENTE
+                { wch: 12 }, // FECHA
+                { wch: 15 }, // CLASIFICACIÓN
+                { wch: 20 }, // ASESOR
+                { wch: 18 }, // N° COMPROBANTE
+                { wch: 15 }, // REGIÓN
+                { wch: 20 }, // DISTRITO
+                { wch: 12 }, // LUGAR
+                { wch: 18 }, // SALIDA DE PEDIDO
+                { wch: 15 }, // ESTADO
+                { wch: 12 }, // CANCELADO
+                { wch: 40 }  // OBSERVACIONES
+            ];
+            ws['!cols'] = colWidths;
+
+            // Agregar worksheet al workbook
+            XLSX.utils.book_append_sheet(wb, ws, 'Ventas');
+
+            // Generar nombre del archivo
+            const fileName = `Reporte_Ventas_${mesesNombres}_${anio}.xlsx`;
+            
+            // Generar archivo y descargar
+            XLSX.writeFile(wb, fileName);
+        }
+
         // Cargar datos al iniciar la página
         document.addEventListener('DOMContentLoaded', function() {
             cargarVentas();
         });
     </script>
+
 </body>
 </html>
 
