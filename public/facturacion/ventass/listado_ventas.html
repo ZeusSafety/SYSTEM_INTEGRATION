@@ -2070,8 +2070,14 @@
             // Ordenar meses de menor a mayor
             mesesSeleccionados.sort((a, b) => a - b);
             
+            // Determinar mes mínimo y máximo
+            const mesMin = mesesSeleccionados[0];
+            const mesMax = mesesSeleccionados[mesesSeleccionados.length - 1];
+            
             console.log('Meses seleccionados:', mesesSeleccionados);
             console.log('Año:', anio);
+            console.log('Mes mínimo:', mesMin);
+            console.log('Mes máximo:', mesMax);
             
             // Mostrar estado de carga
             downloadStatusContainer.style.display = 'block';
@@ -2081,51 +2087,71 @@
                 <p>Generando reporte Excel para ${mesesSeleccionados.length} mes(es) del año ${anio}...</p>
             `;
 
-            // Filtrar ventas por mes y año
-            const ventasFiltradas = ventasData.filter(venta => {
-                if (!venta.FECHA) return false;
-                const fecha = new Date(venta.FECHA + 'T00:00:00');
-                const mes = fecha.getMonth() + 1; // getMonth() devuelve 0-11
-                const año = fecha.getFullYear();
-                
-                return año === parseInt(anio) && mesesSeleccionados.includes(mes);
-            });
-
-            if (ventasFiltradas.length === 0) {
-                downloadStatus.className = 'download-status error';
-                downloadStatus.innerHTML = `
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <p>No se encontraron ventas para el período seleccionado</p>
-                    <p><small>Meses: ${mesesSeleccionados.join(', ')} | Año: ${anio}</small></p>
-                `;
-                
-                setTimeout(() => {
-                    downloadStatusContainer.style.display = 'none';
-                }, 5000);
-                return;
-            }
-
-            // Generar Excel
             try {
-                generarExcelVentas(ventasFiltradas, mesesSeleccionados, anio);
+                // Llamada a la API de reporte mensual
+                const api = "https://crudventas-2946605267.us-central1.run.app";
+                const area = "reporte";
+                const min = mesMin;
+                const max = mesMax;
+                const year = anio;
                 
-                // Mostrar éxito
-                downloadStatus.className = 'download-status success';
-                downloadStatus.innerHTML = `
-                    <i class="fas fa-check-circle"></i>
-                    <p>Reporte Excel generado exitosamente</p>
-                    <p><small>${ventasFiltradas.length} ventas encontradas</small></p>
-                `;
+                const url = `${api}?area=${area}&min=${min}&max=${max}&year=${year}`;
+                console.log('URL de la API:', url);
                 
-                setTimeout(() => {
-                    downloadStatusContainer.style.display = 'none';
-                }, 3000);
+                const response = await fetch(url);
+                console.log('Status de respuesta reporte:', response.status);
+                
+                if (response.status === 200) {
+                    const data = await response.json();
+                    console.log('Datos del reporte cargados:', data);
+                    
+                    if (data && data.length > 0) {
+                        // Generar Excel
+                        generarExcelVentas(data, mesesSeleccionados, anio);
+                        
+                        // Mostrar éxito
+                        downloadStatus.className = 'download-status success';
+                        downloadStatus.innerHTML = `
+                            <i class="fas fa-check-circle"></i>
+                            <p>Reporte Excel generado exitosamente</p>
+                            <p><small>${data.length} ventas encontradas</small></p>
+                        `;
+                        
+                        setTimeout(() => {
+                            downloadStatusContainer.style.display = 'none';
+                        }, 3000);
+                    } else {
+                        // No hay datos
+                        downloadStatus.className = 'download-status error';
+                        downloadStatus.innerHTML = `
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <p>No se encontraron ventas para el período seleccionado</p>
+                            <p><small>Meses: ${mesesSeleccionados.join(', ')} | Año: ${anio}</small></p>
+                        `;
+                        
+                        setTimeout(() => {
+                            downloadStatusContainer.style.display = 'none';
+                        }, 5000);
+                    }
+                } else {
+                    console.error('Error en la respuesta del reporte:', response.status);
+                    downloadStatus.className = 'download-status error';
+                    downloadStatus.innerHTML = `
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>Error al generar el reporte</p>
+                        <p><small>Meses: ${mesesSeleccionados.join(', ')} | Año: ${anio}</small></p>
+                    `;
+                    
+                    setTimeout(() => {
+                        downloadStatusContainer.style.display = 'none';
+                    }, 5000);
+                }
             } catch (error) {
                 console.error('Error generando reporte:', error);
                 downloadStatus.className = 'download-status error';
                 downloadStatus.innerHTML = `
                     <i class="fas fa-exclamation-triangle"></i>
-                    <p>Error al generar el reporte</p>
+                    <p>Error de conexión al generar el reporte</p>
                     <p><small>${error.message}</small></p>
                 `;
                 
@@ -2150,9 +2176,8 @@
             
             const mesesNombres = mesesSeleccionados.map(mes => nombresMeses[mes - 1]).join('-');
             
-            // Preparar datos para Excel
+            // Preparar datos para Excel con todas las columnas de la API
             const excelData = data.map(venta => ({
-                'ID VENTA': venta.ID_VENTA || '',
                 'CLIENTE': venta.CLIENTE || '',
                 'FECHA': formatearFecha(venta.FECHA),
                 'CLASIFICACIÓN': venta.CLASIFICACION || '',
@@ -2162,9 +2187,17 @@
                 'DISTRITO': venta.DISTRITO || '',
                 'LUGAR': venta.LUGAR || '',
                 'SALIDA DE PEDIDO': venta.SALIDA_DE_PEDIDO || '',
-                'ESTADO': venta.ESTADO || '',
+                'OBSERVACIONES': venta.OBSERVACIONES || '',
                 'CANCELADO': venta.CANCELADO || '',
-                'OBSERVACIONES': venta.OBSERVACIONES || ''
+                'REGULARIZADO': venta.REGULARIZADO || '',
+                'ESTADO': venta.ESTADO || '',
+                'TIPO DE PAGO': venta.TIPO_DE_PAGO || '',
+                'FECHA DE PAGO': venta.FECHA_DE_PAGO ? formatearFecha(venta.FECHA_DE_PAGO) : '',
+                'CÓDIGO': venta.CODIGO || '',
+                'PRODUCTO': venta.PRODUCTO || '',
+                'CANTIDAD': venta.CANTIDAD || '',
+                'PRECIO VENTA': venta.PRECIO_VENTA ? parseFloat(venta.PRECIO_VENTA) : '',
+                'TOTAL': venta.TOTAL ? parseFloat(venta.TOTAL) : ''
             }));
 
             // Crear workbook y worksheet
@@ -2173,7 +2206,6 @@
 
             // Configurar anchos de columnas
             const colWidths = [
-                { wch: 12 }, // ID VENTA
                 { wch: 40 }, // CLIENTE
                 { wch: 12 }, // FECHA
                 { wch: 15 }, // CLASIFICACIÓN
@@ -2183,9 +2215,17 @@
                 { wch: 20 }, // DISTRITO
                 { wch: 12 }, // LUGAR
                 { wch: 18 }, // SALIDA DE PEDIDO
-                { wch: 15 }, // ESTADO
+                { wch: 30 }, // OBSERVACIONES
                 { wch: 12 }, // CANCELADO
-                { wch: 40 }  // OBSERVACIONES
+                { wch: 15 }, // REGULARIZADO
+                { wch: 15 }, // ESTADO
+                { wch: 15 }, // TIPO DE PAGO
+                { wch: 15 }, // FECHA DE PAGO
+                { wch: 20 }, // CÓDIGO
+                { wch: 40 }, // PRODUCTO
+                { wch: 10 }, // CANTIDAD
+                { wch: 15 }, // PRECIO VENTA
+                { wch: 15 }  // TOTAL
             ];
             ws['!cols'] = colWidths;
 
