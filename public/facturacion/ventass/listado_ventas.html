@@ -437,7 +437,7 @@
             border-radius: 12px;
             box-shadow: 0 10px 40px rgba(30, 58, 138, 0.3);
             width: 90%;
-            max-width: 700px;
+            max-width: 770px;
             max-height: 90vh;
             overflow-y: auto;
             animation: slideIn 0.3s ease;
@@ -552,6 +552,41 @@
             border-color: var(--azul-claro);
         }
 
+        .montos-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--blanco);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .montos-table th {
+            background: var(--verde-exito);
+            color: var(--blanco);
+            padding: 10px 8px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        .montos-table td {
+            padding: 10px 8px;
+            border-bottom: 1px solid var(--gris-claro);
+            font-size: 0.85rem;
+        }
+
+        .montos-table tbody tr:hover {
+            background-color: var(--azul-muy-claro);
+        }
+
+        .montos-table tfoot td {
+            background: var(--azul-muy-claro);
+            font-weight: bold;
+            padding: 12px 8px;
+            font-size: 0.9rem;
+            color: var(--azul-principal);
+        }
+
         .editable-cell input {
             display: none;
         }
@@ -593,6 +628,10 @@
             padding: 15px;
             border-radius: 8px;
             border-left: 4px solid var(--azul-claro);
+        }
+
+        #paymentGrid .detail-item {
+            padding: 10px 12px;
         }
 
         .detail-label {
@@ -1122,11 +1161,26 @@
                 <span class="close" onclick="closePaymentModal()">&times;</span>
             </div>
             <div class="modal-body">
+                <!-- Grid de detalles de pago -->
                 <div class="detail-grid" id="paymentGrid">
                     <!-- Los detalles de pago se insertarán dinámicamente -->
                     <div class="loading">
                         <i class="fas fa-spinner"></i>
                         <p>Cargando información de pago...</p>
+                    </div>
+                </div>
+
+                <!-- Sección de montos pagados -->
+                <div style="margin-top: 30px;">
+                    <div class="section-header" style="margin-bottom: 15px;">
+                        <i class="fas fa-money-bill-wave"></i>
+                        Montos Pagados
+                    </div>
+                    <div id="montosPagadosContainer">
+                        <div class="loading">
+                            <i class="fas fa-spinner"></i>
+                            <p>Cargando montos pagados...</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1890,6 +1944,9 @@
                         document.getElementById('btnEditarPago').style.display = 'inline-flex';
                         document.getElementById('btnCancelarPago').style.display = 'none';
                         document.getElementById('btnGuardarPago').style.display = 'none';
+
+                        // Cargar montos pagados
+                        cargarMontosPagados(pago.ID_PAGO);
                     } else {
                         paymentGrid.innerHTML = `
                             <div class="no-data">
@@ -1915,6 +1972,103 @@
                     </div>
                 `;
             }
+        }
+
+        // Función para cargar montos pagados
+        async function cargarMontosPagados(idPago) {
+            const container = document.getElementById('montosPagadosContainer');
+            
+            // Mostrar loading
+            container.innerHTML = `
+                <div class="loading">
+                    <i class="fas fa-spinner"></i>
+                    <p>Cargando montos pagados...</p>
+                </div>
+            `;
+
+            try {
+                const api = "https://crudventas-2946605267.us-central1.run.app";
+                const area = "comprobantes_pagados";
+                
+                const response = await fetch(`${api}?area=${area}&id=${idPago}`);
+                console.log('Status de respuesta montos pagados:', response.status);
+                
+                if (response.status === 200) {
+                    const data = await response.json();
+                    console.log('Montos pagados cargados:', data);
+                    
+                    if (data && data.length > 0) {
+                        mostrarMontosPagados(data);
+                    } else {
+                        container.innerHTML = `
+                            <div class="no-data">
+                                <i class="fas fa-inbox"></i>
+                                <p>No hay pagos registrados aún</p>
+                            </div>
+                        `;
+                    }
+                } else {
+                    container.innerHTML = `
+                        <div class="no-data">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <p>Error al cargar montos pagados</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error cargando montos pagados:', error);
+                container.innerHTML = `
+                    <div class="no-data">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>Error de conexión</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Función para mostrar montos pagados en tabla
+        function mostrarMontosPagados(data) {
+            const container = document.getElementById('montosPagadosContainer');
+            
+            // Calcular el total de montos
+            const totalMontos = data.reduce((sum, item) => sum + (parseFloat(item.MONTO) || 0), 0);
+
+            container.innerHTML = `
+                <table class="montos-table">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Comprobante</th>
+                            <th>Monto</th>
+                            <th>Medio de Pago</th>
+                            <th>Fecha Regularización</th>
+                            <th>Validación</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.map(item => `
+                            <tr>
+                                <td>${item.NOMBRE || 'N/A'}</td>
+                                <td>${item.COMPROBANTES || 'N/A'}</td>
+                                <td>S/ ${parseFloat(item.MONTO || 0).toFixed(2)}</td>
+                                <td>${item.MEDIO_DE_PAGO || 'N/A'}</td>
+                                <td>${formatearFecha(item.FECHA_REGULARIZACION)}</td>
+                                <td>
+                                    <span class="status-badge ${item.VALIDACION === 'VALIDO' ? 'status-completado' : 'status-pendiente'}">
+                                        ${item.VALIDACION || 'N/A'}
+                                    </span>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="2" style="text-align: right;">TOTAL PAGADO:</td>
+                            <td colspan="4">S/ ${totalMontos.toFixed(2)}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            `;
         }
 
         // Función para editar pago
