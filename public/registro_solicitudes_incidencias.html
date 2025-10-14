@@ -353,8 +353,21 @@
                 </select>
             </div>
 
-            <button type="submit" class="btn btn-primary w-100">Registrar</button>
+            <button type="submit" class="btn btn-primary w-100" id="submitButton">
+                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" id="loadingSpinner"
+                    style="display:none;"></span>
+                <span id="submitButtonText">Registrar</span>
+            </button>
         </form>
+        <div id="progressBarContainer" class="mt-3" style="display:none;">
+            <div class="progress">
+                <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
+                    style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                    0%
+                </div>
+            </div>
+            <small class="text-muted" id="progressStatus">Preparando envío...</small>
+        </div>
         <div id="mensaje" class="mt-3"></div>
     </div>
 
@@ -378,11 +391,21 @@
                     <h6>⚙️ Instrucciones</h6>
                     <ul>
                         <li>📝 <b>Completa todos los campos obligatorios</b> (marcados con *).</li>
+                        <h2></h2>
                         <li>✅ <b>Incidencia:</b> Si corresponde, marca el check y coloca el nombre del responsable.</li>
-                        <li>📎 <b>Informe PDF:</b> Puedes adjuntar un archivo como soporte (opcional).</li>
-                        <li>📤 <b>Área de recepción:</b> Selecciona el área a la que se enviará la solicitud o
-                            incidencia.</li>
+                        <h2></h2>
+                        <li>📎 <b>Informe:</b> Puedes adjuntar un archivo como soporte <b>PDF, .rar, .zip, etc</b>(opcional).</li>
+                        <h2></h2>
+                        <ul>
+                            📌Selecciona la opción marcada de rojo para que el sistema muestre todos tus archivos
+                            <h2></h2>
+                            <img src="../img/captura_archivos.png" alt="" width="80%" height="10%">
+                        </ul>
+                        <h2></h2>
+                        <li>📤 <b>Área de recepción:</b> Selecciona el área a la que se enviará la solicitud o incidencia.</li>
                     </ul>
+
+                    
 
                     <h6>⏱️ Importante</h6>
                     <p>
@@ -393,7 +416,10 @@
                     <h6>💡 Nota</h6>
                     <p>
                         - Si se trata de una <b>solicitud</b>, deja el check de incidencia sin marcar.<br>
-                        - Si se trata de una <b>incidencia</b>, recuerda marcar el check y detallar el responsable.
+                        - Si se trata de una <b>incidencia</b>, recuerda marcar el check y detallar el responsable. <br>
+                        - Si se adjuntara <b>más de un PDF</b>, comprimir todos los PDF en un solo archivo <b>ZIP</b>. <br> 
+                        <h6>💬 Sugerencia</h6>
+                        - Usar la siguiente pagina para <b>concatenar PDFs</b> link: <a href="https://www.ilovepdf.com/es/unir_pdf" target="_blank">https://www.ilovepdf.com/es/unir_pdf</a><br> 
                     </p>
                 </div>
                 <div class="modal-footer">
@@ -406,7 +432,7 @@
 </body>
 
 <script>
-    // Función para obtener y actualizar el número de solicitud
+    // ... (Mantener la función getNextSolicitudNumber como está) ...
     function getNextSolicitudNumber(area) {
         // Mapa de prefijos por área
         const prefijos = {
@@ -441,6 +467,84 @@
         const numberStr = String(counters[area]).padStart(2, '0');
 
         return `${prefix}_${numberStr}`;
+    }
+
+    // Funciones para manejar el estado de carga
+    function setLoadingState(isLoading, isUploading = false) {
+        const submitButton = document.getElementById('submitButton');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const buttonText = document.getElementById('submitButtonText');
+        const progressBarContainer = document.getElementById('progressBarContainer');
+
+        if (isLoading) {
+            submitButton.disabled = true;
+            loadingSpinner.style.display = 'inline-block';
+            buttonText.textContent = isUploading ? 'Subiendo Archivo...' : 'Enviando Datos...';
+            progressBarContainer.style.display = isUploading ? 'block' : 'none'; // Mostrar si está subiendo
+        } else {
+            submitButton.disabled = false;
+            loadingSpinner.style.display = 'none';
+            buttonText.textContent = 'Registrar';
+            progressBarContainer.style.display = 'none'; // Ocultar al finalizar
+        }
+    }
+
+    // Funciones de manejo de éxito y error con la lógica del spinner integrada
+    function manejarExito(res) {
+        setLoadingState(false); // Restablecer el estado de carga
+
+        const mensaje = document.getElementById('mensaje');
+        mensaje.innerHTML = `<div class="alert alert-success d-flex align-items-center" role="alert">
+    <i class="bi bi-check-circle-fill me-2" style="font-size:1.5rem;"></i>
+    <div><strong>¡Registro exitoso!</strong><br>${res}</div>
+</div>`;
+
+        // 1. Limpiar manualmente los campos que deben reiniciarse
+        document.getElementById('AREA').value = ''; // Área de Emisión
+        document.getElementById('REQUERIMIENTOS').value = ''; // Requerimientos
+        document.getElementById('informe').value = ''; // Informe PDF (tipo file)
+        document.getElementById('AREA_RECEPCION').value = ''; // Área de Recepción
+        document.getElementById('RES_INCIDENCIA').value = ''; // Responsable de la Incidencia
+
+        // 2. Regenerar y configurar valores que no deben limpiarse por completo
+        const ahora = new Date();
+        const dia = String(ahora.getDate()).padStart(2, '0');
+        const mes = String(ahora.getMonth() + 1).padStart(2, '0');
+        const año = ahora.getFullYear();
+        const horas = ahora.getHours();
+        const minutos = String(ahora.getMinutes()).padStart(2, '0');
+        const ampm = horas >= 12 ? 'PM' : 'AM';
+        const horas12 = horas % 12 || 12;
+        const fechaFormateada = `${dia}/${mes}/${año} ${horas12}:${minutos} ${ampm}`;
+
+        // Colocar la nueva fecha en el campo (este campo y REGISTRADO_POR se mantienen)
+        document.getElementById('FECHA_CONSULTA').value = fechaFormateada;
+
+        // 3. Reiniciar valores ocultos y el checkbox de incidencia
+        document.getElementById('NUMERO_SOLICITUD').value = '';
+        document.getElementById('ESTADO').value = 'Pendiente';
+
+        // Ocultar el campo de incidencia si estaba visible
+        document.getElementById('campoIncidencia').style.display = 'none';
+        document.getElementById('incidencia').checked = false;
+
+        // Ocultar el mensaje después de 4 segundos con fade-out
+        setTimeout(() => {
+            const alerta = document.getElementById('mensaje');
+            if (alerta) {
+                alerta.innerHTML = ""; // solo limpia el contenido
+            }
+        }, 4000);
+    }
+
+    function manejarError(err) {
+        setLoadingState(false); // Restablecer el estado de carga
+
+        const mensaje = document.getElementById('mensaje');
+        mensaje.innerHTML = `<div class="alert alert-danger d-flex align-items-center" role="alert">
+        <i class="bi bi-x-circle-fill me-2" style="font-size:1.5rem;"></i>
+        <div><strong>Error al registrar:</strong> ${err}</div>
+    </div>`;
     }
 
     document.addEventListener("DOMContentLoaded", function () {
@@ -516,12 +620,10 @@
         const datalistId = 'sugerenciasColaboradores';
 
         // 1. Quitar el atributo 'list' inicialmente (previniendo que se muestre al cargar)
-        // Esto es importante para algunos navegadores.
         inputRegistradoPor.removeAttribute('list');
 
         // 2. Manejar el evento 'focus' (cuando se le hace clic)
         inputRegistradoPor.addEventListener('focus', function () {
-            // Al hacer clic (focus), si el campo está vacío, nos aseguramos de que NO tenga el atributo 'list'
             if (this.value.trim() === '') {
                 this.removeAttribute('list');
             }
@@ -529,20 +631,15 @@
 
         // 3. Manejar el evento 'input' (cuando se empieza a escribir)
         inputRegistradoPor.addEventListener('input', function () {
-            // Al escribir, si el campo tiene texto, restauramos el atributo 'list'
             if (this.value.trim().length > 0) {
                 this.setAttribute('list', datalistId);
             } else {
-                // Si se borra todo el texto, lo quitamos para evitar que se muestre al hacer clic
                 this.removeAttribute('list');
             }
         });
 
         // 4. Manejar el evento 'blur' (cuando pierde el foco)
         inputRegistradoPor.addEventListener('blur', function () {
-            // Al perder el foco, si el campo tiene un valor, aseguramos que tenga el atributo 'list'
-            // Esto es opcional, pero asegura que si el usuario no usó las sugerencias,
-            // el autocompletado del navegador sigue funcionando si el usuario vuelve a hacer clic
             if (this.value.trim().length > 0) {
                 this.setAttribute('list', datalistId);
             }
@@ -551,12 +648,10 @@
         const inputResponsableInci = document.getElementById('RES_INCIDENCIA');
         const datalistIdInci = 'sugerenciasColaboradoresInci';
         // 1. Quitar el atributo 'list' inicialmente (previniendo que se muestre al cargar)
-        // Esto es importante para algunos navegadores.
         inputResponsableInci.removeAttribute('list');
 
         // 2. Manejar el evento 'focus' (cuando se le hace clic)
         inputResponsableInci.addEventListener('focus', function () {
-            // Al hacer clic (focus), si el campo está vacío, nos aseguramos de que NO tenga el atributo 'list'
             if (this.value.trim() === '') {
                 this.removeAttribute('list');
             }
@@ -564,124 +659,95 @@
 
         // 3. Manejar el evento 'input' (cuando se empieza a escribir)
         inputResponsableInci.addEventListener('input', function () {
-            // Al escribir, si el campo tiene texto, restauramos el atributo 'list'
             if (this.value.trim().length > 0) {
                 this.setAttribute('list', datalistIdInci);
             } else {
-                // Si se borra todo el texto, lo quitamos para evitar que se muestre al hacer clic
                 this.removeAttribute('list');
             }
         });
 
         // 4. Manejar el evento 'blur' (cuando pierde el foco)
         inputResponsableInci.addEventListener('blur', function () {
-            // Al perder el foco, si el campo tiene un valor, aseguramos que tenga el atributo 'list'
-            // Esto es opcional, pero asegura que si el usuario no usó las sugerencias,
-            // el autocompletado del navegador sigue funcionando si el usuario vuelve a hacer clic
             if (this.value.trim().length > 0) {
                 this.setAttribute('list', datalistIdInci);
             }
         });
     });
 
-    document.getElementById('formSolicitudes').addEventListener('submit', async function (e) {
-        e.preventDefault();
-        const mensaje = document.getElementById('mensaje');
-        mensaje.innerHTML = '';
+    // Lógica de Envío con XHR para barra de progreso
+document.getElementById('formSolicitudes').addEventListener('submit', function (e) {
+    e.preventDefault();
+    const form = this;
+    const mensaje = document.getElementById('mensaje');
+    mensaje.innerHTML = '';
+    
+    const formData = new FormData(form);
+    const informeInput = document.getElementById('informe');
+    const isFilePresent = informeInput.files.length > 0;
+    
+    // Si hay archivo, establecemos el estado de subida de archivo
+    setLoadingState(true, isFilePresent); 
 
-        try {
-            const formData = new FormData();
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', 'https://registrosolicitudeseincidencias-2946605267.us-central1.run.app');
 
-            // Agregar los campos del formulario
-            formData.append('FECHA_CONSULTA', document.getElementById('FECHA_CONSULTA').value);
-            formData.append('REGISTRADO_POR', document.getElementById('REGISTRADO_POR').value);
-            formData.append('AREA', document.getElementById('AREA').value);
-            formData.append('REQUERIMIENTOS', document.getElementById('REQUERIMIENTOS').value);
-            formData.append('AREA_RECEPCION', document.getElementById('AREA_RECEPCION').value);
-            formData.append('NUMERO_SOLICITUD', document.getElementById('NUMERO_SOLICITUD').value);
-            formData.append('ESTADO', document.getElementById('ESTADO').value);
-
-            // Manejar el campo de incidencia
-            const esIncidencia = document.getElementById('incidencia').checked;
-            if (esIncidencia) {
-                formData.append('RES_INCIDENCIA', document.getElementById('RES_INCIDENCIA').value.trim().toUpperCase());
-            } else {
-                formData.append('RES_INCIDENCIA', '');
-            }
-
-            // Manejar el archivo PDF opcional
-            const informeInput = document.getElementById('informe');
-            if (informeInput.files.length > 0) {
-                const file = informeInput.files[0];
-                formData.append('informe', file);
-            }
-
-            // Enviar los datos al endpoint
-            const response = await fetch('https://registrosolicitudeseincidencias-2946605267.us-central1.run.app', {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'Accept': 'application/json'
+    // Manejar el progreso de la subida (solo si hay archivo)
+    if (isFilePresent && xhr.upload) {
+        xhr.upload.addEventListener('progress', function(event) {
+            if (event.lengthComputable) {
+                const percentComplete = (event.loaded / event.total) * 100;
+                const percent = Math.round(percentComplete);
+                
+                const progressBar = document.getElementById('progressBar');
+                const progressStatus = document.getElementById('progressStatus');
+                
+                progressBar.style.width = percent + '%';
+                progressBar.setAttribute('aria-valuenow', percent);
+                progressBar.textContent = percent + '%';
+                progressStatus.textContent = `Subiendo: ${percent}% completado...`;
+                
+                // Si la subida termina (100%), cambiamos el texto del botón
+                if (percent === 100) {
+                    document.getElementById('submitButtonText').textContent = 'Procesando Datos...';
+                    progressStatus.textContent = 'Subida completa. Procesando en el servidor...';
                 }
-            });
-
-            if (!response.ok) {
-                throw new Error(`Error HTTP: ${response.status}`);
             }
+        });
+    }
 
-            const data = await response.json();
-            manejarExito(data.mensaje || 'Solicitud registrada correctamente');
-        } catch (error) {
-            manejarError(error.message);
+
+    // Manejar la respuesta
+    xhr.onload = function() {
+        if (xhr.status >= 200 && xhr.status < 300) {
+            try {
+                const data = JSON.parse(xhr.responseText);
+                manejarExito(data.mensaje || 'Solicitud registrada correctamente');
+            } catch (e) {
+                manejarError("Respuesta inválida del servidor.");
+            }
+        } else {
+            let errorMessage = `Error HTTP: ${xhr.status}`;
+             try {
+                const errorData = JSON.parse(xhr.responseText);
+                if (errorData.error) {
+                    errorMessage = errorData.error;
+                }
+            } catch (e) {
+                // Si la respuesta no es JSON, se usa el error HTTP
+            }
+            manejarError(errorMessage);
         }
-    });
+        setLoadingState(false); // Asegurar que se deshabilite el spinner en éxito o error
+    };
 
-    function manejarExito(res) {
-        const mensaje = document.getElementById('mensaje');
-        mensaje.innerHTML = `<div class="alert alert-success d-flex align-items-center" role="alert">
-    <i class="bi bi-check-circle-fill me-2" style="font-size:1.5rem;"></i>
-    <div><strong>¡Registro exitoso!</strong><br>${res}</div>
-  </div>`;
-
-        document.getElementById('formSolicitudes').reset();
-
-        // Regenerar nueva fecha/hora
-        const ahora = new Date();
-        const dia = String(ahora.getDate()).padStart(2, '0');
-        const mes = String(ahora.getMonth() + 1).padStart(2, '0');
-        const año = ahora.getFullYear();
-        const horas = ahora.getHours();
-        const minutos = String(ahora.getMinutes()).padStart(2, '0');
-        const ampm = horas >= 12 ? 'PM' : 'AM';
-        const horas12 = horas % 12 || 12;
-        const fechaFormateada = `${dia}/${mes}/${año} ${horas12}:${minutos} ${ampm}`;
-
-        // Colocar la nueva fecha en el campo y reiniciar los valores ocultos
-        document.getElementById('FECHA_CONSULTA').value = fechaFormateada;
-        document.getElementById('NUMERO_SOLICITUD').value = '';
-        document.getElementById('ESTADO').value = 'PENDIENTE';
-        document.getElementById('AREA').value = ''; // Limpiar la selección del área
-
-        // Ocultar el campo de incidencia si estaba visible
-        document.getElementById('campoIncidencia').style.display = 'none';
-        document.getElementById('incidencia').checked = false;
-
-        // Ocultar el mensaje después de 4 segundos con fade-out
-        setTimeout(() => {
-            const alerta = document.getElementById('mensaje');
-            if (alerta) {
-                alerta.innerHTML = ""; // solo limpia el contenido
-            }
-        }, 4000);
-    }
-
-    function manejarError(err) {
-        const mensaje = document.getElementById('mensaje');
-        mensaje.innerHTML = `<div class="alert alert-danger d-flex align-items-center" role="alert">
-    <i class="bi bi-x-circle-fill me-2" style="font-size:1.5rem;"></i>
-    <div><strong>Error al registrar:</strong> ${err}</div>
-  </div>`;
-    }
+    // Manejar errores de conexión (ej. servidor caído, sin internet)
+    xhr.onerror = function() {
+        manejarError("Error de conexión. Intente nuevamente.");
+    };
+    
+    // Envío de la solicitud
+    xhr.send(formData);
+});
 </script>
 
 </html>
