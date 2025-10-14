@@ -1996,9 +1996,47 @@
         async function eliminarVenta(idVenta) {
             console.log('Eliminar venta:', idVenta);
             
-            // Aquí deberías hacer la llamada a la API para eliminar
-            // Por ahora solo simulamos
-            mostrarToast('Función de eliminación pendiente de implementar con API', 'info');
+            try {
+                const api = "https://crudventas-2946605267.us-central1.run.app";
+                const area = "ventas";
+                const forma = "eliminar_venta";
+                
+                const data = {
+                    id: idVenta.toString()
+                };
+
+                console.log('Enviando datos de eliminación:', data);
+
+                mostrarToast('Eliminando venta...', 'info');
+
+                const response = await fetch(`${api}?area=${area}&forma=${forma}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                console.log('Status de respuesta eliminación:', response.status);
+
+                if (response.status === 200) {
+                    const result = await response.json();
+                    console.log('Respuesta de eliminación:', result);
+                    
+                    mostrarToast('Venta eliminada exitosamente', 'success');
+                    
+                    // Recargar los datos de la tabla para mostrar los cambios
+                    cargarVentas();
+                } else {
+                    console.error('Error en la respuesta de eliminación:', response.status);
+                    const errorData = await response.text();
+                    console.error('Detalles del error:', errorData);
+                    mostrarToast('Error al eliminar la venta', 'error');
+                }
+            } catch (error) {
+                console.error('Error eliminando venta:', error);
+                mostrarToast('Error de conexión al eliminar', 'error');
+            }
         }
 
         // Cerrar modales al hacer clic fuera
