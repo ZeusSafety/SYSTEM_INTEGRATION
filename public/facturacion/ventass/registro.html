@@ -540,11 +540,6 @@
                         <label for="REGION" class="form-label">Región:</label>
                         <select id="REGION" name="REGION" class="form-input">
                             <option value="">Seleccione una región</option>
-                            <option value="Lima">Lima</option>
-                            <option value="Arequipa">Arequipa</option>
-                            <option value="Trujillo">Trujillo</option>
-                            <option value="Chiclayo">Chiclayo</option>
-                            <option value="Piura">Piura</option>
                         </select>
                     </div>
 
@@ -682,6 +677,11 @@
         let clienteSearchTimeout = null;
         let clienteSearchCache = new Map(); // Cache para evitar búsquedas repetidas
         let selectedClienteId = null; // ID del cliente seleccionado
+        
+        // Variables para IDs de ubicaciones
+        let regionData = {}; // {nombre: id}
+        let distritoData = {}; // {nombre: id}
+        let lugarData = {}; // {nombre: id}
 
         // Inicialización al cargar la página
         document.addEventListener('DOMContentLoaded', function() {
@@ -689,7 +689,6 @@
             document.getElementById('FECHA').valueAsDate = new Date();
             
             // Establecer valores por defecto
-            document.getElementById('REGION').value = 'Lima';
             document.getElementById('TIPO_COMPR').value = 'FACTURA';
             actualizarNComprobante();
 
@@ -764,13 +763,10 @@
             llenarCombo('SALIDA_DE_PEDIDO', salidasPedido);
             llenarCombo('FORMA_PAGO', formasPago);
 
-            // Llenar otros combos con datos estáticos
-            llenarComboEstatico('DISTRITO', [
-                'Lima', 'Miraflores', 'San Isidro', 'Barranco', 'Surco', 'La Molina'
-            ]);
-            llenarComboEstatico('LUGAR', [
-                'Oficina Principal', 'Sucursal Norte', 'Sucursal Sur', 'Almacén Central'
-            ]);
+            // Llenar combos de ubicación desde API
+            cargarComboDesdeAPI('REGION');
+            cargarComboDesdeAPI('DISTRITO');
+            cargarComboDesdeAPI('LUGAR');
         }
 
         // Función para llenar un combo con datos de la API
@@ -820,6 +816,112 @@
                 option.textContent = item;
                 select.appendChild(option);
             });
+        }
+
+        // Función para cargar un combo desde la API de configuración de ventas
+        async function cargarComboDesdeAPI(tipo) {
+            const select = document.getElementById(tipo);
+            if (!select) {
+                console.error(`No se encontró el elemento con id: ${tipo}`);
+                return;
+            }
+
+            try {
+                console.log(`Cargando ${tipo} desde API...`);
+                
+                const api = "https://crudventas-2946605267.us-central1.run.app";
+                const area = "configuracion_ventas";
+                
+                const response = await fetch(`${api}?area=${area}&tipo=${tipo}`);
+                console.log(`Status de respuesta ${tipo}:`, response.status);
+                
+                if (response.status === 200) {
+                    const data = await response.json();
+                    console.log(`Datos de ${tipo} cargados:`, data);
+                    
+                    if (Array.isArray(data) && data.length > 0) {
+                        // Mantener la primera opción (placeholder)
+                        const primerOpcion = select.options[0];
+                        select.innerHTML = '';
+                        select.appendChild(primerOpcion);
+
+                        // Guardar el mapeo de nombre a ID según el tipo
+                        const dataMap = {};
+                        
+                        // Agregar opciones desde la API
+                        // Los datos vienen con campos específicos: REGION, DISTRITO o LUGAR
+                        data.forEach(item => {
+                            const option = document.createElement('option');
+                            // Usar el campo específico según el tipo
+                            let valor = item[tipo]; // REGION, DISTRITO o LUGAR
+                            let id = item.ID;
+                            
+                            if (valor && id) {
+                                option.value = valor;
+                                option.textContent = valor;
+                                option.setAttribute('data-id', id); // Guardar ID en atributo
+                                select.appendChild(option);
+                                
+                                // Guardar en el mapeo correspondiente
+                                dataMap[valor] = id;
+                            }
+                        });
+
+                        // Guardar el mapeo en la variable global correspondiente
+                        if (tipo === 'REGION') {
+                            regionData = dataMap;
+                        } else if (tipo === 'DISTRITO') {
+                            distritoData = dataMap;
+                        } else if (tipo === 'LUGAR') {
+                            lugarData = dataMap;
+                        }
+
+                        console.log(`Combo ${tipo} llenado con ${data.length} opciones`);
+                        
+                        // Si es REGION, establecer 'Lima' por defecto si existe
+                        if (tipo === 'REGION') {
+                            const limaOption = Array.from(select.options).find(opt => 
+                                opt.value.toLowerCase() === 'lima'
+                            );
+                            if (limaOption) {
+                                select.value = limaOption.value;
+                            }
+                        }
+                    } else {
+                        console.warn(`No hay datos para ${tipo}`);
+                        usarDatosRespaldoUbicacion(tipo);
+                    }
+                } else {
+                    console.error(`Error en la respuesta de ${tipo}:`, response.status);
+                    usarDatosRespaldoUbicacion(tipo);
+                }
+            } catch (error) {
+                console.error(`Error cargando ${tipo} desde API:`, error);
+                usarDatosRespaldoUbicacion(tipo);
+            }
+        }
+
+        // Función para usar datos de respaldo para ubicaciones
+        function usarDatosRespaldoUbicacion(tipo) {
+            console.log(`Usando datos de respaldo para ${tipo}...`);
+            
+            const datosRespaldo = {
+                'REGION': ['Lima', 'Arequipa', 'Trujillo', 'Chiclayo', 'Piura'],
+                'DISTRITO': ['Lima', 'Miraflores', 'San Isidro', 'Barranco', 'Surco', 'La Molina'],
+                'LUGAR': ['LU_10', 'LU_20', 'LU_30', 'AR_10', 'TR_10']
+            };
+
+            if (datosRespaldo[tipo]) {
+                llenarComboEstatico(tipo, datosRespaldo[tipo]);
+                
+                // Si es REGION, establecer 'Lima' por defecto
+                if (tipo === 'REGION') {
+                    const select = document.getElementById(tipo);
+                    if (select) {
+                        select.value = 'Lima';
+                    }
+                }
+            }
         }
 
         // Función para usar datos de respaldo
@@ -1249,7 +1351,7 @@
         }
 
         // Event listener para el formulario
-        document.getElementById('ventaForm').addEventListener('submit', function(event) {
+        document.getElementById('ventaForm').addEventListener('submit', async function(event) {
             event.preventDefault();
 
             // Validar que haya productos en la tabla
@@ -1258,45 +1360,125 @@
                 return;
             }
 
-            // Recolectar los datos del formulario
+            // Validar que se haya seleccionado un cliente
+            if (!selectedClienteId) {
+                alert('Por favor seleccione un cliente de la lista de sugerencias.');
+                return;
+            }
+
+            // Obtener valores del formulario
+            const region = document.getElementById('REGION').value;
+            const distrito = document.getElementById('DISTRITO').value;
+            const lugar = document.getElementById('LUGAR').value;
+            const tipoCompr = document.getElementById('TIPO_COMPR').value;
+            const nCompr = document.getElementById('N_COMPR').value;
+            
+            // Obtener IDs de las ubicaciones
+            const idRegion = regionData[region] || null;
+            const idDistrito = distritoData[distrito] || null;
+            const idLugar = lugarData[lugar] || null;
+
+            // Construir el número de comprobante completo
+            const nComprobante = `${tipoCompr.charAt(0)} ${nCompr}`;
+
+            // Preparar el detalle de productos
+            const detalle = productosEnTabla.map(producto => ({
+                N_COMPROBANTE: nComprobante,
+                CODIGO: producto.CODIGO,
+                PRODUCTO: producto.PRODUCTO,
+                CANTIDAD: producto.CANTIDAD.toString(),
+                PRECIO_VENTA: producto.PRECIO_VENTA,
+                TOTAL: producto.TOTAL
+            }));
+
+            // Recolectar los datos del formulario en el formato de la API
             const datosVenta = {
-                FECHA: document.getElementById('FECHA').value,
-                ASESOR: document.getElementById('ASESOR').value,
-                CLASIFICACION: document.getElementById('CLASIFICACION').value,
-                CLIENTE: document.getElementById('CLIENTE').value,
-                ID_CLIENTE: selectedClienteId, // ID del cliente seleccionado
-                TIPO_COMPR: document.getElementById('TIPO_COMPR').value,
-                N_COMPR: document.getElementById('N_COMPR').value,
-                SALIDA_DE_PEDIDO: document.getElementById('SALIDA_DE_PEDIDO').value,
-                FORMA_PAGO: document.getElementById('FORMA_PAGO').value,
-                REGION: document.getElementById('REGION').value,
-                DISTRITO: document.getElementById('DISTRITO').value,
-                LUGAR: document.getElementById('LUGAR').value,
-                OBSERVACIONES: document.getElementById('OBSERVACIONES').value,
-                PRODUCTOS: productosEnTabla,
-                TOTAL_GENERAL: parseFloat(document.getElementById('total-general').textContent)
+                id_cliente: selectedClienteId.toString(),
+                fecha: document.getElementById('FECHA').value,
+                clasificacion: document.getElementById('CLASIFICACION').value,
+                asesor: document.getElementById('ASESOR').value,
+                n_comprobante: nComprobante,
+                id_region: idRegion ? idRegion.toString() : "",
+                id_distrito: idDistrito ? idDistrito.toString() : "",
+                id_lugar: idLugar ? idLugar.toString() : "",
+                salida_de_pedido: document.getElementById('SALIDA_DE_PEDIDO').value,
+                observacion: document.getElementById('OBSERVACIONES').value || "",
+                detalle: detalle
             };
 
             console.log('Datos de venta a enviar:', datosVenta);
 
-            // Aquí se enviarían los datos a la API
-            // Por ahora solo mostramos un mensaje de éxito
-            alert('¡Venta guardada exitosamente!');
-            
-            // Limpiar formulario
-            document.getElementById('ventaForm').reset();
-            productosEnTabla = [];
-            actualizarTablaProductos();
-            
-            // Limpiar cache y variables de cliente
-            clienteSearchCache.clear();
-            selectedClienteId = null;
-            
-            // Restablecer valores por defecto
-            document.getElementById('FECHA').valueAsDate = new Date();
-            document.getElementById('REGION').value = 'Lima';
-            document.getElementById('TIPO_COMPR').value = 'FACTURA';
-            actualizarNComprobante();
+            // Enviar datos a la API
+            try {
+                const api = "https://crudventas-2946605267.us-central1.run.app";
+                const metodo = "insertar_venta";
+
+                // Mostrar indicador de carga
+                const btnSubmit = event.target.querySelector('button[type="submit"]');
+                const textoOriginal = btnSubmit.innerHTML;
+                btnSubmit.disabled = true;
+                btnSubmit.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+
+                const response = await fetch(`${api}?metodo=${metodo}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(datosVenta)
+                });
+
+                console.log('Status de respuesta:', response.status);
+
+                if (response.status === 200 || response.status === 201) {
+                    const result = await response.json();
+                    console.log('Respuesta de la API:', result);
+                    
+                    alert('¡Venta guardada exitosamente!');
+                    
+                    // Limpiar formulario
+                    document.getElementById('ventaForm').reset();
+                    productosEnTabla = [];
+                    actualizarTablaProductos();
+                    
+                    // Limpiar cache y variables de cliente
+                    clienteSearchCache.clear();
+                    selectedClienteId = null;
+                    
+                    // Restablecer valores por defecto
+                    document.getElementById('FECHA').valueAsDate = new Date();
+                    document.getElementById('TIPO_COMPR').value = 'FACTURA';
+                    actualizarNComprobante();
+                    
+                    // Restablecer región si existe Lima en las opciones
+                    const regionSelect = document.getElementById('REGION');
+                    if (regionSelect) {
+                        const limaOption = Array.from(regionSelect.options).find(opt => 
+                            opt.value.toLowerCase() === 'lima'
+                        );
+                        if (limaOption) {
+                            regionSelect.value = limaOption.value;
+                        }
+                    }
+                } else {
+                    console.error('Error en la respuesta:', response.status);
+                    const errorData = await response.text();
+                    console.error('Detalles del error:', errorData);
+                    alert('Error al guardar la venta. Por favor intente nuevamente.');
+                }
+
+                // Restaurar botón
+                btnSubmit.disabled = false;
+                btnSubmit.innerHTML = textoOriginal;
+
+            } catch (error) {
+                console.error('Error al guardar la venta:', error);
+                alert('Error de conexión. Por favor intente nuevamente.');
+                
+                // Restaurar botón
+                const btnSubmit = event.target.querySelector('button[type="submit"]');
+                btnSubmit.disabled = false;
+                btnSubmit.innerHTML = '<i class="fas fa-save"></i> Guardar Venta';
+            }
         });
     </script>
 </body>
