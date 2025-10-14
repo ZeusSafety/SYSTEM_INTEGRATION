@@ -1133,6 +1133,11 @@
         let datosOriginalesVenta = null;
         let datosOriginalesPago = null;
         let datosOriginalesProductos = [];
+        
+        // Variables para IDs de ubicaciones (para edición)
+        let regionDataEdit = {}; // {nombre: id}
+        let distritoDataEdit = {}; // {nombre: id}
+        let lugarDataEdit = {}; // {nombre: id}
 
         // Función para cargar datos desde la API
         async function cargarVentas() {
@@ -1245,7 +1250,7 @@
                 <div class="detail-item" data-field="CLIENTE">
                     <div class="detail-label">Cliente</div>
                     <div class="detail-value">${venta.CLIENTE || 'N/A'}</div>
-                    <input type="text" class="form-input" value="${venta.CLIENTE || ''}">
+                    <input type="text" class="form-input" value="${venta.CLIENTE || ''}" disabled>
                 </div>
                 <div class="detail-item" data-field="FECHA">
                     <div class="detail-label">Fecha</div>
@@ -1270,17 +1275,23 @@
                 <div class="detail-item" data-field="REGION">
                     <div class="detail-label">Región</div>
                     <div class="detail-value">${venta.REGION || 'N/A'}</div>
-                    <input type="text" class="form-input" value="${venta.REGION || ''}">
+                    <select class="form-input" id="editRegionSelect">
+                        <option value="">Cargando...</option>
+                    </select>
                 </div>
                 <div class="detail-item" data-field="DISTRITO">
                     <div class="detail-label">Distrito</div>
                     <div class="detail-value">${venta.DISTRITO || 'N/A'}</div>
-                    <input type="text" class="form-input" value="${venta.DISTRITO || ''}">
+                    <select class="form-input" id="editDistritoSelect">
+                        <option value="">Cargando...</option>
+                    </select>
                 </div>
                 <div class="detail-item" data-field="LUGAR">
                     <div class="detail-label">Lugar</div>
                     <div class="detail-value">${venta.LUGAR || 'N/A'}</div>
-                    <input type="text" class="form-input" value="${venta.LUGAR || ''}">
+                    <select class="form-input" id="editLugarSelect">
+                        <option value="">Cargando...</option>
+                    </select>
                 </div>
                 <div class="detail-item" data-field="SALIDA_DE_PEDIDO">
                     <div class="detail-label">Salida de Pedido</div>
@@ -1326,8 +1337,92 @@
 
             // Cargar productos
             cargarProductos(venta.ID_VENTA);
+            
+            // Cargar datos de ubicaciones en los selects
+            cargarSelectsUbicacion(venta.REGION, venta.DISTRITO, venta.LUGAR);
 
             document.getElementById('detailsModal').classList.add('show');
+        }
+
+        // Función para cargar los selects de ubicación con datos de la API
+        async function cargarSelectsUbicacion(regionActual, distritoActual, lugarActual) {
+            try {
+                const api = "https://crudventas-2946605267.us-central1.run.app";
+                const area = "configuracion_ventas";
+                
+                // Cargar regiones
+                const responseRegion = await fetch(`${api}?area=${area}&tipo=REGION`);
+                if (responseRegion.status === 200) {
+                    const dataRegion = await responseRegion.json();
+                    const selectRegion = document.getElementById('editRegionSelect');
+                    selectRegion.innerHTML = '<option value="">Seleccione una región</option>';
+                    regionDataEdit = {};
+                    
+                    dataRegion.forEach(item => {
+                        if (item.REGION && item.ID) {
+                            const option = document.createElement('option');
+                            option.value = item.REGION;
+                            option.textContent = item.REGION;
+                            option.setAttribute('data-id', item.ID);
+                            if (item.REGION === regionActual) {
+                                option.selected = true;
+                            }
+                            selectRegion.appendChild(option);
+                            regionDataEdit[item.REGION] = item.ID;
+                        }
+                    });
+                }
+                
+                // Cargar distritos
+                const responseDistrito = await fetch(`${api}?area=${area}&tipo=DISTRITO`);
+                if (responseDistrito.status === 200) {
+                    const dataDistrito = await responseDistrito.json();
+                    const selectDistrito = document.getElementById('editDistritoSelect');
+                    selectDistrito.innerHTML = '<option value="">Seleccione un distrito</option>';
+                    distritoDataEdit = {};
+                    
+                    dataDistrito.forEach(item => {
+                        if (item.DISTRITO && item.ID) {
+                            const option = document.createElement('option');
+                            option.value = item.DISTRITO;
+                            option.textContent = item.DISTRITO;
+                            option.setAttribute('data-id', item.ID);
+                            if (item.DISTRITO === distritoActual) {
+                                option.selected = true;
+                            }
+                            selectDistrito.appendChild(option);
+                            distritoDataEdit[item.DISTRITO] = item.ID;
+                        }
+                    });
+                }
+                
+                // Cargar lugares
+                const responseLugar = await fetch(`${api}?area=${area}&tipo=LUGAR`);
+                if (responseLugar.status === 200) {
+                    const dataLugar = await responseLugar.json();
+                    const selectLugar = document.getElementById('editLugarSelect');
+                    selectLugar.innerHTML = '<option value="">Seleccione un lugar</option>';
+                    lugarDataEdit = {};
+                    
+                    dataLugar.forEach(item => {
+                        if (item.LUGAR && item.ID) {
+                            const option = document.createElement('option');
+                            option.value = item.LUGAR;
+                            option.textContent = item.LUGAR;
+                            option.setAttribute('data-id', item.ID);
+                            if (item.LUGAR === lugarActual) {
+                                option.selected = true;
+                            }
+                            selectLugar.appendChild(option);
+                            lugarDataEdit[item.LUGAR] = item.ID;
+                        }
+                    });
+                }
+                
+                console.log('Selects de ubicación cargados');
+            } catch (error) {
+                console.error('Error cargando selects de ubicación:', error);
+            }
         }
 
         // Función para cargar productos
@@ -1465,7 +1560,8 @@
         function editarDetalles() {
             const detailItems = document.querySelectorAll('#detailsGrid .detail-item');
             detailItems.forEach(item => {
-                if (item.dataset.field !== 'ID_VENTA') {
+                // No hacer editables ID_VENTA ni CLIENTE
+                if (item.dataset.field !== 'ID_VENTA' && item.dataset.field !== 'CLIENTE') {
                     item.classList.add('editable');
                 }
             });
@@ -1482,6 +1578,17 @@
                 item.classList.remove('editable');
             });
 
+            // Restaurar valores originales en los selects
+            if (datosOriginalesVenta) {
+                const regionSelect = document.getElementById('editRegionSelect');
+                const distritoSelect = document.getElementById('editDistritoSelect');
+                const lugarSelect = document.getElementById('editLugarSelect');
+                
+                if (regionSelect) regionSelect.value = datosOriginalesVenta.REGION || '';
+                if (distritoSelect) distritoSelect.value = datosOriginalesVenta.DISTRITO || '';
+                if (lugarSelect) lugarSelect.value = datosOriginalesVenta.LUGAR || '';
+            }
+
             document.getElementById('btnEditarDetalles').style.display = 'inline-flex';
             document.getElementById('btnCancelarDetalles').style.display = 'none';
             document.getElementById('btnGuardarDetalles').style.display = 'none';
@@ -1493,11 +1600,11 @@
 
             // Recopilar datos del formulario
             const detailItems = document.querySelectorAll('#detailsGrid .detail-item');
-            const datosActualizados = { ID_VENTA: ventaActual.ID_VENTA };
+            const datosActualizados = {};
 
             detailItems.forEach(item => {
                 const field = item.dataset.field;
-                if (field && field !== 'ID_VENTA') {
+                if (field && field !== 'ID_VENTA' && field !== 'CLIENTE') {
                     const input = item.querySelector('.form-input');
                     if (input) {
                         datosActualizados[field] = input.value;
@@ -1505,14 +1612,82 @@
                 }
             });
 
-            console.log('Datos a actualizar:', datosActualizados);
+            // Obtener valores de los selects de ubicación
+            const regionSelect = document.getElementById('editRegionSelect');
+            const distritoSelect = document.getElementById('editDistritoSelect');
+            const lugarSelect = document.getElementById('editLugarSelect');
 
-            // Aquí deberías hacer la llamada a la API para actualizar
-            // Por ahora solo simulamos
-            mostrarToast('Función de guardado pendiente de implementar con API', 'info');
-            
-            // Cancelar modo edición
-            cancelarEdicionDetalles();
+            const regionSeleccionada = regionSelect ? regionSelect.value : '';
+            const distritoSeleccionado = distritoSelect ? distritoSelect.value : '';
+            const lugarSeleccionado = lugarSelect ? lugarSelect.value : '';
+
+            // Obtener IDs de ubicaciones
+            const idRegion = regionDataEdit[regionSeleccionada] || null;
+            const idDistrito = distritoDataEdit[distritoSeleccionado] || null;
+            const idLugar = lugarDataEdit[lugarSeleccionado] || null;
+
+            // Preparar datos en el formato de la API (SIN id_cliente)
+            const datosAPI = {
+                fecha: datosActualizados.FECHA || '',
+                clasificacion: datosActualizados.CLASIFICACION || '',
+                asesor: datosActualizados.ASESOR || '',
+                n_comprobante: datosActualizados.N_COMPROBANTE || '',
+                id_region: idRegion ? idRegion.toString() : "",
+                id_distrito: idDistrito ? idDistrito.toString() : "",
+                id_lugar: idLugar ? idLugar.toString() : "",
+                salida_de_pedido: datosActualizados.SALIDA_DE_PEDIDO || '',
+                observacion: datosActualizados.OBSERVACIONES || "",
+                id: ventaActual.ID_VENTA.toString()
+            };
+
+            console.log('Datos de venta a actualizar:', datosAPI);
+
+            try {
+                const api = "https://crudventas-2946605267.us-central1.run.app";
+                const area = "ventas";
+                const forma = "actualizar_venta";
+
+                mostrarToast('Actualizando venta...', 'info');
+
+                const response = await fetch(`${api}?area=${area}&forma=${forma}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(datosAPI)
+                });
+
+                console.log('Status de respuesta actualización venta:', response.status);
+
+                if (response.status === 200) {
+                    const result = await response.json();
+                    console.log('Respuesta de actualización venta:', result);
+                    
+                    mostrarToast('Venta actualizada exitosamente', 'success');
+                    
+                    // Actualizar datos actuales con los nuevos valores
+                    datosActualizados.REGION = regionSeleccionada;
+                    datosActualizados.DISTRITO = distritoSeleccionado;
+                    datosActualizados.LUGAR = lugarSeleccionado;
+                    
+                    ventaActual = { ...ventaActual, ...datosActualizados };
+                    datosOriginalesVenta = JSON.parse(JSON.stringify(ventaActual));
+                    
+                    // Recargar datos de la tabla principal
+                    cargarVentas();
+                    
+                    // Cancelar modo edición
+                    cancelarEdicionDetalles();
+                } else {
+                    console.error('Error en la respuesta de actualización:', response.status);
+                    const errorData = await response.text();
+                    console.error('Detalles del error:', errorData);
+                    mostrarToast('Error al actualizar la venta', 'error');
+                }
+            } catch (error) {
+                console.error('Error actualizando venta:', error);
+                mostrarToast('Error de conexión al actualizar', 'error');
+            }
         }
 
         // Función para editar productos
@@ -1744,7 +1919,7 @@
 
             // Recopilar datos del formulario
             const detailItems = document.querySelectorAll('#paymentGrid .detail-item');
-            const datosActualizados = { ID_PAGO: pagoActual.ID_PAGO };
+            const datosActualizados = {};
 
             detailItems.forEach(item => {
                 const field = item.dataset.field;
@@ -1756,14 +1931,58 @@
                 }
             });
 
-            console.log('Datos de pago a actualizar:', datosActualizados);
+            // Preparar datos en el formato requerido por la API
+            const datosAPI = {
+                COMPROBANTE: datosActualizados.COMPROBANTE || '',
+                TIPO_DE_PAGO: datosActualizados.TIPO_DE_PAGO || '',
+                FECHA_DE_PAGO: datosActualizados.FECHA_DE_PAGO || '',
+                REGULARIZADO: datosActualizados.REGULARIZADO || '',
+                CANCELADO: datosActualizados.CANCELADO || '',
+                ESTADO: datosActualizados.ESTADO || '',
+                id: pagoActual.ID_PAGO.toString()
+            };
 
-            // Aquí deberías hacer la llamada a la API para actualizar
-            // Por ahora solo simulamos
-            mostrarToast('Función de guardado de pago pendiente de implementar con API', 'info');
-            
-            // Cancelar modo edición
-            cancelarEdicionPago();
+            console.log('Datos de pago a actualizar:', datosAPI);
+
+            try {
+                const api = "https://crudventas-2946605267.us-central1.run.app";
+                const area = "ventas";
+                const forma = "actualizar_pago";
+
+                mostrarToast('Actualizando estado de pago...', 'info');
+
+                const response = await fetch(`${api}?area=${area}&forma=${forma}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(datosAPI)
+                });
+
+                console.log('Status de respuesta actualización pago:', response.status);
+
+                if (response.status === 200) {
+                    const result = await response.json();
+                    console.log('Respuesta de actualización pago:', result);
+                    
+                    mostrarToast('Estado de pago actualizado exitosamente', 'success');
+                    
+                    // Actualizar datos actuales con los nuevos valores
+                    pagoActual = { ...pagoActual, ...datosActualizados };
+                    datosOriginalesPago = JSON.parse(JSON.stringify(pagoActual));
+                    
+                    // Cancelar modo edición
+                    cancelarEdicionPago();
+                } else {
+                    console.error('Error en la respuesta de actualización:', response.status);
+                    const errorData = await response.text();
+                    console.error('Detalles del error:', errorData);
+                    mostrarToast('Error al actualizar el estado de pago', 'error');
+                }
+            } catch (error) {
+                console.error('Error actualizando pago:', error);
+                mostrarToast('Error de conexión al actualizar', 'error');
+            }
         }
 
         // Función para confirmar eliminación
