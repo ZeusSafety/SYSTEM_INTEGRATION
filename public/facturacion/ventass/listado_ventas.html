@@ -1349,7 +1349,9 @@
                 <div class="detail-item" data-field="ASESOR">
                     <div class="detail-label">Asesor</div>
                     <div class="detail-value">${venta.ASESOR || 'N/A'}</div>
-                    <input type="text" class="form-input" value="${venta.ASESOR || ''}">
+                    <select class="form-input" id="editAsesorSelect">
+                        <option value="">Cargando...</option>
+                    </select>
                 </div>
                 <div class="detail-item" data-field="N_COMPROBANTE">
                     <div class="detail-label">N° Comprobante</div>
@@ -1380,7 +1382,11 @@
                 <div class="detail-item" data-field="SALIDA_DE_PEDIDO">
                     <div class="detail-label">Salida de Pedido</div>
                     <div class="detail-value">${venta.SALIDA_DE_PEDIDO || 'N/A'}</div>
-                    <input type="text" class="form-input" value="${venta.SALIDA_DE_PEDIDO || ''}">
+                    <select class="form-input" id="editSalidaPedidoSelect">
+                        <option value="">Seleccione una salida</option>
+                        <option value="MALVINAS" ${venta.SALIDA_DE_PEDIDO === 'MALVINAS' ? 'selected' : ''}>MALVINAS</option>
+                        <option value="CALLAO" ${venta.SALIDA_DE_PEDIDO === 'CALLAO' ? 'selected' : ''}>CALLAO</option>
+                    </select>
                 </div>
                 <div class="detail-item" data-field="ESTADO">
                     <div class="detail-label">Estado</div>
@@ -1424,6 +1430,9 @@
             
             // Cargar datos de ubicaciones en los selects
             cargarSelectsUbicacion(venta.REGION, venta.DISTRITO, venta.LUGAR);
+            
+            // Cargar asesores desde API
+            cargarAsesores(venta.ASESOR);
 
             document.getElementById('detailsModal').classList.add('show');
         }
@@ -1667,10 +1676,14 @@
                 const regionSelect = document.getElementById('editRegionSelect');
                 const distritoSelect = document.getElementById('editDistritoSelect');
                 const lugarSelect = document.getElementById('editLugarSelect');
+                const asesorSelect = document.getElementById('editAsesorSelect');
+                const salidaPedidoSelect = document.getElementById('editSalidaPedidoSelect');
                 
                 if (regionSelect) regionSelect.value = datosOriginalesVenta.REGION || '';
                 if (distritoSelect) distritoSelect.value = datosOriginalesVenta.DISTRITO || '';
                 if (lugarSelect) lugarSelect.value = datosOriginalesVenta.LUGAR || '';
+                if (asesorSelect) asesorSelect.value = datosOriginalesVenta.ASESOR || '';
+                if (salidaPedidoSelect) salidaPedidoSelect.value = datosOriginalesVenta.SALIDA_DE_PEDIDO || '';
             }
 
             document.getElementById('btnEditarDetalles').style.display = 'inline-flex';
@@ -1688,22 +1701,28 @@
 
             detailItems.forEach(item => {
                 const field = item.dataset.field;
-                if (field && field !== 'ID_VENTA' && field !== 'CLIENTE') {
+                if (field && field !== 'ID_VENTA' && field !== 'CLIENTE' && 
+                    field !== 'REGION' && field !== 'DISTRITO' && field !== 'LUGAR' && 
+                    field !== 'ASESOR' && field !== 'SALIDA_DE_PEDIDO') {
                     const input = item.querySelector('.form-input');
-                    if (input) {
+                    if (input && !input.id) { // Excluir selects con ID
                         datosActualizados[field] = input.value;
                     }
                 }
             });
 
-            // Obtener valores de los selects de ubicación
+            // Obtener valores de los selects
             const regionSelect = document.getElementById('editRegionSelect');
             const distritoSelect = document.getElementById('editDistritoSelect');
             const lugarSelect = document.getElementById('editLugarSelect');
+            const asesorSelect = document.getElementById('editAsesorSelect');
+            const salidaPedidoSelect = document.getElementById('editSalidaPedidoSelect');
 
             const regionSeleccionada = regionSelect ? regionSelect.value : '';
             const distritoSeleccionado = distritoSelect ? distritoSelect.value : '';
             const lugarSeleccionado = lugarSelect ? lugarSelect.value : '';
+            const asesorSeleccionado = asesorSelect ? asesorSelect.value : '';
+            const salidaPedidoSeleccionada = salidaPedidoSelect ? salidaPedidoSelect.value : '';
 
             // Obtener IDs de ubicaciones
             const idRegion = regionDataEdit[regionSeleccionada] || null;
@@ -1714,12 +1733,12 @@
             const datosAPI = {
                 fecha: datosActualizados.FECHA || '',
                 clasificacion: datosActualizados.CLASIFICACION || '',
-                asesor: datosActualizados.ASESOR || '',
+                asesor: asesorSeleccionado || '',
                 n_comprobante: datosActualizados.N_COMPROBANTE || '',
                 id_region: idRegion ? idRegion.toString() : "",
                 id_distrito: idDistrito ? idDistrito.toString() : "",
                 id_lugar: idLugar ? idLugar.toString() : "",
-                salida_de_pedido: datosActualizados.SALIDA_DE_PEDIDO || '',
+                salida_de_pedido: salidaPedidoSeleccionada || '',
                 observacion: datosActualizados.OBSERVACIONES || "",
                 id: ventaActual.ID_VENTA.toString()
             };
@@ -1753,6 +1772,8 @@
                     datosActualizados.REGION = regionSeleccionada;
                     datosActualizados.DISTRITO = distritoSeleccionado;
                     datosActualizados.LUGAR = lugarSeleccionado;
+                    datosActualizados.ASESOR = asesorSeleccionado;
+                    datosActualizados.SALIDA_DE_PEDIDO = salidaPedidoSeleccionada;
                     
                     ventaActual = { ...ventaActual, ...datosActualizados };
                     datosOriginalesVenta = JSON.parse(JSON.stringify(ventaActual));
@@ -1883,17 +1904,14 @@
                                 <select class="form-input">
                                     <option value="FACTURA" ${pago.COMPROBANTE === 'FACTURA' ? 'selected' : ''}>FACTURA</option>
                                     <option value="BOLETA" ${pago.COMPROBANTE === 'BOLETA' ? 'selected' : ''}>BOLETA</option>
-                                    <option value="RECIBO" ${pago.COMPROBANTE === 'RECIBO' ? 'selected' : ''}>RECIBO</option>
+                                    <option value="PROFORMA" ${pago.COMPROBANTE === 'PROFORMA' ? 'selected' : ''}>PROFORMA</option>
                                 </select>
                             </div>
                             <div class="detail-item" data-field="TIPO_DE_PAGO">
-                                <div class="detail-label">Tipo de Pago</div>
+                                <div class="detail-label">Forma de Pago</div>
                                 <div class="detail-value">${pago.TIPO_DE_PAGO || 'N/A'}</div>
-                                <select class="form-input">
-                                    <option value="EFECTIVO" ${pago.TIPO_DE_PAGO === 'EFECTIVO' ? 'selected' : ''}>EFECTIVO</option>
-                                    <option value="TRANSFERENCIA" ${pago.TIPO_DE_PAGO === 'TRANSFERENCIA' ? 'selected' : ''}>TRANSFERENCIA</option>
-                                    <option value="TARJETA" ${pago.TIPO_DE_PAGO === 'TARJETA' ? 'selected' : ''}>TARJETA</option>
-                                    <option value="CHEQUE" ${pago.TIPO_DE_PAGO === 'CHEQUE' ? 'selected' : ''}>CHEQUE</option>
+                                <select class="form-input" id="editFormaPagoSelect">
+                                    <option value="">Cargando...</option>
                                 </select>
                             </div>
                             <div class="detail-item" data-field="FECHA_DE_PAGO">
@@ -1945,6 +1963,9 @@
                         document.getElementById('btnCancelarPago').style.display = 'none';
                         document.getElementById('btnGuardarPago').style.display = 'none';
 
+                        // Cargar formas de pago desde API
+                        cargarFormasDePago(pago.TIPO_DE_PAGO);
+                        
                         // Cargar montos pagados
                         cargarMontosPagados(pago.ID_PAGO);
                     } else {
@@ -2071,6 +2092,86 @@
             `;
         }
 
+        // Función para cargar formas de pago desde API
+        async function cargarFormasDePago(formaPagoActual) {
+            try {
+                const api = "https://productoscrud-2946605267.us-central1.run.app";
+                const metodo = "configuracion_general";
+                
+                const response = await fetch(`${api}?metodo=${metodo}`);
+                console.log('Status de respuesta formas de pago:', response.status);
+                
+                if (response.status === 200) {
+                    const data = await response.json();
+                    console.log('Datos de configuración cargados:', data);
+                    
+                    // Filtrar solo las formas de pago
+                    const formasPago = data.filter(item => item.CATEGORIA === 'FORMA_PAGO');
+                    
+                    const selectFormaPago = document.getElementById('editFormaPagoSelect');
+                    if (selectFormaPago) {
+                        selectFormaPago.innerHTML = '<option value="">Seleccione forma de pago</option>';
+                        
+                        formasPago.forEach(item => {
+                            if (item.NOMBRE) {
+                                const option = document.createElement('option');
+                                option.value = item.NOMBRE;
+                                option.textContent = item.NOMBRE;
+                                if (item.NOMBRE === formaPagoActual) {
+                                    option.selected = true;
+                                }
+                                selectFormaPago.appendChild(option);
+                            }
+                        });
+                        
+                        console.log('Formas de pago cargadas:', formasPago.length);
+                    }
+                }
+            } catch (error) {
+                console.error('Error cargando formas de pago:', error);
+            }
+        }
+
+        // Función para cargar asesores desde API
+        async function cargarAsesores(asesorActual) {
+            try {
+                const api = "https://productoscrud-2946605267.us-central1.run.app";
+                const metodo = "configuracion_general";
+                
+                const response = await fetch(`${api}?metodo=${metodo}`);
+                console.log('Status de respuesta asesores:', response.status);
+                
+                if (response.status === 200) {
+                    const data = await response.json();
+                    console.log('Datos de configuración cargados:', data);
+                    
+                    // Filtrar solo los asesores
+                    const asesores = data.filter(item => item.CATEGORIA === 'ASESOR');
+                    
+                    const selectAsesor = document.getElementById('editAsesorSelect');
+                    if (selectAsesor) {
+                        selectAsesor.innerHTML = '<option value="">Seleccione un asesor</option>';
+                        
+                        asesores.forEach(item => {
+                            if (item.NOMBRE) {
+                                const option = document.createElement('option');
+                                option.value = item.NOMBRE;
+                                option.textContent = item.NOMBRE;
+                                if (item.NOMBRE === asesorActual) {
+                                    option.selected = true;
+                                }
+                                selectAsesor.appendChild(option);
+                            }
+                        });
+                        
+                        console.log('Asesores cargados:', asesores.length);
+                    }
+                }
+            } catch (error) {
+                console.error('Error cargando asesores:', error);
+            }
+        }
+
         // Función para editar pago
         function editarPago() {
             const detailItems = document.querySelectorAll('#paymentGrid .detail-item');
@@ -2115,10 +2216,14 @@
                 }
             });
 
+            // Obtener valor del select de forma de pago
+            const formaPagoSelect = document.getElementById('editFormaPagoSelect');
+            const formaPagoSeleccionada = formaPagoSelect ? formaPagoSelect.value : '';
+
             // Preparar datos en el formato requerido por la API
             const datosAPI = {
                 COMPROBANTE: datosActualizados.COMPROBANTE || '',
-                TIPO_DE_PAGO: datosActualizados.TIPO_DE_PAGO || '',
+                TIPO_DE_PAGO: formaPagoSeleccionada || '',
                 FECHA_DE_PAGO: datosActualizados.FECHA_DE_PAGO || '',
                 REGULARIZADO: datosActualizados.REGULARIZADO || '',
                 CANCELADO: datosActualizados.CANCELADO || '',
