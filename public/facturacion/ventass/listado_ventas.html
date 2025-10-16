@@ -587,6 +587,70 @@
             color: var(--azul-principal);
         }
 
+        .metrica-comparacion {
+            background: var(--blanco);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border-left: 4px solid var(--azul-principal);
+        }
+
+        .metrica-header {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--gris-oscuro);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .metrica-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .metrica-item {
+            background: var(--gris-claro);
+            padding: 8px 12px;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .metrica-label {
+            font-size: 0.7rem;
+            color: var(--gris-medio);
+            margin-bottom: 4px;
+        }
+
+        .metrica-valor {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: var(--azul-principal);
+        }
+
+        .metrica-resultado {
+            text-align: center;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1rem;
+        }
+
+        .metrica-resultado.concretada {
+            background: #dcfce7;
+            color: #166534;
+            border: 2px solid #10b981;
+        }
+
+        .metrica-resultado.pendiente {
+            background: #fef3c7;
+            color: #92400e;
+            border: 2px solid #f59e0b;
+        }
+
         .editable-cell input {
             display: none;
         }
@@ -631,7 +695,16 @@
         }
 
         #paymentGrid .detail-item {
-            padding: 10px 12px;
+            padding: 6px 10px;
+        }
+
+        #paymentGrid .detail-label {
+            font-size: 0.75rem;
+            margin-bottom: 3px;
+        }
+
+        #paymentGrid .detail-value {
+            font-size: 0.9rem;
         }
 
         .detail-label {
@@ -1219,6 +1292,9 @@
                             <p>Cargando productos...</p>
                         </div>
                     </div>
+                    
+                    <!-- Métrica de comparación -->
+                    <div id="metricaContainer"></div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -1247,6 +1323,10 @@
         let regionDataEdit = {}; // {nombre: id}
         let distritoDataEdit = {}; // {nombre: id}
         let lugarDataEdit = {}; // {nombre: id}
+        
+        // Variables para métricas de pago
+        let totalProductosPago = 0;
+        let totalPagadoPago = 0;
 
         // Función para cargar datos desde la API
         async function cargarVentas() {
@@ -1673,6 +1753,16 @@
             pagoActual = null;
             datosOriginalesPago = null;
             
+            // Resetear totales de métrica
+            totalProductosPago = 0;
+            totalPagadoPago = 0;
+            
+            // Limpiar métrica
+            const metricaContainer = document.getElementById('metricaContainer');
+            if (metricaContainer) {
+                metricaContainer.innerHTML = '';
+            }
+            
             // Limpiar contenedor de productos
             const productosContainerPago = document.getElementById('productosContainerPago');
             if (productosContainerPago) {
@@ -2094,6 +2184,7 @@
             
             // Calcular el total de montos
             const totalMontos = data.reduce((sum, item) => sum + (parseFloat(item.MONTO) || 0), 0);
+            totalPagadoPago = totalMontos;
 
             container.innerHTML = `
                 <table class="montos-table">
@@ -2130,6 +2221,55 @@
                         </tr>
                     </tfoot>
                 </table>
+            `;
+
+            // Actualizar métrica de comparación
+            actualizarMetricaComparacion();
+        }
+
+        // Función para actualizar la métrica de comparación
+        function actualizarMetricaComparacion() {
+            // Verificar si existe el contenedor de métrica
+            const metricaContainer = document.getElementById('metricaContainer');
+            if (!metricaContainer) return;
+
+            // Calcular diferencia
+            const diferencia = totalProductosPago - totalPagadoPago;
+            const porcentajePagado = totalProductosPago > 0 ? (totalPagadoPago / totalProductosPago) * 100 : 0;
+            
+            // Determinar si está concretada (con tolerancia de 0.01 por redondeos)
+            const estaConcretada = Math.abs(diferencia) < 0.01;
+
+            metricaContainer.innerHTML = `
+                <div class="metrica-comparacion">
+                    <div class="metrica-header">
+                        <i class="fas fa-chart-line"></i>
+                        Análisis de Pago
+                    </div>
+                    <div class="metrica-content">
+                        <div class="metrica-item">
+                            <div class="metrica-label">Total Productos</div>
+                            <div class="metrica-valor">S/ ${totalProductosPago.toFixed(2)}</div>
+                        </div>
+                        <div class="metrica-item">
+                            <div class="metrica-label">Total Pagado</div>
+                            <div class="metrica-valor">S/ ${totalPagadoPago.toFixed(2)}</div>
+                        </div>
+                    </div>
+                    ${diferencia !== 0 ? `
+                        <div class="metrica-item" style="margin-bottom: 10px;">
+                            <div class="metrica-label">${diferencia > 0 ? 'Saldo Pendiente' : 'Exceso de Pago'}</div>
+                            <div class="metrica-valor" style="color: ${diferencia > 0 ? 'var(--rojo-error)' : 'var(--verde-exito)'};">
+                                S/ ${Math.abs(diferencia).toFixed(2)}
+                            </div>
+                        </div>
+                    ` : ''}
+                    <div class="metrica-resultado ${estaConcretada ? 'concretada' : 'pendiente'}">
+                        <i class="fas ${estaConcretada ? 'fa-check-circle' : 'fa-clock'}"></i>
+                        ${estaConcretada ? 'VENTA CONCRETADA' : 'COMPROBANTE AÚN POR CANCELAR'}
+                        ${!estaConcretada ? ` (${porcentajePagado.toFixed(1)}% pagado)` : ''}
+                    </div>
+                </div>
             `;
         }
 
@@ -2188,11 +2328,14 @@
                         <p>No hay productos registrados</p>
                     </div>
                 `;
+                totalProductosPago = 0;
+                actualizarMetricaComparacion();
                 return;
             }
 
             // Calcular el total general
             const totalGeneral = productos.reduce((sum, prod) => sum + (parseFloat(prod.TOTAL) || 0), 0);
+            totalProductosPago = totalGeneral;
 
             productosContainer.innerHTML = `
                 <table class="productos-table">
@@ -2224,6 +2367,9 @@
                     </tfoot>
                 </table>
             `;
+
+            // Actualizar métrica de comparación
+            actualizarMetricaComparacion();
         }
 
         // Función para cargar formas de pago desde API
