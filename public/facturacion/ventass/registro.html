@@ -1284,7 +1284,7 @@
 
                 productosEnTabla.push(nuevoProducto);
                 actualizarTablaProductos();
-                limpiarFormularioProducto();
+                // NO limpiar el formulario de producto para permitir agregar productos similares
             } else {
                 alert('Por favor, complete el nombre del producto, la cantidad y el precio.');
             }
@@ -1435,32 +1435,22 @@
                     
                     alert('¡Venta guardada exitosamente!');
                     
-                    // Guardar valores que no deben borrarse
-                    const fechaGuardada = document.getElementById('FECHA').value;
-                    const clasificacionGuardada = document.getElementById('CLASIFICACION').value;
-                    const salidaPedidoGuardada = document.getElementById('SALIDA_DE_PEDIDO').value;
-                    const regionGuardada = document.getElementById('REGION').value;
-                    const lugarGuardado = document.getElementById('LUGAR').value;
-                    
-                    // Limpiar formulario
-                    document.getElementById('ventaForm').reset();
+                    // Solo limpiar el campo de cliente y los productos
+                    document.getElementById('CLIENTE').value = '';
                     productosEnTabla = [];
                     actualizarTablaProductos();
+                    
+                    // Limpiar formulario de productos
+                    limpiarFormularioProducto();
                     
                     // Limpiar cache y variables de cliente
                     clienteSearchCache.clear();
                     selectedClienteId = null;
                     
-                    // Restablecer valores que NO deben borrarse
-                    document.getElementById('FECHA').value = fechaGuardada;
-                    document.getElementById('CLASIFICACION').value = clasificacionGuardada;
-                    document.getElementById('SALIDA_DE_PEDIDO').value = salidaPedidoGuardada;
-                    document.getElementById('REGION').value = regionGuardada;
-                    document.getElementById('LUGAR').value = lugarGuardado;
-                    
-                    // Restablecer tipo de comprobante
-                    document.getElementById('TIPO_COMPR').value = 'FACTURA';
-                    actualizarNComprobante();
+                    // Incrementar el número de comprobante para el siguiente
+                    const nComprInput = document.getElementById('N_COMPR');
+                    const currentNumber = parseInt(nComprInput.value) || 0;
+                    nComprInput.value = (currentNumber + 1).toString();
                 } else {
                     console.error('Error en la respuesta:', response.status);
                     const errorData = await response.text();
