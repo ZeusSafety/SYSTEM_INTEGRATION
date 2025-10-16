@@ -109,6 +109,13 @@
             margin-bottom: 30px;
         }
 
+        .config-grid-full {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
         .config-panel {
             background: var(--blanco);
             border-radius: 12px;
@@ -412,6 +419,50 @@
             font-weight: 600;
         }
 
+        /* Paginación */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            padding: 20px;
+            background: var(--gris-claro);
+            border-radius: 0 0 12px 12px;
+        }
+
+        .pagination button {
+            padding: 8px 16px;
+            border: 2px solid var(--azul-claro);
+            background: var(--blanco);
+            color: var(--azul-claro);
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .pagination button:hover:not(:disabled) {
+            background: var(--azul-claro);
+            color: var(--blanco);
+            transform: translateY(-1px);
+        }
+
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            border-color: var(--gris-medio);
+            color: var(--gris-medio);
+        }
+
+        .pagination-info {
+            color: var(--gris-oscuro);
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
         @media (max-width: 768px) {
             .header-content {
                 flex-direction: column;
@@ -421,6 +472,14 @@
 
             .config-grid {
                 grid-template-columns: 1fr;
+            }
+
+            .config-grid-full {
+                grid-template-columns: 1fr;
+            }
+
+            #formCliente > div {
+                grid-template-columns: 1fr !important;
             }
 
             .panel-actions {
@@ -449,10 +508,10 @@
     <header class="header">
         <div class="header-content">
             <div class="logo-container">
-                <img src="../../Logo de Zeus.png" alt="ZEUS SAFETY Logo" class="logo">
+                <img src="../../../Logo de Zeus.png" alt="ZEUS SAFETY Logo" class="logo">
                 <h1 class="header-title">Configuración del Sistema</h1>
             </div>
-            <a href="../ventas.html" class="back-button">
+            <a href="../../../facturacion.html" class="back-button">
                 <i class="fas fa-arrow-left"></i>
                 Volver a Ventas
             </a>
@@ -598,6 +657,131 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Panel de Lugares -->
+            <div class="config-panel">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <i class="fas fa-map-marker-alt"></i>
+                        Gestión de Lugares
+                    </div>
+                    <div class="panel-actions">
+                        <button type="button" class="btn btn-success" onclick="mostrarFormularioLugar()">
+                            <i class="fas fa-plus"></i>
+                            Nuevo Lugar
+                        </button>
+                    </div>
+                </div>
+                <div class="panel-content">
+                    <!-- Formulario de Lugar (oculto por defecto) -->
+                    <form id="formLugar" style="display: none;" class="form-lugar">
+                        <div class="form-group">
+                            <label for="nombreLugar" class="form-label">Nombre del Lugar *</label>
+                            <input type="text" id="nombreLugar" name="nombreLugar" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="tipoLugar" class="form-label">Tipo de Lugar *</label>
+                            <select id="tipoLugar" name="tipoLugar" class="form-select" required>
+                                <option value="">Seleccione un tipo</option>
+                                <option value="CENTRO COMERCIAL">Centro Comercial</option>
+                                <option value="PROVINCIA">Provincia</option>
+                                <option value="AVENIDA">Avenida</option>
+                                <option value="CIUDAD">Ciudad</option>
+                                <option value="DISTRITO">Distrito</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i>
+                                Guardar Lugar
+                            </button>
+                            <button type="button" class="btn btn-secondary" onclick="ocultarFormularioLugar()">
+                                <i class="fas fa-times"></i>
+                                Cancelar
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Tabla de Lugares -->
+                    <div class="table-container">
+                        <table class="table" id="tablaLugares">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Lugar</th>
+                                    <th>Tipo</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbodyLugares">
+                                <tr>
+                                    <td colspan="4" style="text-align: center; color: var(--gris-medio); padding: 40px;">
+                                        <i class="fas fa-spinner fa-spin" style="font-size: 2rem; margin-bottom: 10px; display: block;"></i>
+                                        <p>Cargando lugares...</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        
+                        <!-- Paginación de lugares -->
+                        <div class="pagination" id="paginacionLugares">
+                            <button onclick="cambiarPaginaLugares(-1)" id="btnPrevLugares">
+                                <i class="fas fa-chevron-left"></i>
+                                Anterior
+                            </button>
+                            <span class="pagination-info" id="infoPageLugares">Página 1 de 1</span>
+                            <button onclick="cambiarPaginaLugares(1)" id="btnNextLugares">
+                                Siguiente
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección de Cliente (Grid completo - sin tabla) -->
+        <div class="config-grid-full">
+            <div class="config-panel">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <i class="fas fa-user-plus"></i>
+                        Registro de Nuevos Clientes
+                    </div>
+                </div>
+                <div class="panel-content">
+                    <!-- Formulario de Cliente (siempre visible) -->
+                    <form id="formCliente" class="form-cliente">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 200px; gap: 15px; align-items: end;">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label for="nombreCliente" class="form-label">Nombre del Cliente *</label>
+                                <input type="text" id="nombreCliente" name="nombreCliente" class="form-input" required placeholder="Ingrese el nombre completo del cliente">
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label for="tipoCliente" class="form-label">Tipo de Cliente *</label>
+                                <select id="tipoCliente" name="tipoCliente" class="form-select" required>
+                                    <option value="">Seleccione un tipo</option>
+                                    <option value="EMPRESA">Empresa</option>
+                                    <option value="PERSONA">Persona</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <button type="submit" class="btn btn-success" style="width: 100%;">
+                                    <i class="fas fa-user-plus"></i>
+                                    Registrar Cliente
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                    
+                    <div style="margin-top: 15px; padding: 15px; background: var(--azul-muy-claro); border-radius: 8px; border-left: 4px solid var(--azul-claro);">
+                        <p style="color: var(--gris-oscuro); margin: 0; font-size: 0.9rem;">
+                            <i class="fas fa-info-circle"></i>
+                            <strong>Nota:</strong> Los clientes registrados aquí estarán disponibles inmediatamente en el sistema de ventas.
+                        </p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -608,8 +792,14 @@
         // Variables globales
         let asesores = [];
         let formasPago = [];
+        let lugares = [];
         let editandoAsesor = null;
         let editandoFormaPago = null;
+        let editandoLugar = null;
+        
+        // Variables de paginación para lugares
+        let paginaActualLugares = 1;
+        const elementosPorPaginaLugares = 5;
 
         // Función para mostrar notificaciones
         function mostrarNotificacion(mensaje, tipo = 'info') {
@@ -687,6 +877,9 @@
                 // Actualizar tablas
                 actualizarTablaAsesores();
                 actualizarTablaFormasPago();
+                
+                // Cargar lugares
+                await cargarLugares();
 
                 mostrarNotificacion('Configuraciones cargadas correctamente', 'exito');
                 
@@ -1038,6 +1231,305 @@
             } catch (error) {
                 console.error('Error al guardar forma de pago:', error);
                 mostrarNotificacion('Error al guardar forma de pago', 'error');
+            } finally {
+                mostrarLoading(false);
+            }
+        });
+
+        // Función para cargar lugares
+        async function cargarLugares() {
+            try {
+                const response = await fetch(`${API_URL}?metodo=lugar_configuracion`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Error HTTP: ${response.status}`);
+                }
+
+                lugares = await response.json();
+                console.log('Lugares:', lugares);
+
+                actualizarTablaLugares();
+                
+            } catch (error) {
+                console.error('Error al cargar lugares:', error);
+                mostrarNotificacion('Error al cargar lugares', 'error');
+            }
+        }
+
+        // Función para actualizar tabla de lugares
+        function actualizarTablaLugares() {
+            const tbody = document.getElementById('tbodyLugares');
+            
+            if (lugares.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="4" style="text-align: center; color: var(--gris-medio); padding: 40px;">
+                            <i class="fas fa-map-marker-alt" style="font-size: 2rem; margin-bottom: 10px; display: block;"></i>
+                            <p>No hay lugares registrados</p>
+                        </td>
+                    </tr>
+                `;
+                actualizarPaginacionLugares();
+                return;
+            }
+
+            // Calcular índices para paginación
+            const totalPaginas = Math.ceil(lugares.length / elementosPorPaginaLugares);
+            const inicio = (paginaActualLugares - 1) * elementosPorPaginaLugares;
+            const fin = inicio + elementosPorPaginaLugares;
+            const lugaresPagina = lugares.slice(inicio, fin);
+
+            tbody.innerHTML = lugaresPagina.map(lugar => `
+                <tr>
+                    <td>${lugar.ID}</td>
+                    <td>${lugar.LUGAR}</td>
+                    <td>${lugar.TIPO || 'N/A'}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn-edit" onclick="editarLugar('${lugar.ID}')">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn-delete" onclick="eliminarLugar('${lugar.ID}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+
+            actualizarPaginacionLugares();
+        }
+
+        // Función para actualizar controles de paginación de lugares
+        function actualizarPaginacionLugares() {
+            const totalPaginas = Math.ceil(lugares.length / elementosPorPaginaLugares) || 1;
+            const infoPage = document.getElementById('infoPageLugares');
+            const btnPrev = document.getElementById('btnPrevLugares');
+            const btnNext = document.getElementById('btnNextLugares');
+
+            if (infoPage) {
+                infoPage.textContent = `Página ${paginaActualLugares} de ${totalPaginas} (${lugares.length} lugares)`;
+            }
+
+            if (btnPrev) {
+                btnPrev.disabled = paginaActualLugares === 1;
+            }
+
+            if (btnNext) {
+                btnNext.disabled = paginaActualLugares >= totalPaginas;
+            }
+        }
+
+        // Función para cambiar de página en lugares
+        function cambiarPaginaLugares(direccion) {
+            const totalPaginas = Math.ceil(lugares.length / elementosPorPaginaLugares);
+            
+            paginaActualLugares += direccion;
+            
+            // Validar límites
+            if (paginaActualLugares < 1) {
+                paginaActualLugares = 1;
+            } else if (paginaActualLugares > totalPaginas) {
+                paginaActualLugares = totalPaginas;
+            }
+            
+            actualizarTablaLugares();
+        }
+
+        // Funciones para formulario de lugar
+        function mostrarFormularioLugar() {
+            document.getElementById('formLugar').style.display = 'block';
+            editandoLugar = null;
+            document.getElementById('nombreLugar').value = '';
+            document.getElementById('tipoLugar').value = '';
+            
+            const submitBtn = document.querySelector('#formLugar button[type="submit"]');
+            submitBtn.innerHTML = '<i class="fas fa-save"></i> Guardar Lugar';
+        }
+
+        function ocultarFormularioLugar() {
+            document.getElementById('formLugar').style.display = 'none';
+            editandoLugar = null;
+            
+            const submitBtn = document.querySelector('#formLugar button[type="submit"]');
+            submitBtn.innerHTML = '<i class="fas fa-save"></i> Guardar Lugar';
+        }
+
+        function editarLugar(id) {
+            const lugar = lugares.find(l => l.ID == id);
+            if (lugar) {
+                editandoLugar = id;
+                document.getElementById('nombreLugar').value = lugar.LUGAR;
+                document.getElementById('tipoLugar').value = lugar.TIPO || '';
+                document.getElementById('formLugar').style.display = 'block';
+                
+                const submitBtn = document.querySelector('#formLugar button[type="submit"]');
+                submitBtn.innerHTML = '<i class="fas fa-save"></i> Actualizar Lugar';
+            }
+        }
+
+        async function eliminarLugar(id) {
+            if (confirm('¿Está seguro de que desea eliminar este lugar?')) {
+                try {
+                    mostrarLoading(true);
+                    
+                    const response = await fetch(`${API_URL}?metodo=eliminar_configuracion`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            id: id
+                        })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`Error HTTP: ${response.status}`);
+                    }
+
+                    mostrarNotificacion('Lugar eliminado correctamente', 'exito');
+                    
+                    // Resetear a página 1 si la página actual queda vacía
+                    const totalPaginasNuevo = Math.ceil((lugares.length - 1) / elementosPorPaginaLugares);
+                    if (paginaActualLugares > totalPaginasNuevo && totalPaginasNuevo > 0) {
+                        paginaActualLugares = totalPaginasNuevo;
+                    }
+                    
+                    cargarLugares();
+                    
+                } catch (error) {
+                    console.error('Error al eliminar lugar:', error);
+                    mostrarNotificacion('Error al eliminar lugar', 'error');
+                } finally {
+                    mostrarLoading(false);
+                }
+            }
+        }
+
+        // Event listener para formulario de lugar
+        document.getElementById('formLugar').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            
+            const nombre = document.getElementById('nombreLugar').value.trim();
+            const tipo = document.getElementById('tipoLugar').value;
+            
+            if (!nombre || !tipo) {
+                mostrarNotificacion('Todos los campos son obligatorios', 'error');
+                return;
+            }
+
+            try {
+                mostrarLoading(true);
+                
+                if (editandoLugar) {
+                    // Actualizar lugar existente
+                    const datos = {
+                        id: editandoLugar,
+                        lugar: nombre,
+                        tipo: tipo
+                    };
+
+                    const response = await fetch(`${API_URL}?metodo=configuracion_lugar_edit`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(datos)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`Error HTTP: ${response.status}`);
+                    }
+
+                    mostrarNotificacion('Lugar actualizado correctamente', 'exito');
+                } else {
+                    // Crear nuevo lugar
+                    const datos = {
+                        lugar: nombre,
+                        tipo: tipo
+                    };
+
+                    const response = await fetch(`${API_URL}?metodo=configuracion_lugar`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(datos)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`Error HTTP: ${response.status}`);
+                    }
+
+                    mostrarNotificacion('Lugar creado correctamente', 'exito');
+                    
+                    // Si es nuevo lugar, ir a la última página
+                    if (!editandoLugar) {
+                        const totalPaginasNuevo = Math.ceil((lugares.length + 1) / elementosPorPaginaLugares);
+                        paginaActualLugares = totalPaginasNuevo;
+                    }
+                }
+                
+                ocultarFormularioLugar();
+                cargarLugares();
+                
+            } catch (error) {
+                console.error('Error al guardar lugar:', error);
+                mostrarNotificacion('Error al guardar lugar', 'error');
+            } finally {
+                mostrarLoading(false);
+            }
+        });
+
+        // Event listener para formulario de cliente
+        document.getElementById('formCliente').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            
+            const nombre = document.getElementById('nombreCliente').value.trim();
+            const tipo = document.getElementById('tipoCliente').value;
+            
+            if (!nombre || !tipo) {
+                mostrarNotificacion('Todos los campos son obligatorios', 'error');
+                return;
+            }
+
+            try {
+                mostrarLoading(true);
+                
+                const datos = {
+                    cliente: nombre,
+                    tipo_cliente: tipo
+                };
+
+                const response = await fetch(`${API_URL}?metodo=configuracion_cliente`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(datos)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Error HTTP: ${response.status}`);
+                }
+
+                const result = await response.json();
+                console.log('Cliente registrado:', result);
+
+                mostrarNotificacion('Cliente registrado correctamente', 'exito');
+                
+                // Limpiar formulario
+                document.getElementById('nombreCliente').value = '';
+                document.getElementById('tipoCliente').value = '';
+                
+            } catch (error) {
+                console.error('Error al registrar cliente:', error);
+                mostrarNotificacion('Error al registrar cliente', 'error');
             } finally {
                 mostrarLoading(false);
             }
