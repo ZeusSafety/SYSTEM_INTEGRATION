@@ -2876,17 +2876,13 @@
 
             // Preparar datos para Excel con las columnas que devuelve la API
             const excelData = data.map(venta => ({
-                'CLIENTE': venta.CLIENTE || '',
                 'FECHA': formatearFecha(venta.FECHA),
-                'CLASIFICACIÓN': venta.CLASIFICACION || '',
                 'ASESOR': venta.ASESOR || '',
-                'N° COMPROBANTE': venta.N_COMPROBANTE || '',
                 'REGIÓN': venta.REGION || '',
-                'DISTRITO': venta.DISTRITO || '',
-                'SALIDA DE PEDIDO': venta.SALIDA_DE_PEDIDO || '',
-                'OBSERVACIONES': venta.OBSERVACIONES || '',
-                'CANCELADO': venta.CANCELADO || '',
-                'ESTADO': venta.ESTADO || '',
+                'LUGAR': venta.LUGAR || '',
+                'CONDICIÓN PAGO': venta.CONDICION_PAGO || '',
+                'N° COMPROBANTE': venta.N_COMPROBANTE || '',
+                'CLIENTE': venta.CLIENTE || '',
                 'MONTO TOTAL': venta.MONTO_TOTAL ? parseFloat(venta.MONTO_TOTAL) : '',
                 'TOTAL ABONADO': venta.TOTAL_ABONADO ? parseFloat(venta.TOTAL_ABONADO) : '',
                 'POR ABONAR': venta.POR_ABONAR ? parseFloat(venta.POR_ABONAR) : ''
@@ -2898,17 +2894,13 @@
 
             // Configurar anchos de columnas
             const colWidths = [
-                { wch: 40 }, // CLIENTE
                 { wch: 12 }, // FECHA
-                { wch: 15 }, // CLASIFICACIÓN
                 { wch: 20 }, // ASESOR
-                { wch: 18 }, // N° COMPROBANTE
                 { wch: 15 }, // REGIÓN
-                { wch: 20 }, // DISTRITO
-                { wch: 18 }, // SALIDA DE PEDIDO
-                { wch: 30 }, // OBSERVACIONES
-                { wch: 12 }, // CANCELADO
-                { wch: 15 }, // ESTADO
+                { wch: 20 }, // LUGAR
+                { wch: 18 }, // CONDICIÓN PAGO
+                { wch: 18 }, // N° COMPROBANTE
+                { wch: 40 }, // CLIENTE
                 { wch: 15 }, // MONTO TOTAL
                 { wch: 15 }, // TOTAL ABONADO
                 { wch: 15 }  // POR ABONAR
