@@ -1152,7 +1152,7 @@
 
     <!-- Modal de Estado de Pago -->
     <div id="paymentModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content large">
             <div class="modal-header">
                 <h3 class="modal-title">
                     <i class="fas fa-dollar-sign"></i>
@@ -1160,46 +1160,71 @@
                 </h3>
                 <span class="close" onclick="closePaymentModal()">&times;</span>
             </div>
-            <div class="modal-body">
-                <!-- Grid de detalles de pago -->
-                <div class="detail-grid" id="paymentGrid">
-                    <!-- Los detalles de pago se insertarán dinámicamente -->
-                    <div class="loading">
-                        <i class="fas fa-spinner"></i>
-                        <p>Cargando información de pago...</p>
+            <div class="modal-body-split">
+                <!-- Columna 1: Datos de Pago y Montos Pagados -->
+                <div class="modal-section">
+                    <!-- Grid de detalles de pago -->
+                    <div class="section-header">
+                        <i class="fas fa-file-invoice-dollar"></i>
+                        Información de Pago
+                    </div>
+                    <div class="detail-grid" id="paymentGrid">
+                        <!-- Los detalles de pago se insertarán dinámicamente -->
+                        <div class="loading">
+                            <i class="fas fa-spinner"></i>
+                            <p>Cargando información de pago...</p>
+                        </div>
+                    </div>
+
+                    <!-- Botones de edición de pago -->
+                    <div class="section-buttons">
+                        <button class="btn btn-edit" id="btnEditarPago" onclick="editarPago()">
+                            <i class="fas fa-edit"></i>
+                            Editar
+                        </button>
+                        <button class="btn btn-secondary" id="btnCancelarPago" onclick="cancelarEdicionPago()" style="display: none;">
+                            <i class="fas fa-times"></i>
+                            Cancelar
+                        </button>
+                        <button class="btn btn-success" id="btnGuardarPago" onclick="guardarPago()" style="display: none;">
+                            <i class="fas fa-save"></i>
+                            Guardar
+                        </button>
+                    </div>
+
+                    <!-- Sección de montos pagados -->
+                    <div style="margin-top: 20px;">
+                        <div class="section-header" style="margin-bottom: 15px;">
+                            <i class="fas fa-money-bill-wave"></i>
+                            Montos Pagados
+                        </div>
+                        <div id="montosPagadosContainer">
+                            <div class="loading">
+                                <i class="fas fa-spinner"></i>
+                                <p>Cargando montos pagados...</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Sección de montos pagados -->
-                <div style="margin-top: 30px;">
-                    <div class="section-header" style="margin-bottom: 15px;">
-                        <i class="fas fa-money-bill-wave"></i>
-                        Montos Pagados
+                <!-- Columna 2: Productos Comprados -->
+                <div class="modal-section">
+                    <div class="section-header">
+                        <i class="fas fa-shopping-basket"></i>
+                        Productos Comprados
                     </div>
-                    <div id="montosPagadosContainer">
+                    <div id="productosContainerPago">
                         <div class="loading">
                             <i class="fas fa-spinner"></i>
-                            <p>Cargando montos pagados...</p>
+                            <p>Cargando productos...</p>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-edit" id="btnEditarPago" onclick="editarPago()">
-                    <i class="fas fa-edit"></i>
-                    Editar
-                </button>
-                <button class="btn btn-secondary" id="btnCancelarPago" onclick="cancelarEdicionPago()" style="display: none;">
-                    <i class="fas fa-times"></i>
-                    Cancelar
-                </button>
-                <button class="btn btn-success" id="btnGuardarPago" onclick="guardarPago()" style="display: none;">
-                    <i class="fas fa-save"></i>
-                    Guardar Cambios
-                </button>
                 <button class="btn btn-primary" onclick="closePaymentModal()">
                     <i class="fas fa-times"></i>
-                    Cerrar
+                    Cerrar Modal
                 </button>
             </div>
         </div>
@@ -1408,7 +1433,7 @@
                             ${venta.CANCELADO || 'NO'}
                         </span>
                     </div>
-                    <select class="form-input">
+                    <select class="form-input" disabled>
                         <option value="SI" ${venta.CANCELADO === 'SI' ? 'selected' : ''}>SI</option>
                         <option value="NO" ${venta.CANCELADO === 'NO' ? 'selected' : ''}>NO</option>
                     </select>
@@ -1647,14 +1672,27 @@
             document.getElementById('paymentModal').classList.remove('show');
             pagoActual = null;
             datosOriginalesPago = null;
+            
+            // Limpiar contenedor de productos
+            const productosContainerPago = document.getElementById('productosContainerPago');
+            if (productosContainerPago) {
+                productosContainerPago.innerHTML = `
+                    <div class="loading">
+                        <i class="fas fa-spinner"></i>
+                        <p>Cargando productos...</p>
+                    </div>
+                `;
+            }
         }
 
         // Función para editar detalles
         function editarDetalles() {
             const detailItems = document.querySelectorAll('#detailsGrid .detail-item');
             detailItems.forEach(item => {
-                // No hacer editables ID_VENTA ni CLIENTE
-                if (item.dataset.field !== 'ID_VENTA' && item.dataset.field !== 'CLIENTE') {
+                // No hacer editables ID_VENTA, CLIENTE ni CANCELADO
+                if (item.dataset.field !== 'ID_VENTA' && 
+                    item.dataset.field !== 'CLIENTE' && 
+                    item.dataset.field !== 'CANCELADO') {
                     item.classList.add('editable');
                 }
             });
@@ -1896,7 +1934,7 @@
                             <div class="detail-item" data-field="N_COMPROBANTE">
                                 <div class="detail-label">N° Comprobante</div>
                                 <div class="detail-value">${pago.N_COMPROBANTE || 'N/A'}</div>
-                                <input type="text" class="form-input" value="${pago.N_COMPROBANTE || ''}">
+                                <input type="text" class="form-input" value="${pago.N_COMPROBANTE || ''}" disabled>
                             </div>
                             <div class="detail-item" data-field="COMPROBANTE">
                                 <div class="detail-label">Tipo Comprobante</div>
@@ -1968,6 +2006,9 @@
                         
                         // Cargar montos pagados
                         cargarMontosPagados(pago.ID_PAGO);
+                        
+                        // Cargar productos en el modal de pago
+                        cargarProductosPago(idVenta);
                     } else {
                         paymentGrid.innerHTML = `
                             <div class="no-data">
@@ -2092,6 +2133,99 @@
             `;
         }
 
+        // Función para cargar productos en el modal de pago
+        async function cargarProductosPago(idVenta) {
+            const productosContainer = document.getElementById('productosContainerPago');
+            
+            // Mostrar loading
+            productosContainer.innerHTML = `
+                <div class="loading">
+                    <i class="fas fa-spinner"></i>
+                    <p>Cargando productos...</p>
+                </div>
+            `;
+
+            try {
+                const api = "https://crudventas-2946605267.us-central1.run.app";
+                const area = "detalle_productos";
+                
+                const response = await fetch(`${api}?area=${area}&id=${idVenta}`);
+                console.log('Status de respuesta productos pago:', response.status);
+                
+                if (response.status === 200) {
+                    const data = await response.json();
+                    console.log('Productos cargados (pago):', data);
+                    
+                    const productos = Array.isArray(data) ? data : [data];
+                    mostrarProductosPago(productos);
+                } else {
+                    productosContainer.innerHTML = `
+                        <div class="no-data">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <p>Error al cargar productos</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error cargando productos (pago):', error);
+                productosContainer.innerHTML = `
+                    <div class="no-data">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>Error de conexión</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Función para mostrar productos en el modal de pago
+        function mostrarProductosPago(productos) {
+            const productosContainer = document.getElementById('productosContainerPago');
+            
+            if (!productos || productos.length === 0) {
+                productosContainer.innerHTML = `
+                    <div class="no-data">
+                        <i class="fas fa-inbox"></i>
+                        <p>No hay productos registrados</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Calcular el total general
+            const totalGeneral = productos.reduce((sum, prod) => sum + (parseFloat(prod.TOTAL) || 0), 0);
+
+            productosContainer.innerHTML = `
+                <table class="productos-table">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Producto</th>
+                            <th>Cantidad</th>
+                            <th>Precio</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${productos.map((prod) => `
+                            <tr>
+                                <td>${prod.CODIGO || 'N/A'}</td>
+                                <td>${prod.PRODUCTO || 'N/A'}</td>
+                                <td>${prod.CANTIDAD || 0}</td>
+                                <td>S/ ${parseFloat(prod.PRECIO_VENTA || 0).toFixed(2)}</td>
+                                <td>S/ ${parseFloat(prod.TOTAL || 0).toFixed(2)}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                    <tfoot>
+                        <tr style="background: var(--azul-muy-claro); font-weight: bold;">
+                            <td colspan="4" style="text-align: right; padding: 12px;">TOTAL GENERAL:</td>
+                            <td style="padding: 12px;">S/ ${totalGeneral.toFixed(2)}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            `;
+        }
+
         // Función para cargar formas de pago desde API
         async function cargarFormasDePago(formaPagoActual) {
             try {
@@ -2176,7 +2310,8 @@
         function editarPago() {
             const detailItems = document.querySelectorAll('#paymentGrid .detail-item');
             detailItems.forEach(item => {
-                if (item.dataset.field !== 'ID_PAGO') {
+                // No hacer editables ID_PAGO ni N_COMPROBANTE
+                if (item.dataset.field !== 'ID_PAGO' && item.dataset.field !== 'N_COMPROBANTE') {
                     item.classList.add('editable');
                 }
             });
