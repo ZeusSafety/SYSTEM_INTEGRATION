@@ -749,6 +749,121 @@
             display: block;
         }
 
+        /* Estilos elegantes para las sugerencias de búsqueda detallada */
+        .suggestions-elegantes {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: var(--blanco);
+            border: 2px solid var(--azul-claro);
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(30, 58, 138, 0.15);
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            margin-top: 4px;
+        }
+
+        .suggestions-elegantes.show {
+            display: block;
+        }
+
+        .suggestions-elegantes li {
+            padding: 16px 20px;
+            cursor: pointer;
+            border-bottom: 1px solid var(--gris-claro);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .suggestions-elegantes li:last-child {
+            border-bottom: none;
+        }
+
+        .suggestions-elegantes li:hover {
+            background: linear-gradient(135deg, var(--azul-muy-claro) 0%, var(--blanco) 100%);
+            transform: translateX(4px);
+            border-left: 4px solid var(--azul-claro);
+        }
+
+        .suggestions-elegantes li.selected {
+            background: linear-gradient(135deg, var(--azul-claro) 0%, var(--azul-oscuro) 100%);
+            color: var(--blanco);
+            transform: translateX(4px);
+            border-left: 4px solid var(--azul-oscuro);
+        }
+
+        .suggestions-elegantes .cliente-info {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+
+        .suggestions-elegantes .cliente-nombre {
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--gris-oscuro);
+            margin-bottom: 2px;
+        }
+
+        .suggestions-elegantes .cliente-id {
+            font-size: 0.85rem;
+            color: var(--gris-medio);
+            font-weight: 500;
+        }
+
+        .suggestions-elegantes li:hover .cliente-nombre,
+        .suggestions-elegantes li.selected .cliente-nombre {
+            color: var(--blanco);
+        }
+
+        .suggestions-elegantes li:hover .cliente-id,
+        .suggestions-elegantes li.selected .cliente-id {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .suggestions-elegantes .cliente-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--azul-muy-claro);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--azul-claro);
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+
+        .suggestions-elegantes li:hover .cliente-icon,
+        .suggestions-elegantes li.selected .cliente-icon {
+            background: rgba(255, 255, 255, 0.2);
+            color: var(--blanco);
+        }
+
+        /* Scroll personalizado para las sugerencias */
+        .suggestions-elegantes::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .suggestions-elegantes::-webkit-scrollbar-track {
+            background: var(--gris-claro);
+            border-radius: 3px;
+        }
+
+        .suggestions-elegantes::-webkit-scrollbar-thumb {
+            background: var(--azul-claro);
+            border-radius: 3px;
+        }
+
+        .suggestions-elegantes::-webkit-scrollbar-thumb:hover {
+            background: var(--azul-oscuro);
+        }
+
         .detail-item:not(.editable) .form-input {
             display: none;
         }
@@ -989,8 +1104,11 @@
         <div class="search-container">
             <div class="search-form">
                 <div class="search-input-group">
-                    <input type="text" id="searchDetallada" class="search-input" placeholder="Ingrese su búsqueda...">
-                    <select id="tipoBusqueda" class="search-input" style="flex: 0 0 150px;">
+                    <div class="suggestions-container" style="flex: 1; position: relative;">
+                        <input type="text" id="searchDetallada" class="search-input" placeholder="Ingrese su búsqueda..." style="flex: 1;">
+                        <ul id="suggestions-busqueda-detallada" class="suggestions-elegantes"></ul>
+                    </div>
+                    <select id="tipoBusqueda" class="search-input" style="flex: 0 0 150px;" onchange="cambiarTipoBusqueda()">
                         <option value="comprobante">Comprobante</option>
                         <option value="cliente">Cliente</option>
                     </select>
@@ -1327,6 +1445,11 @@
         // Variables para métricas de pago
         let totalProductosPago = 0;
         let totalPagadoPago = 0;
+        
+        // Variables para búsqueda detallada
+        let clienteBusquedaTimeout = null;
+        let clienteBusquedaCache = new Map();
+        let selectedClienteBusquedaId = null;
 
         // Función para cargar datos desde la API
         async function cargarVentas() {
@@ -2656,6 +2779,34 @@
             }
         });
 
+        // Event listeners para sugerencias en búsqueda detallada
+        const searchDetalladaInput = document.getElementById('searchDetallada');
+        const suggestionsBusquedaList = document.getElementById('suggestions-busqueda-detallada');
+        
+        searchDetalladaInput.addEventListener('focus', function() {
+            const tipoBusqueda = document.getElementById('tipoBusqueda').value;
+            if (tipoBusqueda === 'cliente' && this.value.trim()) {
+                buscarClientesBusquedaDetallada(this.value);
+            }
+        });
+
+        searchDetalladaInput.addEventListener('input', function() {
+            const tipoBusqueda = document.getElementById('tipoBusqueda').value;
+            if (tipoBusqueda === 'cliente') {
+                buscarClientesBusquedaDetallada(this.value);
+            } else {
+                // Limpiar sugerencias si no es búsqueda por cliente
+                suggestionsBusquedaList.innerHTML = '';
+                suggestionsBusquedaList.classList.remove('show');
+            }
+        });
+
+        searchDetalladaInput.addEventListener('blur', function() {
+            setTimeout(function() {
+                suggestionsBusquedaList.classList.remove('show');
+            }, 200);
+        });
+
         // Función para cambiar página
         function cambiarPagina(direccion) {
             const totalPaginas = Math.ceil(ventasFiltradas.length / registrosPorPagina);
@@ -2789,18 +2940,203 @@
             `;
         }
 
+        // Función para cambiar tipo de búsqueda
+        function cambiarTipoBusqueda() {
+            const tipoBusqueda = document.getElementById('tipoBusqueda').value;
+            const searchInput = document.getElementById('searchDetallada');
+            const suggestionsList = document.getElementById('suggestions-busqueda-detallada');
+            
+            // Limpiar campo y sugerencias
+            searchInput.value = '';
+            suggestionsList.innerHTML = '';
+            suggestionsList.classList.remove('show');
+            selectedClienteBusquedaId = null;
+            
+            // Actualizar placeholder
+            if (tipoBusqueda === 'comprobante') {
+                searchInput.placeholder = 'Ingrese el número de comprobante (ej: F 7710)';
+            } else {
+                searchInput.placeholder = 'Ingrese el nombre del cliente';
+            }
+            
+            // Limpiar tabla de resultados
+            const tbody = document.getElementById('searchDetalladaTableBody');
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="no-data">
+                        <i class="fas fa-search"></i>
+                        <p>Ingrese un criterio de búsqueda</p>
+                    </td>
+                </tr>
+            `;
+        }
+
+        // Función para buscar clientes con sugerencias elegantes en búsqueda detallada
+        function buscarClientesBusquedaDetallada(textoBusqueda) {
+            const suggestionsList = document.getElementById('suggestions-busqueda-detallada');
+            
+            // Limpiar timeout anterior
+            if (clienteBusquedaTimeout) {
+                clearTimeout(clienteBusquedaTimeout);
+            }
+
+            // Limpiar sugerencias si no hay texto
+            if (!textoBusqueda || textoBusqueda.trim().length === 0) {
+                suggestionsList.innerHTML = '';
+                suggestionsList.classList.remove('show');
+                selectedClienteBusquedaId = null;
+                return;
+            }
+
+            // Verificar cache primero
+            const cacheKey = textoBusqueda.toLowerCase().trim();
+            if (clienteBusquedaCache.has(cacheKey)) {
+                mostrarSugerenciasClientesElegantes(clienteBusquedaCache.get(cacheKey));
+                return;
+            }
+
+            // Mostrar indicador de carga elegante
+            suggestionsList.innerHTML = `
+                <li style="padding: 20px; text-align: center; color: var(--gris-medio);">
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+                        <i class="fas fa-spinner fa-spin" style="color: var(--azul-claro);"></i>
+                        <span>Buscando clientes...</span>
+                    </div>
+                </li>
+            `;
+            suggestionsList.classList.add('show');
+
+            // Debounce: esperar 300ms antes de hacer la petición
+            clienteBusquedaTimeout = setTimeout(() => {
+                buscarClientesAPIBusqueda(textoBusqueda);
+            }, 300);
+        }
+
+        // Función para buscar clientes en la API (búsqueda detallada)
+        async function buscarClientesAPIBusqueda(textoBusqueda) {
+            const suggestionsList = document.getElementById('suggestions-busqueda-detallada');
+            
+            try {
+                const api = "https://productoscrud-2946605267.us-central1.run.app";
+                const metodo = "cliente_busqueda";
+                const cliente = textoBusqueda.trim();
+
+                const response = await fetch(`${api}?metodo=${metodo}&cliente=${encodeURIComponent(cliente)}`);
+                
+                if (response.status === 200) {
+                    const data = await response.json();
+                    console.log('Clientes encontrados (búsqueda detallada):', data);
+                    
+                    // Guardar en cache
+                    const cacheKey = textoBusqueda.toLowerCase().trim();
+                    clienteBusquedaCache.set(cacheKey, data);
+                    
+                    // Mostrar resultados
+                    mostrarSugerenciasClientesElegantes(data);
+                } else {
+                    console.error('Error en la búsqueda de clientes:', response.status);
+                    mostrarErrorBusquedaClientes();
+                }
+            } catch (error) {
+                console.error('Error en la búsqueda de clientes:', error);
+                mostrarErrorBusquedaClientes();
+            }
+        }
+
+        // Función para mostrar sugerencias de clientes elegantes (búsqueda detallada)
+        function mostrarSugerenciasClientesElegantes(clientes) {
+            const suggestionsList = document.getElementById('suggestions-busqueda-detallada');
+            suggestionsList.innerHTML = '';
+
+            if (!clientes || clientes.length === 0) {
+                suggestionsList.innerHTML = `
+                    <li style="padding: 20px; text-align: center; color: var(--gris-medio);">
+                        <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+                            <i class="fas fa-search" style="color: var(--gris-medio);"></i>
+                            <span>No se encontraron clientes</span>
+                        </div>
+                    </li>
+                `;
+                suggestionsList.classList.add('show');
+                return;
+            }
+
+            // Limitar a máximo 8 resultados para mejor visualización
+            const clientesLimitados = clientes.slice(0, 8);
+
+            clientesLimitados.forEach(cliente => {
+                const listItem = document.createElement('li');
+                
+                // Crear estructura elegante
+                listItem.innerHTML = `
+                    <div class="cliente-icon">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="cliente-info">
+                        <div class="cliente-nombre">${cliente.CLIENTE}</div>
+                        <div class="cliente-id">ID: ${cliente.ID_CLIENTE}</div>
+                    </div>
+                `;
+                
+                // Event listener para seleccionar cliente
+                listItem.addEventListener('click', function() {
+                    document.getElementById('searchDetallada').value = cliente.CLIENTE;
+                    selectedClienteBusquedaId = cliente.ID_CLIENTE;
+                    suggestionsList.classList.remove('show');
+                    
+                    console.log('Cliente seleccionado (búsqueda detallada):', {
+                        id: cliente.ID_CLIENTE,
+                        nombre: cliente.CLIENTE
+                    });
+                });
+                
+                suggestionsList.appendChild(listItem);
+            });
+
+            suggestionsList.classList.add('show');
+        }
+
+        // Función para mostrar error en la búsqueda de clientes
+        function mostrarErrorBusquedaClientes() {
+            const suggestionsList = document.getElementById('suggestions-busqueda-detallada');
+            suggestionsList.innerHTML = `
+                <li style="padding: 20px; text-align: center; color: var(--rojo-error);">
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span>Error al buscar clientes</span>
+                    </div>
+                </li>
+            `;
+            suggestionsList.classList.add('show');
+        }
+
+
         // Función para búsqueda detallada
         async function buscarDetallado() {
             const criterio = document.getElementById('searchDetallada').value.trim();
             const tipoBusqueda = document.getElementById('tipoBusqueda').value;
             const tbody = document.getElementById('searchDetalladaTableBody');
             
+            // Validaciones específicas según tipo de búsqueda
             if (!criterio) {
                 tbody.innerHTML = `
                     <tr>
                         <td colspan="7" class="no-data">
                             <i class="fas fa-exclamation-triangle"></i>
                             <p>Por favor ingrese un criterio de búsqueda</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            // Si es búsqueda por cliente, verificar que se haya seleccionado uno de las sugerencias
+            if (tipoBusqueda === 'cliente' && !selectedClienteBusquedaId) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="no-data">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <p>Por favor seleccione un cliente de la lista de sugerencias</p>
                         </td>
                     </tr>
                 `;
@@ -2817,58 +3153,93 @@
                 </tr>
             `;
 
-            // Filtrar en los datos cargados
-            const resultados = ventasData.filter(venta => {
-                if (tipoBusqueda === 'comprobante') {
-                    return (venta.N_COMPROBANTE || '').toLowerCase().includes(criterio.toLowerCase());
-                } else if (tipoBusqueda === 'cliente') {
-                    return (venta.CLIENTE || '').toLowerCase().includes(criterio.toLowerCase());
-                }
-                return false;
-            });
+            try {
+                const api = "https://crudventas-2946605267.us-central1.run.app";
+                const area = "busqueda_cliente_comprobante";
+                const metodo = tipoBusqueda === 'comprobante' ? 'COMPROBANTE' : 'CLIENTE';
+                const id = tipoBusqueda === 'comprobante' ? criterio : selectedClienteBusquedaId.toString();
+                
+                const url = `${api}?area=${area}&metodo=${metodo}&id=${encodeURIComponent(id)}`;
+                console.log('URL de búsqueda detallada:', url);
+                
+                const response = await fetch(url);
+                console.log('Status de respuesta búsqueda detallada:', response.status);
+                
+                if (response.status === 200) {
+                    const data = await response.json();
+                    console.log('Resultados de búsqueda detallada:', data);
+                    
+                    // La API puede devolver un objeto o un array
+                    const resultados = Array.isArray(data) ? data : [data];
+                    
+                    if (resultados.length === 0 || !resultados[0]) {
+                        tbody.innerHTML = `
+                            <tr>
+                                <td colspan="7" class="no-data">
+                                    <i class="fas fa-search"></i>
+                                    <p>No se encontraron resultados para: ${criterio}</p>
+                                    <p><small>Tipo de búsqueda: ${tipoBusqueda}</small></p>
+                                </td>
+                            </tr>
+                        `;
+                        return;
+                    }
 
-            if (resultados.length === 0) {
+                    tbody.innerHTML = resultados.map(venta => `
+                        <tr>
+                            <td>${venta.CLIENTE || 'N/A'}</td>
+                            <td>${formatearFecha(venta.FECHA)}</td>
+                            <td>${venta.ASESOR || 'N/A'}</td>
+                            <td>${venta.N_COMPROBANTE || 'N/A'}</td>
+                            <td>
+                                <span class="status-badge status-${(venta.ESTADO || 'pendiente').toLowerCase()}">
+                                    ${venta.ESTADO || 'PENDIENTE'}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="status-badge cancelado-${(venta.CANCELADO || 'NO').toLowerCase() === 'si' ? 'si' : 'no'}">
+                                    ${venta.CANCELADO || 'NO'}
+                                </span>
+                            </td>
+                            <td>
+                                <button class="action-btn view-btn" onclick='verDetalles(${JSON.stringify(venta).replace(/'/g, "&apos;")})' title="Ver detalles">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="action-btn payment-btn" onclick='verEstadoPago("${venta.N_COMPROBANTE}", ${venta.ID_VENTA})' title="Estado de pago">
+                                    <i class="fas fa-dollar-sign"></i>
+                                </button>
+                                <button class="action-btn delete-btn" onclick='confirmarEliminacion(${venta.ID_VENTA})' title="Eliminar">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `).join('');
+                    
+                    mostrarToast(`Se encontraron ${resultados.length} resultado(s)`, 'success');
+                } else {
+                    console.error('Error en la respuesta de búsqueda:', response.status);
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="7" class="no-data">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <p>Error al realizar la búsqueda</p>
+                                <p><small>Status: ${response.status}</small></p>
+                            </td>
+                        </tr>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error en búsqueda detallada:', error);
                 tbody.innerHTML = `
                     <tr>
                         <td colspan="7" class="no-data">
-                            <i class="fas fa-search"></i>
-                            <p>No se encontraron resultados para: ${criterio}</p>
-                            <p><small>Tipo de búsqueda: ${tipoBusqueda}</small></p>
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <p>Error de conexión al realizar la búsqueda</p>
+                            <p><small>${error.message}</small></p>
                         </td>
                     </tr>
                 `;
-                return;
             }
-
-            tbody.innerHTML = resultados.map(venta => `
-                <tr>
-                    <td>${venta.CLIENTE || 'N/A'}</td>
-                    <td>${formatearFecha(venta.FECHA)}</td>
-                    <td>${venta.ASESOR || 'N/A'}</td>
-                    <td>${venta.N_COMPROBANTE || 'N/A'}</td>
-                    <td>
-                        <span class="status-badge status-${(venta.ESTADO || 'pendiente').toLowerCase()}">
-                            ${venta.ESTADO || 'PENDIENTE'}
-                        </span>
-                    </td>
-                    <td>
-                        <span class="status-badge cancelado-${(venta.CANCELADO || 'NO').toLowerCase() === 'si' ? 'si' : 'no'}">
-                            ${venta.CANCELADO || 'NO'}
-                        </span>
-                    </td>
-                    <td>
-                        <button class="action-btn view-btn" onclick='verDetalles(${JSON.stringify(venta).replace(/'/g, "&apos;")})' title="Ver detalles">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        <button class="action-btn payment-btn" onclick='verEstadoPago("${venta.N_COMPROBANTE}", ${venta.ID_VENTA})' title="Estado de pago">
-                            <i class="fas fa-dollar-sign"></i>
-                        </button>
-                        <button class="action-btn delete-btn" onclick='confirmarEliminacion(${venta.ID_VENTA})' title="Eliminar">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </td>
-                </tr>
-            `).join('');
         }
 
         // Función para generar reporte mensual de ventas
@@ -3202,6 +3573,13 @@
         // Cargar datos al iniciar la página
         document.addEventListener('DOMContentLoaded', function() {
             cargarVentas();
+            
+            // Inicializar placeholder de búsqueda detallada
+            const searchInput = document.getElementById('searchDetallada');
+            
+            if (searchInput) {
+                searchInput.placeholder = 'Ingrese el número de comprobante (ej: F 7710)';
+            }
         });
     </script>
 
