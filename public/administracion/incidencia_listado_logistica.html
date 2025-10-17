@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Listado de Incidencias Logísticas - Zeus Safety</title>
     <!-- Favicon -->
-  <link rel="icon" type="image/png" href="https://cibertecedgar.github.io/marcalogo/logozeus.png">
+    <link rel="icon" type="image/png" href="https://cibertecedgar.github.io/marcalogo/logozeus.png">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         :root {
@@ -65,7 +65,7 @@
         }
 
         .header {
-            background: linear-gradient(135deg, #0A2B4C, var(--azul-claro));
+            background: linear-gradient(135deg, #0A2B4C);
             color: white;
             padding: 30px;
             text-align: center;
@@ -75,6 +75,11 @@
             font-size: 2.5rem;
             margin-bottom: 10px;
             font-weight: 700;
+        }
+
+        .header h2 {
+            font-size: 1.4rem;
+            font-weight: 100;
         }
 
         .header p {
@@ -958,19 +963,124 @@
                 align-items: stretch;
             }
         }
+
+        header-logo {
+            display: flex;
+            align-items: center;
+        }
+
+        .header-logo img {
+            max-width: 150px;
+            object-fit: contain;
+            transition: transform 0.3s ease;
+        }
+
+        .header-logo img:hover {
+            transform: scale(1.05);
+        }
+
+        .header-title {
+            flex: 1;
+            text-align: center;
+            margin: 0 20px;
+        }
+
+        .header-spacer {
+            width: 150px;
+            /* Mismo ancho que el logo para mantener centrado el título */
+        }
+
+        .header-title h1 {
+            color: white;
+            font-weight: 700;
+            font-size: 2.5rem;
+            margin: 0;
+            text-shadow: 0 2px 4px rgba(20, 33, 61, 0.1);
+        }
+
+        /* Header */
+        .header-container {
+            background: linear-gradient(135deg, #0A2B4C);
+            box-shadow: 0 2px 20px rgba(25, 67, 158, 0.1);
+            padding-top: 1px;
+            padding-left: 20px;
+            padding-bottom: 0px;
+            padding-right: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+            width: 100vw;
+            margin-left: calc(-50vw + 50%);
+            margin-right: calc(-50vw + 50%);
+            margin-top: -20px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .btn-volver {
+                padding: 10px 16px;
+                font-size: 14px;
+            }
+
+            .btn-listado-flotante {
+                bottom: 20px;
+                right: 20px;
+                padding: 12px 20px;
+                font-size: 14px;
+            }
+
+            .card {
+                margin-top: 20px;
+            }
+
+            .header-container {
+                flex-direction: column;
+                gap: 15px;
+                padding: 20px;
+                margin-left: calc(-50vw + 50%);
+                margin-right: calc(-50vw + 50%);
+                margin-top: -20px;
+            }
+
+            .header-title h1 {
+                font-size: 24px;
+            }
+
+            .header-logo img {
+                max-width: 120px;
+            }
+
+            .header-spacer {
+                display: none;
+            }
+        }
     </style>
-</head> 
+</head>
 
 <body>
+    <!-- Header con Logo y Título -->
+    <div class="header-container">
+        <div class="header-logo">
+            <img src="https://cibertecedgar.github.io/marcalogo/logozeus.png" alt="Logo Zeus">
+        </div>
+        <div class="header-title">
+            <h1><i class="fas fa-list"></i> Listado de Incidencias Logísticas</h1>
+        </div>
+        <div class="header-spacer"></div>
+    </div>
+
+
     <a href="../../logistica.html" class="btn-back">
         <i class="fas fa-arrow-left"></i>
         Volver a Logística
-    </a> 
+    </a>
 
-    <div class="container">   
-        <div class="header"> 
-            <h1><i class="fas fa-list"></i> Listado de Incidencias Logísticas</h1>
-            <p>Gestionar y revisar incidencias registradas</p>
+    <div class="container">
+        <div class="header">
+            <h2>Gestionar y revisar incidencias registradas</h2>
         </div>
 
         <div class="content">
@@ -1116,7 +1226,7 @@
                             <label for="fechaCorreccion">Fecha de Corrección:</label>
                             <input type="date" id="fechaCorreccion" class="form-control" required>
                         </div>
-                        <div class="form-group"> 
+                        <div class="form-group">
                             <label for="estadoIncidencia">Estado:</label>
                             <select id="estadoIncidencia" class="form-control" required>
                                 <option value="">Seleccionar...</option>
@@ -2608,7 +2718,7 @@
                     mostrarAlerta('Debe completar al menos: Fecha de Corrección y Respondido Por', 'error');
                     return;
                 }
- 
+
                 // Calcular totales
                 const totalCantidad = productos.reduce((sum, p) => sum + (parseFloat(p.cantidad) || 0), 0);
                 const totalCantidadEnCaja = productos.reduce((sum, p) => sum + (parseFloat(p.cantidadEnCaja) || 0), 0);
