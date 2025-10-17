@@ -545,6 +545,57 @@
             font-size: 0.9rem;
         }
 
+        /* Estilos para paginación */
+        .pagination-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            padding: 20px;
+            background: var(--blanco);
+            border-radius: 0 0 12px 12px;
+            border-top: 1px solid var(--gris-claro);
+        }
+
+        .pagination-info {
+            color: var(--gris-medio);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .pagination-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .pagination-btn {
+            background: var(--azul-claro);
+            color: var(--blanco);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .pagination-btn:hover:not(:disabled) {
+            background: var(--azul-oscuro);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .pagination-btn:disabled {
+            background: var(--gris-claro);
+            color: var(--gris-medio);
+            cursor: not-allowed;
+            transform: none;
+        }
+
         @media (max-width: 768px) {
             .header-content {
                 flex-direction: column;
@@ -583,6 +634,20 @@
             
             .subviews-block {
                 min-width: auto;
+            }
+
+            .pagination-container {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .pagination-buttons {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .pagination-btn {
+                flex: 1;
             }
         }
     </style>
@@ -643,6 +708,69 @@
                     </tr>
                 </tbody>
             </table>
+            
+            <!-- Controles de paginación -->
+            <div class="pagination-container" id="paginationControls" style="display: none;">
+                <button class="pagination-btn" id="prevBtn" onclick="previousPage()">
+                    <i class="fas fa-chevron-left"></i>
+                    Anterior
+                </button>
+                <div class="pagination-info" id="paginationInfo">
+                    Página 1 de 1
+                </div>
+                <button class="pagination-btn" id="nextBtn" onclick="nextPage()">
+                    Siguiente
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Tabla de Colaboradores Inactivos -->
+        <div class="section-title" style="margin-top: 40px;">
+            <i class="fas fa-user-slash"></i>
+            Colaboradores Inactivos (Sin Acceso al Sistema)
+            <span class="api-status loading" id="apiStatusInactivos">
+                <i class="fas fa-spinner"></i>
+                Conectando a API...
+            </span>
+        </div>
+        
+        <div class="table-container">
+            <table class="table" id="inactivosTable">
+                <thead>
+                    <tr>
+                        <th>NOMBRE</th>
+                        <th>APELLIDO</th>
+                        <th>AREA</th>
+                        <th>CORREO</th>
+                        <th>FECHA CUMPLEAÑOS</th>
+                        <th>ACCIÓN</th>
+                    </tr>
+                </thead>
+                <tbody id="inactivosTableBody">
+                    <tr>
+                        <td colspan="6" class="loading">
+                            <i class="fas fa-spinner"></i>
+                            <p>Cargando datos...</p>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <!-- Controles de paginación para inactivos -->
+            <div class="pagination-container" id="paginationControlsInactivos" style="display: none;">
+                <button class="pagination-btn" id="prevBtnInactivos" onclick="previousPageInactivos()">
+                    <i class="fas fa-chevron-left"></i>
+                    Anterior
+                </button>
+                <div class="pagination-info" id="paginationInfoInactivos">
+                    Página 1 de 1
+                </div>
+                <button class="pagination-btn" id="nextBtnInactivos" onclick="nextPageInactivos()">
+                    Siguiente
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
         </div>
     </div>
 
@@ -978,6 +1106,16 @@
         // Variables globales
         let currentColaboradorId = null;
         let isUserEditing = false;
+        
+        // Variables para paginación
+        let colaboradoresData = [];
+        let currentPage = 1;
+        const itemsPerPage = 7;
+        
+        // Variables para colaboradores inactivos
+        let colaboradoresInactivosData = [];
+        let currentPageInactivos = 1;
+        const itemsPerPageInactivos = 7;
 
         // Función para cargar datos de colaboradores
         async function loadColaboradoresData() {
@@ -1000,14 +1138,20 @@
                     console.log('Datos cargados desde API:', data);
                     apiStatus.className = 'api-status success';
                     apiStatus.innerHTML = '<i class="fas fa-check"></i> API Conectada';
-                    displayColaboradoresData(data);
+                    
+                    // Guardar datos y mostrar primera página
+                    colaboradoresData = data;
+                    currentPage = 1;
+                    displayColaboradoresPage();
                 } else {
                     console.error('Error en la respuesta de la API:', response.status);
                     apiStatus.className = 'api-status error';
                     apiStatus.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error API';
                     // Si la API falla, usar datos de prueba como respaldo
                     console.log('Usando datos de prueba como respaldo...');
-                    displayColaboradoresData(mockColaboradoresData);
+                    colaboradoresData = mockColaboradoresData;
+                    currentPage = 1;
+                    displayColaboradoresPage();
                 }
             } catch (error) {
                 console.error('Error cargando datos desde API:', error);
@@ -1015,16 +1159,22 @@
                 apiStatus.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error de Red';
                 // Si hay error de red, usar datos de prueba
                 console.log('Error de red, usando datos de prueba...');
-                displayColaboradoresData(mockColaboradoresData);
+                colaboradoresData = mockColaboradoresData;
+                currentPage = 1;
+                displayColaboradoresPage();
             }
         }
 
-        // Función para mostrar datos de colaboradores
-        function displayColaboradoresData(data) {
-            console.log('Mostrando datos de colaboradores:', data);
+        // Función para mostrar página de colaboradores con paginación
+        function displayColaboradoresPage() {
+            console.log('Mostrando página de colaboradores:', currentPage);
             const tbody = document.getElementById('mainTableBody');
+            const paginationControls = document.getElementById('paginationControls');
+            const paginationInfo = document.getElementById('paginationInfo');
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
             
-            if (!data || data.length === 0) {
+            if (!colaboradoresData || colaboradoresData.length === 0) {
                 console.log('No hay datos de colaboradores para mostrar');
                 tbody.innerHTML = `
                     <tr>
@@ -1034,10 +1184,18 @@
                         </td>
                     </tr>
                 `;
+                paginationControls.style.display = 'none';
                 return;
             }
 
-            tbody.innerHTML = data.map(item => `
+            // Calcular paginación
+            const totalPages = Math.ceil(colaboradoresData.length / itemsPerPage);
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const pageData = colaboradoresData.slice(startIndex, endIndex);
+
+            // Mostrar datos de la página actual
+            tbody.innerHTML = pageData.map(item => `
                 <tr data-id="${item.ID_PERSONA}" id="row-${item.ID_PERSONA}">
                     <td>${item.NOMBRE || ''}</td>
                     <td>${item.APELLIDO || ''}</td>
@@ -1052,6 +1210,29 @@
                     </td>
                 </tr>
             `).join('');
+
+            // Actualizar controles de paginación
+            paginationInfo.textContent = `Página ${currentPage} de ${totalPages} (${colaboradoresData.length} registros)`;
+            prevBtn.disabled = currentPage === 1;
+            nextBtn.disabled = currentPage === totalPages;
+            paginationControls.style.display = 'flex';
+        }
+
+        // Función para ir a la página anterior
+        function previousPage() {
+            if (currentPage > 1) {
+                currentPage--;
+                displayColaboradoresPage();
+            }
+        }
+
+        // Función para ir a la página siguiente
+        function nextPage() {
+            const totalPages = Math.ceil(colaboradoresData.length / itemsPerPage);
+            if (currentPage < totalPages) {
+                currentPage++;
+                displayColaboradoresPage();
+            }
         }
 
         // Función para formatear fechas
@@ -1062,6 +1243,120 @@
                 month: '2-digit',
                 day: '2-digit'
             });
+        }
+
+        // Función para cargar colaboradores inactivos
+        async function loadColaboradoresInactivos() {
+            const apiStatusInactivos = document.getElementById('apiStatusInactivos');
+            
+            try {
+                console.log('Cargando colaboradores inactivos desde API...');
+                apiStatusInactivos.className = 'api-status loading';
+                apiStatusInactivos.innerHTML = '<i class="fas fa-spinner"></i> Conectando a API...';
+                
+                // Llamada a la API de colaboradores inactivos
+                const api = "https://colaboradores-2946605267.us-central1.run.app";
+                const metodo = "colaboradores_inactivos";
+                
+                const response = await fetch(`${api}?metodo=${metodo}`);
+                console.log('Status de respuesta inactivos:', response.status);
+                
+                if (response.status === 200) {
+                    const data = await response.json();
+                    console.log('Datos de inactivos cargados desde API:', data);
+                    apiStatusInactivos.className = 'api-status success';
+                    apiStatusInactivos.innerHTML = '<i class="fas fa-check"></i> API Conectada';
+                    
+                    // Guardar datos y mostrar primera página
+                    colaboradoresInactivosData = data;
+                    currentPageInactivos = 1;
+                    displayColaboradoresInactivosPage();
+                } else {
+                    console.error('Error en la respuesta de inactivos:', response.status);
+                    apiStatusInactivos.className = 'api-status error';
+                    apiStatusInactivos.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error API';
+                    // Si la API falla, mostrar vacío
+                    colaboradoresInactivosData = [];
+                    displayColaboradoresInactivosPage();
+                }
+            } catch (error) {
+                console.error('Error cargando colaboradores inactivos:', error);
+                apiStatusInactivos.className = 'api-status error';
+                apiStatusInactivos.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error de Red';
+                // Si hay error de red, mostrar vacío
+                colaboradoresInactivosData = [];
+                displayColaboradoresInactivosPage();
+            }
+        }
+
+        // Función para mostrar página de colaboradores inactivos con paginación
+        function displayColaboradoresInactivosPage() {
+            console.log('Mostrando página de inactivos:', currentPageInactivos);
+            const tbody = document.getElementById('inactivosTableBody');
+            const paginationControls = document.getElementById('paginationControlsInactivos');
+            const paginationInfo = document.getElementById('paginationInfoInactivos');
+            const prevBtn = document.getElementById('prevBtnInactivos');
+            const nextBtn = document.getElementById('nextBtnInactivos');
+            
+            if (!colaboradoresInactivosData || colaboradoresInactivosData.length === 0) {
+                console.log('No hay colaboradores inactivos');
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="no-data">
+                            <i class="fas fa-check-circle"></i>
+                            <p>No hay colaboradores inactivos</p>
+                        </td>
+                    </tr>
+                `;
+                paginationControls.style.display = 'none';
+                return;
+            }
+
+            // Calcular paginación
+            const totalPages = Math.ceil(colaboradoresInactivosData.length / itemsPerPageInactivos);
+            const startIndex = (currentPageInactivos - 1) * itemsPerPageInactivos;
+            const endIndex = startIndex + itemsPerPageInactivos;
+            const pageData = colaboradoresInactivosData.slice(startIndex, endIndex);
+
+            // Mostrar datos de la página actual
+            tbody.innerHTML = pageData.map(item => `
+                <tr data-id="${item.ID_PERSONA}" style="opacity: 0.7;">
+                    <td>${item.NOMBRE || ''}</td>
+                    <td>${item.APELLIDO || ''}</td>
+                    <td>${item.AREA || ''}</td>
+                    <td>${item.CORREO || ''}</td>
+                    <td>${formatDate(item.FECHA_NACIMIENTO)}</td>
+                    <td>
+                        <button class="permissions-btn" onclick="openPermissionsModal('${item.ID_PERSONA}', '${item.NOMBRE || ''} ${item.APELLIDO || ''}')">
+                            <i class="fas fa-user-shield"></i>
+                            Activar Permisos
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+
+            // Actualizar controles de paginación
+            paginationInfo.textContent = `Página ${currentPageInactivos} de ${totalPages} (${colaboradoresInactivosData.length} registros)`;
+            prevBtn.disabled = currentPageInactivos === 1;
+            nextBtn.disabled = currentPageInactivos === totalPages;
+            paginationControls.style.display = 'flex';
+        }
+
+        // Función para ir a la página anterior (inactivos)
+        function previousPageInactivos() {
+            if (currentPageInactivos > 1) {
+                currentPageInactivos--;
+                displayColaboradoresInactivosPage();
+            }
+        }
+
+        // Función para ir a la página siguiente (inactivos)
+        function nextPageInactivos() {
+            const totalPages = Math.ceil(colaboradoresInactivosData.length / itemsPerPageInactivos);
+            if (currentPageInactivos < totalPages) {
+                currentPageInactivos++;
+                displayColaboradoresInactivosPage();
+            }
         }
 
         // Función para abrir modal de permisos
@@ -1652,7 +1947,9 @@
                     console.log('Respuesta de agregar colaborador:', result);
                     alert('Colaborador agregado exitosamente.');
                     closeAddColaboradorModal();
-                    loadColaboradoresData(); // Recargar la lista para mostrar el nuevo colaborador
+                    // Recargar ambas listas
+                    loadColaboradoresData();
+                    loadColaboradoresInactivos();
                 } else {
                     console.error('Error en la respuesta de agregar colaborador:', response.status);
                     try {
@@ -1684,6 +1981,7 @@
         // Cargar datos al iniciar la página
         document.addEventListener('DOMContentLoaded', function() {
             loadColaboradoresData();
+            loadColaboradoresInactivos();
         });
 
         // Manejar el envío del formulario de agregar colaborador
