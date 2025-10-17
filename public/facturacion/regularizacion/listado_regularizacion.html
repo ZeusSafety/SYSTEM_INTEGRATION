@@ -901,18 +901,14 @@
                     </div>
                     <div class="form-group">
                         <label for="asesor" class="form-label">Asesor *</label>
-                        <input type="text" id="asesor" name="asesor" class="form-input" required>
+                        <select id="asesor" name="asesor" class="form-input" required>
+                            <option value="">Cargando asesores...</option>
+                        </select>
                     </div>
                     <div class="form-group">
                         <label for="medio_de_pago" class="form-label">Medio de Pago *</label>
                         <select id="medio_de_pago" name="medio_de_pago" class="form-input" required>
-                            <option value="">Seleccionar medio de pago</option>
-                            <option value="Efectivo">Efectivo</option>
-                            <option value="Transferencia">Transferencia</option>
-                            <option value="Tarjeta">Tarjeta</option>
-                            <option value="Cheque">Cheque</option>
-                            <option value="PAYPAL">PAYPAL</option>
-                            <option value="Otro">Otro</option>
+                            <option value="">Cargando medios de pago...</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -1430,25 +1426,128 @@
         // Variables globales para modales
         let currentUpdateId = null;
         let currentDeleteId = null;
+        
+        // Variables para almacenar datos de configuración
+        let asesoresData = [];
+        let mediosPagoData = [];
+
+        // Función para cargar configuración general desde API
+        async function cargarConfiguracionGeneral() {
+            try {
+                const api = "https://productoscrud-2946605267.us-central1.run.app";
+                const metodo = "configuracion_general";
+                
+                console.log('Cargando configuración general desde API...');
+                const response = await fetch(`${api}?metodo=${metodo}`);
+                
+                if (response.status === 200) {
+                    const data = await response.json();
+                    console.log('Datos de configuración cargados:', data);
+                    
+                    // Filtrar asesores y medios de pago (excluir SALIDA_DE_PEDIDO)
+                    asesoresData = data.filter(item => item.CATEGORIA === 'ASESOR');
+                    mediosPagoData = data.filter(item => item.CATEGORIA === 'FORMA_PAGO');
+                    
+                    console.log('Asesores encontrados:', asesoresData.length);
+                    console.log('Medios de pago encontrados:', mediosPagoData.length);
+                    
+                    return true;
+                } else {
+                    console.error('Error cargando configuración:', response.status);
+                    return false;
+                }
+            } catch (error) {
+                console.error('Error cargando configuración general:', error);
+                return false;
+            }
+        }
+
+        // Función para llenar combobox de asesores
+        function llenarComboboxAsesores(asesorActual = '') {
+            const selectAsesor = document.getElementById('asesor');
+            
+            // Limpiar opciones existentes
+            selectAsesor.innerHTML = '<option value="">Seleccione un asesor</option>';
+            
+            if (asesoresData.length === 0) {
+                selectAsesor.innerHTML = '<option value="">No hay asesores disponibles</option>';
+                return;
+            }
+            
+            // Agregar opciones de asesores
+            asesoresData.forEach(asesor => {
+                const option = document.createElement('option');
+                option.value = asesor.NOMBRE;
+                option.textContent = asesor.NOMBRE;
+                
+                // Seleccionar el asesor actual si coincide
+                if (asesor.NOMBRE === asesorActual) {
+                    option.selected = true;
+                }
+                
+                selectAsesor.appendChild(option);
+            });
+            
+            console.log('Combobox de asesores llenado con', asesoresData.length, 'opciones');
+        }
+
+        // Función para llenar combobox de medios de pago
+        function llenarComboboxMediosPago(medioPagoActual = '') {
+            const selectMedioPago = document.getElementById('medio_de_pago');
+            
+            // Limpiar opciones existentes
+            selectMedioPago.innerHTML = '<option value="">Seleccione un medio de pago</option>';
+            
+            if (mediosPagoData.length === 0) {
+                selectMedioPago.innerHTML = '<option value="">No hay medios de pago disponibles</option>';
+                return;
+            }
+            
+            // Agregar opciones de medios de pago
+            mediosPagoData.forEach(medio => {
+                const option = document.createElement('option');
+                option.value = medio.NOMBRE;
+                option.textContent = medio.NOMBRE;
+                
+                // Seleccionar el medio de pago actual si coincide
+                if (medio.NOMBRE === medioPagoActual) {
+                    option.selected = true;
+                }
+                
+                selectMedioPago.appendChild(option);
+            });
+            
+            console.log('Combobox de medios de pago llenado con', mediosPagoData.length, 'opciones');
+        }
 
         // Funciones para el modal de actualización
-        function openUpdateModal(id, comprobantes, fecha, monto, asesor, medioPago, observacion) {
+        async function openUpdateModal(id, comprobantes, fecha, monto, asesor, medioPago, observacion) {
             currentUpdateId = id;
+            
+            // Mostrar el modal primero
+            document.getElementById('updateModal').classList.add('show');
+            
+            // Cargar configuración general si no está cargada
+            if (asesoresData.length === 0 || mediosPagoData.length === 0) {
+                console.log('Cargando configuración general...');
+                const configuracionCargada = await cargarConfiguracionGeneral();
+                
+                if (!configuracionCargada) {
+                    console.error('Error cargando configuración general');
+                    // Mantener los combobox con mensaje de error
+                }
+            }
             
             // Llenar el formulario con los datos actuales
             document.getElementById('comprobantes').value = comprobantes || '';
             document.getElementById('fecha_regularizacion').value = fecha || '';
             document.getElementById('monto').value = monto || '';
-            document.getElementById('asesor').value = asesor || '';
             
-            // Corregir el combo box de medio de pago
-            const medioPagoSelect = document.getElementById('medio_de_pago');
-            medioPagoSelect.value = medioPago || '';
+            // Llenar comboboxes
+            llenarComboboxAsesores(asesor);
+            llenarComboboxMediosPago(medioPago);
             
             document.getElementById('observaciones').value = observacion || '';
-            
-            // Mostrar el modal
-            document.getElementById('updateModal').classList.add('show');
         }
 
         function closeUpdateModal() {
@@ -2030,6 +2129,14 @@
         // Cargar datos al iniciar la página
         document.addEventListener('DOMContentLoaded', function() {
             loadMainData();
+            // Cargar configuración general en segundo plano
+            cargarConfiguracionGeneral().then(success => {
+                if (success) {
+                    console.log('Configuración general cargada exitosamente');
+                } else {
+                    console.warn('Error cargando configuración general');
+                }
+            });
         });
     </script>
 </body>
