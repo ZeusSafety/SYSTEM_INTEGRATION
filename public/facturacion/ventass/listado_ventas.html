@@ -256,6 +256,11 @@
             color: #991b1b;
         }
 
+        .status-anulado {
+            background-color: #f3f4f6;
+            color: #374151;
+        }
+
         .cancelado-si {
             background-color: #fee2e2;
             color: #991b1b;
@@ -2021,6 +2026,12 @@
                     
                     // Actualizar datos actuales con los nuevos valores
                     datosActualizados.REGION = regionSeleccionada;
+                    
+                    // Actualizar la vista del modal con los nuevos datos
+                    actualizarVistaModalDetalles(datosActualizados);
+                    
+                    // Actualizar la tabla de búsqueda detallada si está visible
+                    actualizarTablaBusquedaDetallada(datosActualizados);
                     datosActualizados.DISTRITO = distritoSeleccionado;
                     datosActualizados.LUGAR = lugarSeleccionado;
                     datosActualizados.ASESOR = asesorSeleccionado;
@@ -2205,6 +2216,7 @@
                                     <option value="COMPLETADO" ${pago.ESTADO === 'COMPLETADO' ? 'selected' : ''}>COMPLETADO</option>
                                     <option value="PENDIENTE" ${pago.ESTADO === 'PENDIENTE' ? 'selected' : ''}>PENDIENTE</option>
                                     <option value="CANCELADO" ${pago.ESTADO === 'CANCELADO' ? 'selected' : ''}>CANCELADO</option>
+                                    <option value="ANULADO" ${pago.ESTADO === 'ANULADO' ? 'selected' : ''}>ANULADO</option>
                                 </select>
                             </div>
                         `;
@@ -2662,6 +2674,12 @@
                     
                     // Actualizar datos actuales con los nuevos valores
                     pagoActual = { ...pagoActual, ...datosActualizados };
+                    
+                    // Actualizar la vista del modal de pago
+                    await actualizarVistaModalPago(pagoActual);
+                    
+                    // Actualizar la tabla de búsqueda detallada si está visible
+                    actualizarTablaBusquedaDetalladaPago(pagoActual);
                     datosOriginalesPago = JSON.parse(JSON.stringify(pagoActual));
                     
                     // Cancelar modo edición
@@ -2720,6 +2738,9 @@
                     
                     // Recargar los datos de la tabla para mostrar los cambios
                     cargarVentas();
+                    
+                    // Limpiar tabla de búsqueda detallada
+                    limpiarTablaBusquedaDetallada();
                 } else {
                     console.error('Error en la respuesta de eliminación:', response.status);
                     const errorData = await response.text();
@@ -3568,6 +3589,134 @@
             
             // Generar archivo y descargar
             XLSX.writeFile(wb, fileName);
+        }
+
+        // Función para actualizar la vista del modal de detalles
+        function actualizarVistaModalDetalles(datosActualizados) {
+            // Actualizar los campos del modal con los nuevos datos
+            const campos = [
+                'FECHA', 'CLASIFICACION', 'ASESOR', 'N_COMPROBANTE', 
+                'REGION', 'DISTRITO', 'LUGAR', 'SALIDA_DE_PEDIDO', 
+                'OBSERVACIONES', 'CANCELADO', 'ESTADO'
+            ];
+            
+            campos.forEach(campo => {
+                const elemento = document.getElementById(campo);
+                if (elemento && datosActualizados[campo] !== undefined) {
+                    elemento.value = datosActualizados[campo];
+                }
+            });
+            
+            // Actualizar datosActuales para mantener consistencia
+            if (typeof datosActuales !== 'undefined') {
+                datosActuales = { ...datosActuales, ...datosActualizados };
+            }
+        }
+
+        // Función para actualizar la vista del modal de pago
+        async function actualizarVistaModalPago(datosPago) {
+            // Actualizar los campos del modal de pago
+            const camposPago = [
+                'COMPROBANTE', 'TIPO_DE_PAGO', 'FECHA_DE_PAGO', 
+                'REGULARIZADO', 'CANCELADO', 'ESTADO'
+            ];
+            
+            camposPago.forEach(campo => {
+                const elemento = document.getElementById(campo);
+                if (elemento && datosPago[campo] !== undefined) {
+                    elemento.value = datosPago[campo];
+                }
+            });
+            
+            // Recargar la tabla de montos pagados
+            if (datosPago.ID_PAGO) {
+                await cargarMontosPagados(datosPago.ID_PAGO);
+            }
+        }
+
+        // Función para actualizar la tabla de búsqueda detallada con nuevos datos de venta
+        function actualizarTablaBusquedaDetallada(datosActualizados) {
+            const tbody = document.getElementById('searchDetalladaTableBody');
+            if (!tbody) return;
+            
+            // Buscar la fila correspondiente en la tabla de búsqueda detallada
+            const filas = tbody.getElementsByTagName('tr');
+            for (let i = 0; i < filas.length; i++) {
+                const fila = filas[i];
+                const celdaComprobante = fila.cells[3]; // Columna de comprobante
+                
+                if (celdaComprobante && celdaComprobante.textContent.trim() === datosActualizados.N_COMPROBANTE) {
+                    // Actualizar las celdas de la fila
+                    fila.cells[0].textContent = datosActualizados.CLIENTE || fila.cells[0].textContent;
+                    fila.cells[1].textContent = formatearFecha(datosActualizados.FECHA) || fila.cells[1].textContent;
+                    fila.cells[2].textContent = datosActualizados.ASESOR || fila.cells[2].textContent;
+                    fila.cells[3].textContent = datosActualizados.N_COMPROBANTE || fila.cells[3].textContent;
+                    
+                    // Actualizar estado
+                    const estadoBadge = fila.cells[4].querySelector('.status-badge');
+                    if (estadoBadge && datosActualizados.ESTADO) {
+                        estadoBadge.className = `status-badge status-${datosActualizados.ESTADO.toLowerCase()}`;
+                        estadoBadge.textContent = datosActualizados.ESTADO;
+                    }
+                    
+                    // Actualizar cancelado
+                    const canceladoBadge = fila.cells[5].querySelector('.status-badge');
+                    if (canceladoBadge && datosActualizados.CANCELADO) {
+                        const esCancelado = datosActualizados.CANCELADO.toLowerCase() === 'si';
+                        canceladoBadge.className = `status-badge cancelado-${esCancelado ? 'si' : 'no'}`;
+                        canceladoBadge.textContent = datosActualizados.CANCELADO;
+                    }
+                    
+                    break;
+                }
+            }
+        }
+
+        // Función para actualizar la tabla de búsqueda detallada con nuevos datos de pago
+        function actualizarTablaBusquedaDetalladaPago(datosPago) {
+            const tbody = document.getElementById('searchDetalladaTableBody');
+            if (!tbody) return;
+            
+            // Buscar la fila correspondiente en la tabla de búsqueda detallada
+            const filas = tbody.getElementsByTagName('tr');
+            for (let i = 0; i < filas.length; i++) {
+                const fila = filas[i];
+                const celdaComprobante = fila.cells[3]; // Columna de comprobante
+                
+                if (celdaComprobante && celdaComprobante.textContent.trim() === datosPago.N_COMPROBANTE) {
+                    // Actualizar estado si cambió
+                    const estadoBadge = fila.cells[4].querySelector('.status-badge');
+                    if (estadoBadge && datosPago.ESTADO) {
+                        estadoBadge.className = `status-badge status-${datosPago.ESTADO.toLowerCase()}`;
+                        estadoBadge.textContent = datosPago.ESTADO;
+                    }
+                    
+                    // Actualizar cancelado si cambió
+                    const canceladoBadge = fila.cells[5].querySelector('.status-badge');
+                    if (canceladoBadge && datosPago.CANCELADO) {
+                        const esCancelado = datosPago.CANCELADO.toLowerCase() === 'si';
+                        canceladoBadge.className = `status-badge cancelado-${esCancelado ? 'si' : 'no'}`;
+                        canceladoBadge.textContent = datosPago.CANCELADO;
+                    }
+                    
+                    break;
+                }
+            }
+        }
+
+        // Función para limpiar la tabla de búsqueda detallada
+        function limpiarTablaBusquedaDetallada() {
+            const tbody = document.getElementById('searchDetalladaTableBody');
+            if (!tbody) return;
+            
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="no-data">
+                        <i class="fas fa-search"></i>
+                        <p>Ingrese un criterio de búsqueda</p>
+                    </td>
+                </tr>
+            `;
         }
 
         // Cargar datos al iniciar la página
