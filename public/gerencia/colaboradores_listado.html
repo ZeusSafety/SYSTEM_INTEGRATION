@@ -178,7 +178,7 @@
             border-radius: 6px;
             cursor: pointer;
             transition: all 0.3s ease;
-            display: flex;
+            display: inline-flex;
             align-items: center;
             gap: 5px;
             font-size: 0.8rem;
@@ -188,6 +188,50 @@
             background: var(--azul-oscuro);
             transform: translateY(-1px);
             box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        /* Estilos para botones de acción (activar/desactivar) */
+        .action-buttons-container {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+        }
+
+        .toggle-status-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-status-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .toggle-status-btn.activate {
+            background: var(--verde-exito);
+            color: var(--blanco);
+        }
+
+        .toggle-status-btn.activate:hover {
+            background: #059669;
+        }
+
+        .toggle-status-btn.deactivate {
+            background: var(--amarillo-advertencia);
+            color: var(--blanco);
+        }
+
+        .toggle-status-btn.deactivate:hover {
+            background: #d97706;
         }
 
         .loading {
@@ -648,6 +692,17 @@
 
             .pagination-btn {
                 flex: 1;
+            }
+
+            .action-buttons-container {
+                flex-direction: column;
+                gap: 5px;
+            }
+
+            .toggle-status-btn,
+            .permissions-btn {
+                width: 100%;
+                justify-content: center;
             }
         }
     </style>
@@ -1203,10 +1258,16 @@
                     <td>${item.CORREO || ''}</td>
                     <td>${formatDate(item.FECHA_NACIMIENTO)}</td>
                     <td>
-                        <button class="permissions-btn" onclick="openPermissionsModal('${item.ID_PERSONA}', '${item.NOMBRE || ''} ${item.APELLIDO || ''}')">
-                            <i class="fas fa-user-shield"></i>
-                            Permisos
-                        </button>
+                        <div class="action-buttons-container">
+                            <button class="permissions-btn" onclick="openPermissionsModal('${item.ID_PERSONA}', '${item.NOMBRE || ''} ${item.APELLIDO || ''}')">
+                                <i class="fas fa-user-shield"></i>
+                                Permisos
+                            </button>
+                            <button class="toggle-status-btn deactivate" onclick="toggleUsuarioEstado('${item.ID_PERSONA}', '${item.CORREO || ''}', 0, '${item.NOMBRE || ''} ${item.APELLIDO || ''}')">
+                                <i class="fas fa-user-times"></i>
+                                Desactivar
+                            </button>
+                        </div>
                     </td>
                 </tr>
             `).join('');
@@ -1327,10 +1388,16 @@
                     <td>${item.CORREO || ''}</td>
                     <td>${formatDate(item.FECHA_NACIMIENTO)}</td>
                     <td>
-                        <button class="permissions-btn" onclick="openPermissionsModal('${item.ID_PERSONA}', '${item.NOMBRE || ''} ${item.APELLIDO || ''}')">
-                            <i class="fas fa-user-shield"></i>
-                            Activar Permisos
-                        </button>
+                        <div class="action-buttons-container">
+                            <button class="permissions-btn" onclick="openPermissionsModal('${item.ID_PERSONA}', '${item.NOMBRE || ''} ${item.APELLIDO || ''}')">
+                                <i class="fas fa-user-shield"></i>
+                                Permisos
+                            </button>
+                            <button class="toggle-status-btn activate" onclick="toggleUsuarioEstado('${item.ID_PERSONA}', '${item.CORREO || ''}', 1, '${item.NOMBRE || ''} ${item.APELLIDO || ''}')">
+                                <i class="fas fa-user-check"></i>
+                                Activar
+                            </button>
+                        </div>
                     </td>
                 </tr>
             `).join('');
@@ -1356,6 +1423,67 @@
             if (currentPageInactivos < totalPages) {
                 currentPageInactivos++;
                 displayColaboradoresInactivosPage();
+            }
+        }
+
+        // Función para activar o desactivar usuario
+        async function toggleUsuarioEstado(personaId, correo, nuevoEstado, nombreCompleto) {
+            // nuevoEstado: 0 = desactivar, 1 = activar
+            const accion = nuevoEstado === 1 ? 'activar' : 'desactivar';
+            const mensaje = nuevoEstado === 1 
+                ? `¿Está seguro de que desea ACTIVAR el acceso al sistema para ${nombreCompleto}?`
+                : `¿Está seguro de que desea DESACTIVAR el acceso al sistema para ${nombreCompleto}?`;
+            
+            if (!confirm(mensaje)) {
+                return;
+            }
+            
+            try {
+                console.log(`${accion === 'activar' ? 'Activando' : 'Desactivando'} usuario:`, personaId);
+                
+                const api = "https://colaboradores-2946605267.us-central1.run.app";
+                const metodo = "desactivar_activar_usuario";
+                
+                const data = {
+                    correo: correo,
+                    estado: String(nuevoEstado)
+                };
+                
+                console.log('Datos a enviar:', data);
+                console.log('URL:', `${api}?metodo=${metodo}&id=${personaId}`);
+                
+                const response = await fetch(`${api}?metodo=${metodo}&id=${personaId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                console.log('Status de respuesta:', response.status);
+                
+                if (response.status === 200) {
+                    const result = await response.json();
+                    console.log('Respuesta del servidor:', result);
+                    
+                    alert(`Usuario ${accion === 'activar' ? 'activado' : 'desactivado'} exitosamente.`);
+                    
+                    // Recargar ambas tablas para reflejar los cambios
+                    await loadColaboradoresData();
+                    await loadColaboradoresInactivos();
+                } else {
+                    console.error('Error en la respuesta:', response.status);
+                    try {
+                        const errorData = await response.text();
+                        console.error('Detalles del error:', errorData);
+                    } catch (e) {
+                        console.error('No se pudo obtener detalles del error');
+                    }
+                    alert(`Error al ${accion} el usuario. Por favor intente nuevamente.`);
+                }
+            } catch (error) {
+                console.error(`Error ${accion === 'activar' ? 'activando' : 'desactivando'} usuario:`, error);
+                alert('Error de conexión. Por favor intente nuevamente.');
             }
         }
 
