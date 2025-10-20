@@ -279,8 +279,6 @@
       </div>
     </div>
 
-
-
     <div class="table-responsive">
       <table class="table table-hover align-middle" id="tablaSolicitudes">
         <thead class="table-info">
@@ -502,6 +500,17 @@
           <input type="hidden" id="origInformeReprog1">
           <input type="hidden" id="origInformeReprog2">
           <input type="hidden" id="origInformeReprog3">
+
+          <div id="progressContainer" class="mb-3" style="display: none;">
+            <label class="form-label" id="progressLabel">Subiendo archivos...</label>
+            <div class="progress">
+              <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
+                aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%">
+                0%
+              </div>
+            </div>
+          </div>
+
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary rounded-md" data-bs-dismiss="modal">Cancelar</button>
@@ -1297,6 +1306,67 @@
     new bootstrap.Modal(document.getElementById("modalEdicion")).show();
   }
 
+   /**
+ * Envía un formulario con soporte para barra de progreso de subida.
+ * @param {string} url La URL de destino (e.g., '...run.app' o '...run.app?accion=reprogramar').
+ * @param {FormData} formData Los datos del formulario a enviar.
+ * @param {string} method El método HTTP ('PUT' o 'POST').
+ * @returns {Promise<Response>}
+ */
+  function enviarFormularioConProgreso(url, formData, method = 'PUT') {
+    const progressBar = document.getElementById('progressBar');
+    const progressContainer = document.getElementById('progressContainer');
+    const progressLabel = document.getElementById('progressLabel');
+
+    return new Promise((resolve, reject) => {
+      // 1. Mostrar la barra de progreso e inicializarla
+      progressContainer.style.display = 'block';
+      progressLabel.textContent = 'Subiendo archivos...'; // Etiqueta genérica
+
+      const xhr = new XMLHttpRequest();
+      xhr.open(method, url);
+
+      // Evento para el progreso de la subida
+      xhr.upload.onprogress = function (event) {
+        if (event.lengthComputable) {
+          const percentComplete = Math.round((event.loaded / event.total) * 100);
+          progressBar.style.width = percentComplete + '%';
+          progressBar.setAttribute('aria-valuenow', percentComplete);
+          progressBar.textContent = percentComplete + '%';
+          progressLabel.textContent = `Subiendo archivos... (${percentComplete}%)`;
+        }
+      };
+
+      // Evento de finalización/error
+      xhr.onload = function () {
+        // Ocultar la barra cuando finaliza
+        progressContainer.style.display = 'none';
+        if (xhr.status >= 200 && xhr.status < 300) {
+          // Simular un objeto Response para mantener compatibilidad con el código original
+          resolve({
+            ok: true,
+            status: xhr.status,
+            text: () => Promise.resolve(xhr.responseText),
+            json: () => Promise.resolve(JSON.parse(xhr.responseText || '{}'))
+          });
+        } else {
+          // En caso de error HTTP
+          reject(new Error(`Error HTTP ${xhr.status}: ${xhr.responseText}`));
+        }
+      };
+
+      xhr.onerror = function () {
+        progressContainer.style.display = 'none';
+        reject(new Error('Error de red o CORS al intentar enviar los datos.'));
+      };
+
+      // 2. Enviar el FormData
+      xhr.send(formData);
+    });
+  }
+
+
+
   /**
    * Guarda los cambios realizados en el modal
    */
@@ -1342,15 +1412,7 @@
         form.append('mantener_informe', 'true');
       }
 
-      const resp = await fetch('https://registrosolicitudeseincidencias-2946605267.us-central1.run.app', {
-        method: 'PUT',
-        body: form
-      });
-
-      if (!resp.ok) {
-        const text = await resp.text();
-        throw new Error(`Error HTTP ${resp.status}: ${text}`);
-      }
+      const resp = await enviarFormularioConProgreso('https://registrosolicitudeseincidencias-2946605267.us-central1.run.app', form, 'PUT');
 
       // Si el checkbox de reprogramación está activo, enviar cada bloque visible
       if (document.getElementById('chkReprogramacion').checked) {
@@ -1399,14 +1461,8 @@
               fdUpd.append('mantener_informe', 'true');
             }
 
-            const up = await fetch('https://registrosolicitudeseincidencias-2946605267.us-central1.run.app?accion=reprogramar', {
-              method: 'PUT',
-              body: fdUpd
-            });
-            if (!up.ok) {
-              const t = await up.text();
-              throw new Error(`Error actualizando reprogramación: ${up.status} ${t}`);
-            }
+            const up = await enviarFormularioConProgreso('https://registrosolicitudeseincidencias-2946605267.us-central1.run.app?accion=reprogramar', fdUpd, 'PUT');
+
             // Desincronizar cache local para forzar refresco de FH_INFORME/FH_RESPUESTA
             await obtenerDatos();
             continue;
@@ -1424,14 +1480,8 @@
             fd.append('RESPUESTA', motivo || '');
             if (file) { fd.append('informe', file); fd.append('INFORME', file); }
 
-            const rr = await fetch('https://registrosolicitudeseincidencias-2946605267.us-central1.run.app?accion=reprogramar', {
-              method: 'POST',
-              body: fd
-            });
-            if (!rr.ok) {
-              const t = await rr.text();
-              throw new Error(`Error reprogramando: ${rr.status} ${t}`);
-            }
+            const rr = await enviarFormularioConProgreso('https://registrosolicitudeseincidencias-2946605267.us-central1.run.app?accion=reprogramar', fd, 'POST');
+
           }
         }
       }
@@ -1443,6 +1493,8 @@
       obtenerDatos();
     } catch (e) {
       console.error(e);
+      // Asegurar que la barra se oculte en caso de error
+      document.getElementById('progressContainer').style.display = 'none';
       alert('No se pudo registrar la respuesta: ' + e.message);
     }
   }
