@@ -949,7 +949,7 @@
   <div class="modal-dialog modal-sm"><div class="modal-content"><div class="modal-header"><h6 class="modal-title"><i class="bi bi-clipboard2"></i> Asignar N° Inventario</h6><button type="button" class="btn-close" onclick="closeModal('#modalSesionNumero')"></button></div><div class="modal-body"><div class="mb-2 text-secondary">Ingrese la contraseña del jefe, el N° de inventario y quién autoriza.</div><input id="sn-pwd" type="password" class="form-control mb-2" placeholder="Contraseña"><input id="sn-num" class="form-control mb-2" placeholder="Ej: INV-2025-214"><div class="form-floating mb-2"><select id="sn-area" class="form-select"><option value="Administración">Administración</option><option value="Logística">Logística</option><option value="Otro">Otro</option></select><label>Área</label></div><div class="form-floating mb-2"><select id="sn-persona" class="form-select"><option value="Hervin">Hervin</option><option value="Kimberly">Kimberly</option><option value="Joseph">Joseph</option><option value="Otro">Otro</option></select><label>Autorizado por</label></div><input id="sn-otro" class="form-control d-none" placeholder="Especifique nombre"></div><div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('#modalSesionNumero')">Cancelar</button><button class="btn btn-primary" onclick="guardarSesionNumero()"><i class="bi bi-check2"></i> Guardar</button></div></div></div>
 </div>
 <div class="modal fade" id="modalUnirse" tabindex="-1">
-  <div class="modal-dialog modal-sm"><div class="modal-content"><div class="modal-header"><h6 class="modal-title"><i class="bi bi-link-45deg"></i> Unirse a Inventario</h6><button type="button" class="btn-close" onclick="closeModal('#modalUnirse')"></button></div><div class="modal-body"><div class="mb-2 text-secondary">Ingresa el N° de inventario asignado por el jefe para participar.</div><input id="join-num" class="form-control mb-2" placeholder="Ej: INV-2025-214"></div><div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('#modalUnirse')">Cancelar</button><button class="btn btn-primary" onclick="guardarUnirse()"><i class="bi bi-check2"></i> Unirse</button></div></div></div>
+  <div class="modal-dialog modal-sm"><div class="modal-content"><div class="modal-header"><h6 class="modal-title"><i class="bi bi-link-45deg"></i> Unirse a Inventario</h6><button type="button" class="btn-close" onclick="closeModal('#modalUnirse')"></button></div><div class="modal-body"><div class="mb-2 text-secondary">Selecciona el N° de inventario asignado por el jefe para participar.</div><div class="form-floating"><select id="join-num" class="form-select"><option value="">Cargando inventarios...</option></select><label>N° de Inventario</label></div></div><div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('#modalUnirse')">Cancelar</button><button class="btn btn-primary" onclick="guardarUnirse()"><i class="bi bi-check2"></i> Unirse</button></div></div></div>
 </div>
 <div class="modal fade" id="modalProcedimiento" tabindex="-1">
   <div class="modal-dialog modal-xl"><div class="modal-content"><div class="modal-header"><h6 class="modal-title"><i class="bi bi-journal-text"></i> Procedimientos – Inventario</h6><button type="button" class="btn-close" onclick="closeModal('#modalProcedimiento')"></button></div><div class="modal-body">
@@ -1083,7 +1083,8 @@ const AppState = {
   acciones: [],
   proformas: [],
   verificacion: {},
-  sesionActual: { numero: null, creadoPor: null, inicio: null, activo: false }
+  sesionActual: { numero: null, creadoPor: null, inicio: null, activo: false },
+  paginacion: { callao: { pagina: 1, porPagina: 50 }, malvinas: { pagina: 1, porPagina: 50 } }
 };
 
 const JEFE_PWD = '0427';
@@ -1106,20 +1107,23 @@ async function cargarProductosDesdeAPI() {
     apiStatus.innerHTML = '<i class="bi bi-arrow-repeat"></i> Conectando a API...';
     
     const api = "https://productoscrud-2946605267.us-central1.run.app";
-    const response = await fetch(api);
+    const metodo = "LISTADO_INVENTARIO";
+    const response = await fetch(`${api}?metodo=${metodo}`);
     console.log('Status de respuesta:', response.status);
     
     if (response.status === 200) {
       const data = await response.json();
       console.log('Datos cargados desde API:', data);
       
-      // Normalizar datos de la API
+      // Normalizar datos de la API con el nuevo formato
+      // Formato esperado: {"ID": 1, "NOMBRE": "...", "CODIGO": "...", "UNIDAD_MEDIDA": "UNI"}
       AppState.productos = (data || []).map((item, i) => ({
+        id: item.ID || (i + 1),
         item: i + 1,
         producto: item.NOMBRE || '',
         codigo: item.CODIGO || '',
         unidad_medida: item.UNIDAD_MEDIDA || 'UND',
-        cantidad_sistema: Number(item.CANTIDAD_SISTEMA || 0)
+        cantidad_sistema: 0 // Inicializar en 0, se actualizará con el sistema
       })).filter(p => p.codigo);
       
       apiStatus.className = 'api-status success';
@@ -1141,9 +1145,138 @@ async function cargarProductosDesdeAPI() {
 }
 
 // Funciones de almacenamiento local eliminadas - ahora se trabaja solo con APIs
-function openSesionNumeroModal(){ $('sn-pwd').value=''; $('sn-num').value = AppState.sesionActual?.numero || ''; $('sn-area').value='Administración'; $('sn-persona').value='Hervin'; $('sn-otro').classList.add('d-none'); openModal('#modalSesionNumero'); }
-function guardarSesionNumero(){ const pwd=$('sn-pwd').value||''; if(pwd!==JEFE_PWD){ alert('Contraseña incorrecta'); return; } const num=($('sn-num').value||'').trim(); if(!num){ alert('Ingrese el N° de inventario'); return; } const area=$('sn-area').value; let persona=$('sn-persona').value; if(persona==='Otro'){ persona = ($('sn-otro').value||'').trim(); if(!persona){ alert('Especifique el nombre'); return; } }
-  AppState.sesionActual.numero = num; AppState.sesionActual.creadoPor = `${area} • ${persona}`; AppState.sesionActual.inicio = fmt12(); AppState.sesionActual.activo = true; closeModal('#modalSesionNumero'); renderSesionBanner(); openModal('#modalAviso'); toast('Número de inventario asignado.','success'); }
+const INVENTARIO_API = "https://inventario-2946605267.us-central1.run.app";
+
+// Cargar colaboradores desde la API
+async function cargarColaboradoresInventario() {
+  try {
+    const response = await fetch(`${INVENTARIO_API}?method=colaboradores_imventario`);
+    if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
+    const colaboradores = await response.json();
+    console.log('Colaboradores cargados:', colaboradores);
+    
+    const selectPersona = $('sn-persona');
+    if (selectPersona) {
+      selectPersona.innerHTML = '<option value="">Seleccione...</option>';
+      (colaboradores || []).forEach(col => {
+        const option = document.createElement('option');
+        option.value = col.ID_PERSONA;
+        option.textContent = col.NOMBRE;
+        selectPersona.appendChild(option);
+      });
+      // Agregar opción "Otro" al final
+      const optionOtro = document.createElement('option');
+      optionOtro.value = 'Otro';
+      optionOtro.textContent = 'Otro';
+      selectPersona.appendChild(optionOtro);
+    }
+  } catch (error) {
+    console.error('Error al cargar colaboradores:', error);
+    toast('Error al cargar colaboradores. Usando valores por defecto.', 'error');
+    // Valores por defecto en caso de error
+    const selectPersona = $('sn-persona');
+    if (selectPersona) {
+      selectPersona.innerHTML = '<option value="1">Hervin</option><option value="2">Kimberly</option><option value="3">Joseph</option><option value="Otro">Otro</option>';
+    }
+  }
+}
+
+// Cargar lista de inventarios disponibles desde la API
+async function cargarInventariosDisponibles() {
+  try {
+    const response = await fetch(`${INVENTARIO_API}?method=listar_inventarios`);
+    if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
+    const inventarios = await response.json();
+    console.log('Inventarios cargados:', inventarios);
+    
+    const selectInventario = $('join-num');
+    if (selectInventario) {
+      selectInventario.innerHTML = '<option value="">Seleccione un inventario...</option>';
+      (inventarios || []).forEach(inv => {
+        const option = document.createElement('option');
+        option.value = inv.NOMBRE; // El nombre del inventario
+        option.textContent = inv.NOMBRE; // Mostrar el nombre
+        option.dataset.id = inv.ID; // Guardar el ID como data attribute
+        selectInventario.appendChild(option);
+      });
+      
+      if(inventarios.length === 0){
+        selectInventario.innerHTML = '<option value="">No hay inventarios disponibles</option>';
+      }
+    }
+  } catch (error) {
+    console.error('Error al cargar inventarios:', error);
+    toast('Error al cargar inventarios disponibles.', 'error');
+    const selectInventario = $('join-num');
+    if (selectInventario) {
+      selectInventario.innerHTML = '<option value="">Error al cargar. Intente nuevamente.</option>';
+    }
+  }
+}
+
+function openSesionNumeroModal(){ 
+  $('sn-pwd').value=''; 
+  $('sn-num').value = AppState.sesionActual?.numero || ''; 
+  $('sn-area').value='Administración'; 
+  $('sn-otro').classList.add('d-none'); 
+  // Cargar colaboradores desde la API
+  cargarColaboradoresInventario();
+  openModal('#modalSesionNumero'); 
+}
+
+async function guardarSesionNumero(){ 
+  const pwd=$('sn-pwd').value||''; 
+  if(pwd!==JEFE_PWD){ alert('Contraseña incorrecta'); return; } 
+  const num=($('sn-num').value||'').trim(); 
+  if(!num){ alert('Ingrese el N° de inventario'); return; } 
+  const area=$('sn-area').value; 
+  let personaId=$('sn-persona').value;
+  let personaNombre = $('sn-persona').selectedOptions[0]?.textContent || '';
+  
+  if(personaId==='Otro'){ 
+    personaNombre = ($('sn-otro').value||'').trim(); 
+    if(!personaNombre){ alert('Especifique el nombre'); return; }
+    personaId = null; // No hay ID para "Otro"
+  }
+  
+  // Enviar datos a la API
+  try {
+    const data = {
+      nombre: num,
+      area: area.toUpperCase(),
+      autorizado_por: personaId || personaNombre // Enviar ID si existe, sino el nombre
+    };
+    
+    console.log('Enviando datos a API:', data);
+    const response = await fetch(`${INVENTARIO_API}?method=insertar_numero_inventario`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify(data)
+    });
+    
+    if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
+    const resultado = await response.json();
+    console.log('Respuesta de la API:', resultado);
+    
+    // Actualizar estado local
+    AppState.sesionActual.numero = num; 
+    AppState.sesionActual.creadoPor = `${area} • ${personaNombre}`; 
+    AppState.sesionActual.inicio = fmt12(); 
+    AppState.sesionActual.activo = true; 
+    
+    closeModal('#modalSesionNumero'); 
+    renderSesionBanner(); 
+    openModal('#modalAviso'); 
+    toast('Número de inventario asignado correctamente.','success');
+    
+  } catch (error) {
+    console.error('Error al guardar número de inventario:', error);
+    toast('Error al guardar en el servidor: ' + error.message, 'error');
+  }
+}
 function renderSesionBanner(){
   try{
     const s=AppState.sesionActual||{};
@@ -1163,8 +1296,35 @@ function renderSesionBanner(){
       </div>`;
   }catch{}
 }
-function openUnirseModal(){ $('join-num').value = AppState.sesionActual?.numero || ''; openModal('#modalUnirse'); }
-function guardarUnirse(){ const num = ($('join-num').value||'').trim(); if(!num){ alert('Ingresa el N° de inventario'); return; } AppState.sesionActual.numero = num; AppState.sesionActual.activo = true; AppState.sesionActual.inicio = AppState.sesionActual.inicio || fmt12(); closeModal('#modalUnirse'); renderSesionBanner(); openModal('#modalAviso'); toast('Unido al inventario '+num,'success'); }
+function openUnirseModal(){ 
+  // Cargar lista de inventarios disponibles desde la API
+  cargarInventariosDisponibles();
+  openModal('#modalUnirse'); 
+}
+
+function guardarUnirse(){ 
+  const select = $('join-num');
+  const num = (select?.value||'').trim(); 
+  
+  if(!num){ 
+    alert('Selecciona un N° de inventario'); 
+    return; 
+  } 
+  
+  // Obtener el ID del inventario seleccionado (si está disponible)
+  const selectedOption = select.selectedOptions[0];
+  const inventarioId = selectedOption?.dataset?.id || null;
+  
+  AppState.sesionActual.numero = num; 
+  AppState.sesionActual.inventarioId = inventarioId; // Guardar el ID también
+  AppState.sesionActual.activo = true; 
+  AppState.sesionActual.inicio = AppState.sesionActual.inicio || fmt12(); 
+  
+  closeModal('#modalUnirse'); 
+  renderSesionBanner(); 
+  openModal('#modalAviso'); 
+  toast('Unido al inventario '+num,'success'); 
+}
 function cerrarSesionNumero(){ const pwd = prompt('Contraseña para cerrar inventario'); if(pwd!==JEFE_PWD){ alert('Contraseña incorrecta'); return; } if(!confirm('¿Cerrar el inventario actual? No se podrán iniciar nuevos conteos con este número.')) return; AppState.sesionActual.activo=false; renderSesionBanner(); toast('Inventario cerrado.','success'); }
 
 function showView(v){
@@ -1258,6 +1418,8 @@ function mostrarTablaInventario(almacen){
   const sesion = ultimoInventario(almacen); if(!sesion){ alert('No hay sesión activa.'); return; }
   const tbody = $(`tbl-${almacen}`).querySelector('tbody'); tbody.innerHTML='';
   const wrap = $(`tabla-${almacen}`);
+  
+  // Crear barra de búsqueda si no existe
   if(wrap && !document.getElementById(`inv-fwrap-${almacen}`)){
     const bar = document.createElement('div');
     bar.id = `inv-fwrap-${almacen}`;
@@ -1272,27 +1434,202 @@ function mostrarTablaInventario(almacen){
     const inp = document.getElementById(`inv-filtro-${almacen}`);
     const clr = document.getElementById(`inv-clear-${almacen}`);
     if(inp) inp.addEventListener('input', ()=> filterTablaInventario(almacen));
-    if(clr) clr.addEventListener('click', ()=>{ inp.value=''; filterTablaInventario(almacen); inp.focus(); });
+    if(clr) clr.addEventListener('click', ()=>{ inp.value=''; AppState.paginacion[almacen].pagina = 1; renderPaginaInventario(almacen); inp.focus(); });
   }
-  const excl = new Set(AppState.filtro.excluirCodigos.map(s=>s.trim()).filter(Boolean)); let fuente = [...AppState.productos]; if(AppState.filtro.ocultarCero) fuente = fuente.filter(p=>p.cantidad_sistema>0); fuente = fuente.filter(p=> !excl.has(p.codigo));
-  const mapCant = new Map((sesion.filas||[]).map(f=>[f.codigo, f.cantidad]));
-  fuente.forEach(p=>{ const tr = document.createElement('tr'); const val = mapCant.has(p.codigo) ? String(mapCant.get(p.codigo)) : ''; const estadoBadge = val==='' ? '<span class="badge text-bg-danger">PENDIENTE</span>' : '<span class="badge text-bg-success">REGISTRADO</span>'; tr.innerHTML = `<td>${p.item}</td><td>${p.producto}</td><td>${p.codigo}</td><td><input type="number" class="form-control form-control-sm" style="width:100px; text-align:center" min="0" data-codigo="${p.codigo}" value="${val}" oninput="syncObs(this)"></td><td>${p.unidad_medida}</td><td class="fw-semibold">${estadoBadge}</td>`; tbody.appendChild(tr); });
+  
+  renderPaginaInventario(almacen);
   $(`tabla-${almacen}`).classList.remove('invis');
 }
+
+function renderPaginaInventario(almacen){
+  const sesion = ultimoInventario(almacen);
+  if(!sesion) return;
+  
+  const tbody = $(`tbl-${almacen}`).querySelector('tbody');
+  const excl = new Set(AppState.filtro.excluirCodigos.map(s=>s.trim()).filter(Boolean));
+  let fuente = [...AppState.productos];
+  if(AppState.filtro.ocultarCero) fuente = fuente.filter(p=>p.cantidad_sistema>0);
+  fuente = fuente.filter(p=> !excl.has(p.codigo));
+  
+  // Aplicar filtro de búsqueda
+  const filtroTxt = (document.getElementById(`inv-filtro-${almacen}`)?.value||'').toLowerCase();
+  if(filtroTxt){
+    fuente = fuente.filter(p=> 
+      (p.producto||'').toLowerCase().includes(filtroTxt) || 
+      (p.codigo||'').toLowerCase().includes(filtroTxt)
+    );
+  }
+  
+  const mapCant = new Map((sesion.filas||[]).map(f=>[f.codigo, f.cantidad]));
+  
+  // Paginación
+  const porPagina = AppState.paginacion[almacen].porPagina;
+  const paginaActual = AppState.paginacion[almacen].pagina;
+  const totalPaginas = Math.ceil(fuente.length / porPagina);
+  const inicio = (paginaActual - 1) * porPagina;
+  const fin = inicio + porPagina;
+  const productosPagina = fuente.slice(inicio, fin);
+  
+  // Renderizar filas
+  tbody.innerHTML = '';
+  productosPagina.forEach(p=>{
+    const tr = document.createElement('tr');
+    const val = mapCant.has(p.codigo) ? String(mapCant.get(p.codigo)) : '';
+    const estadoBadge = val==='' ? '<span class="badge text-bg-danger">PENDIENTE</span>' : '<span class="badge text-bg-success">REGISTRADO</span>';
+    tr.innerHTML = `<td>${p.item}</td><td>${p.producto}</td><td>${p.codigo}</td><td><input type="number" class="form-control form-control-sm" style="width:100px; text-align:center" min="0" data-codigo="${p.codigo}" data-almacen="${almacen}" value="${val}" oninput="syncObsYGuardar(this, '${almacen}')"></td><td>${p.unidad_medida}</td><td class="fw-semibold">${estadoBadge}</td>`;
+    tbody.appendChild(tr);
+  });
+  
+  // Crear o actualizar controles de paginación
+  renderControlesPaginacion(almacen, paginaActual, totalPaginas, fuente.length);
+}
+
+function renderControlesPaginacion(almacen, paginaActual, totalPaginas, totalItems){
+  const wrap = $(`tabla-${almacen}`);
+  if(!wrap) return;
+  
+  let paginacionDiv = document.getElementById(`inv-paginacion-${almacen}`);
+  if(!paginacionDiv){
+    paginacionDiv = document.createElement('div');
+    paginacionDiv.id = `inv-paginacion-${almacen}`;
+    paginacionDiv.className = 'd-flex justify-content-between align-items-center mt-3 flex-wrap gap-2';
+    wrap.querySelector('.card-body').appendChild(paginacionDiv);
+  }
+  
+  // Calcular rango de ítems mostrados
+  const porPagina = AppState.paginacion[almacen].porPagina;
+  const desde = (paginaActual - 1) * porPagina + 1;
+  const hasta = Math.min(paginaActual * porPagina, totalItems);
+  
+  // Generar botones de paginación
+  let botonesHTML = '';
+  
+  // Botón anterior
+  botonesHTML += `<button class="btn btn-sm btn-outline-primary" onclick="cambiarPaginaInventario('${almacen}', ${paginaActual - 1})" ${paginaActual === 1 ? 'disabled' : ''}><i class="bi bi-chevron-left"></i> Anterior</button>`;
+  
+  // Números de página
+  const maxBotones = 5;
+  let inicioPag = Math.max(1, paginaActual - Math.floor(maxBotones / 2));
+  let finPag = Math.min(totalPaginas, inicioPag + maxBotones - 1);
+  
+  if(finPag - inicioPag < maxBotones - 1){
+    inicioPag = Math.max(1, finPag - maxBotones + 1);
+  }
+  
+  if(inicioPag > 1){
+    botonesHTML += `<button class="btn btn-sm btn-outline-secondary" onclick="cambiarPaginaInventario('${almacen}', 1)">1</button>`;
+    if(inicioPag > 2) botonesHTML += `<span class="px-2">...</span>`;
+  }
+  
+  for(let i = inicioPag; i <= finPag; i++){
+    const activo = i === paginaActual ? 'btn-primary' : 'btn-outline-secondary';
+    botonesHTML += `<button class="btn btn-sm ${activo}" onclick="cambiarPaginaInventario('${almacen}', ${i})">${i}</button>`;
+  }
+  
+  if(finPag < totalPaginas){
+    if(finPag < totalPaginas - 1) botonesHTML += `<span class="px-2">...</span>`;
+    botonesHTML += `<button class="btn btn-sm btn-outline-secondary" onclick="cambiarPaginaInventario('${almacen}', ${totalPaginas})">${totalPaginas}</button>`;
+  }
+  
+  // Botón siguiente
+  botonesHTML += `<button class="btn btn-sm btn-outline-primary" onclick="cambiarPaginaInventario('${almacen}', ${paginaActual + 1})" ${paginaActual === totalPaginas ? 'disabled' : ''}>Siguiente <i class="bi bi-chevron-right"></i></button>`;
+  
+  paginacionDiv.innerHTML = `
+    <div class="text-secondary small">Mostrando ${desde}-${hasta} de ${totalItems} productos</div>
+    <div class="d-flex gap-1 align-items-center">${botonesHTML}</div>
+  `;
+}
+
+function cambiarPaginaInventario(almacen, nuevaPagina){
+  AppState.paginacion[almacen].pagina = nuevaPagina;
+  renderPaginaInventario(almacen);
+  // Scroll suave hacia arriba de la tabla
+  const tabla = $(`tabla-${almacen}`);
+  if(tabla) tabla.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
 function syncObs(inp){ const tdObs=inp.closest('tr').children[5]; const val=inp.value.trim(); tdObs.innerHTML = val===''? `<span class="badge text-bg-danger">PENDIENTE</span>` : `<span class="badge text-bg-success">REGISTRADO</span>`; }
-function filterTablaInventario(almacen){ const q = (document.getElementById(`inv-filtro-${almacen}`)?.value||'').toLowerCase(); const tb = document.getElementById(`tbl-${almacen}`)?.querySelector('tbody'); if(!tb) return; Array.from(tb.children).forEach(tr=>{ const tds = tr.children; const producto = (tds[1]?.textContent||'').toLowerCase(); const codigo=(tds[2]?.textContent||'').toLowerCase(); const show = !q || producto.includes(q) || codigo.includes(q); tr.style.display = show? '' : 'none'; }); }
+
+function syncObsYGuardar(inp, almacen){
+  // Actualizar badge visual
+  const tdObs = inp.closest('tr').children[5];
+  const val = inp.value.trim();
+  tdObs.innerHTML = val==='' ? '<span class="badge text-bg-danger">PENDIENTE</span>' : '<span class="badge text-bg-success">REGISTRADO</span>';
+  
+  // Guardar en sesión
+  const codigo = inp.dataset.codigo;
+  const cantidad = Number(inp.value || 0);
+  const sesion = ultimoInventario(almacen);
+  if(!sesion) return;
+  
+  // Buscar o crear la fila en sesion.filas
+  if(!sesion.filas) sesion.filas = [];
+  let fila = sesion.filas.find(f => f.codigo === codigo);
+  
+  if(fila){
+    fila.cantidad = cantidad;
+  } else {
+    // Buscar producto completo en AppState.productos
+    const producto = AppState.productos.find(p => p.codigo === codigo);
+    if(producto){
+      sesion.filas.push({
+        item: producto.item,
+        producto: producto.producto,
+        codigo: producto.codigo,
+        unidad_medida: producto.unidad_medida,
+        cantidad: cantidad
+      });
+    }
+  }
+}
+
+function filterTablaInventario(almacen){ 
+  // Resetear a la primera página al filtrar
+  AppState.paginacion[almacen].pagina = 1;
+  renderPaginaInventario(almacen);
+}
 function ultimoInventario(almacen){ const arr = AppState.sesiones[almacen]; return arr[arr.length-1] || null; }
 async function registrarInventario(almacen){
   const sesion = ultimoInventario(almacen); if(!sesion){ alert('No hay sesión.'); return; }
-  const rows = $(`tbl-${almacen}`).querySelectorAll('tbody tr');
-  if(rows.length===0){ alert('No hay filas para registrar.'); return; }
-  const filas=[]; let faltantes=0;
-  rows.forEach(r=>{ const tds = r.children; const item=tds[0].textContent; const producto=tds[1].textContent; const codigo=tds[2].textContent; const cant=tds[3].querySelector('input').value; const um=tds[4].textContent; if(cant==='') faltantes++; filas.push({item,producto,codigo,unidad_medida:um,cantidad:Number(cant||0)}); });
-  if(faltantes>0){ if(!confirm(`Hay ${faltantes} sin cantidad. ¿Deseas continuar?`)) return; }
-  sesion.filas = filas; sesion.fin = fmt12();
+  
+  // Obtener los productos filtrados
+  const excl = new Set(AppState.filtro.excluirCodigos.map(s=>s.trim()).filter(Boolean));
+  let fuente = [...AppState.productos];
+  if(AppState.filtro.ocultarCero) fuente = fuente.filter(p=>p.cantidad_sistema>0);
+  fuente = fuente.filter(p=> !excl.has(p.codigo));
+  
+  if(fuente.length === 0){ alert('No hay productos para registrar.'); return; }
+  
+  // Crear un mapa de cantidades ingresadas
+  const mapCant = new Map((sesion.filas||[]).map(f=>[f.codigo, f.cantidad]));
+  
+  // Construir filas finales con todos los productos
+  const filas = [];
+  let faltantes = 0;
+  
+  fuente.forEach(p=>{
+    const cantidad = mapCant.has(p.codigo) ? mapCant.get(p.codigo) : 0;
+    if(cantidad === 0 || cantidad === '') faltantes++;
+    
+    filas.push({
+      item: p.item,
+      producto: p.producto,
+      codigo: p.codigo,
+      unidad_medida: p.unidad_medida,
+      cantidad: Number(cantidad || 0)
+    });
+  });
+  
+  if(faltantes > 0){ 
+    if(!confirm(`Hay ${faltantes} productos sin cantidad registrada. ¿Deseas continuar?`)) return; 
+  }
+  
+  sesion.filas = filas; 
+  sesion.fin = fmt12();
   sesion.pdfUrl = await generarPDFConteo(almacen, sesion);
-  renderListado(almacen); if(almacen==='malvinas'){ setTiendaStatus(sesion.tienda,'listo'); }
-  renderConsolidado(); renderRegistro();
+  renderListado(almacen); 
+  if(almacen==='malvinas'){ setTiendaStatus(sesion.tienda,'listo'); }
+  renderConsolidado(); 
+  renderRegistro();
   toast('Inventario registrado correctamente.','success');
 }
 function renderListado(almacen){ const tb = $(`list-${almacen}`).querySelector('tbody'); tb.innerHTML=''; const filtro = $(`filtro-list-${almacen}`)?.value?.toLowerCase() || ''; AppState.sesiones[almacen].forEach((s,idx)=>{ if(filtro && !(`${s.numero} ${s.registrado} ${s.inicio} ${s.tienda||''}`.toLowerCase().includes(filtro))) return; const tr = document.createElement('tr'); const pdf = s.pdfUrl? `<a class="link-primary" href="${s.pdfUrl}" target="_blank"><i class="bi bi-file-earmark-pdf"></i> PDF</a>`:'-'; tr.innerHTML = `${almacen==='malvinas'?`<td>${idx+1}</td><td>${s.inicio}</td><td>${s.numero}</td><td>${s.tienda||''}</td><td>${s.registrado}</td><td>${pdf}</td><td>${s.fin||'-'}</td>`:`<td>${idx+1}</td><td>${s.inicio}</td><td>${s.numero}</td><td>${s.registrado}</td><td>${pdf}</td><td>${s.fin||'-'}</td>`}`; tb.appendChild(tr); }); }
@@ -1732,11 +2069,22 @@ document.addEventListener('DOMContentLoaded', () => {
     actualizarBadgeProductos();
     try{ renderSesionBanner(); }catch{}
     try{
-      $('sn-persona')?.addEventListener('change', ()=>{ const v=$('sn-persona').value; const el=$('sn-otro'); if(v==='Otro'){ el.classList.remove('d-none'); el.focus(); } else { el.classList.add('d-none'); el.value=''; } });
-      $('sn-area')?.addEventListener('change', ()=>{ const area=$('sn-area').value; const p=$('sn-persona'); if(!p) return; if(area==='Administración'){ p.innerHTML='<option>Hervin</option><option>Kimberly</option><option>Otro</option>'; }
-        else if(area==='Logística'){ p.innerHTML='<option>Joseph</option><option>Otro</option>'; }
-        else { p.innerHTML='<option>Otro</option>'; }
-    });
+      $('sn-persona')?.addEventListener('change', ()=>{ 
+        const v=$('sn-persona').value; 
+        const el=$('sn-otro'); 
+        if(v==='Otro'){ 
+          el.classList.remove('d-none'); 
+          el.focus(); 
+        } else { 
+          el.classList.add('d-none'); 
+          el.value=''; 
+        } 
+      });
+      
+      $('sn-area')?.addEventListener('change', ()=>{ 
+        // Recargar colaboradores cuando cambia el área
+        cargarColaboradoresInventario();
+      });
     }catch{}
 });
 
