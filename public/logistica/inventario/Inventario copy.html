@@ -70,20 +70,6 @@
   .cursor-pointer { cursor: pointer; }
   .mini-hint { font-size:.85rem; color: var(--text-secondary); }
 
-  /* Estado de API */
-  .api-status.loading {
-    background-color: #fef3c7;
-    color: #92400e;
-  }
-  .api-status.success {
-    background-color: #dcfce7;
-    color: #166534;
-  }
-  .api-status.error {
-    background-color: #fee2e2;
-    color: #991b1b;
-  }
-
   /* --- Estructura del Dashboard --- */
   .sidebar {
     width: 260px;
@@ -467,13 +453,13 @@
       <div id="sesion-banner-global"></div>
     </div>
     <div class="header-right">
+       <label class="btn btn-sm btn-success me-2 mb-0" for="inputProductos"><i class="bi bi-upload"></i> Subir Productos</label>
+       <input id="inputProductos" type="file" accept=".json,.csv,.xlsx,.xls" class="d-none">
        <span id="badgeProductos" class="badge bg-secondary align-self-center me-2">Productos: 0</span>
-       <span class="api-status loading" id="apiStatus" style="font-size: 0.8rem; padding: 4px 8px; border-radius: 12px; margin-left: 10px; font-weight: 500;">
-         <i class="bi bi-arrow-repeat"></i> Conectando a API...
-       </span>
        <button class="btn btn-sm btn-outline-primary" onclick="openSesionNumeroModal()" title="Asignar N° Inventario"><i class="bi bi-clipboard2"></i> Asignar N°</button>
        <button class="btn btn-sm btn-outline-success" onclick="openUnirseModal()" title="Unirse a un N° asignado"><i class="bi bi-link-45deg"></i> Unirse N°</button>
        <button class="btn btn-sm btn-outline-secondary" onclick="openProcedimientoModal()" title="Procedimiento"><i class="bi bi-journal-text"></i></button>
+       <button class="btn btn-sm btn-outline-danger" onclick="resetApp()" title="Restablecer datos"><i class="bi bi-x-circle"></i></button>
     </div>
   </header>
 
@@ -1073,6 +1059,7 @@ const fmt12 = (d=new Date())=>{
   return `${pad(d.getMonth()+1)}/${pad(d.getDate())}/${d.getFullYear()} ${pad(h)}:${m} ${ampm}`;
 };
 const uid = () => Math.random().toString(36).slice(2,10);
+const ls = { get:k => JSON.parse(localStorage.getItem(k) || 'null'), set:(k,v)=> localStorage.setItem(k, JSON.stringify(v)) };
 
 const AppState = {
   productos: [],
@@ -1097,53 +1084,35 @@ let _charts={};
  * FUNCIONES APP
  *******************/
 
-// ===== FUNCIONES DE API =====
-async function cargarProductosDesdeAPI() {
-  const apiStatus = document.getElementById('apiStatus');
-  try {
-    console.log('Cargando productos desde API...');
-    apiStatus.className = 'api-status loading';
-    apiStatus.innerHTML = '<i class="bi bi-arrow-repeat"></i> Conectando a API...';
-    
-    const api = "https://productoscrud-2946605267.us-central1.run.app";
-    const response = await fetch(api);
-    console.log('Status de respuesta:', response.status);
-    
-    if (response.status === 200) {
-      const data = await response.json();
-      console.log('Datos cargados desde API:', data);
-      
-      // Normalizar datos de la API
-      AppState.productos = (data || []).map((item, i) => ({
-        item: i + 1,
-        producto: item.NOMBRE || '',
-        codigo: item.CODIGO || '',
-        unidad_medida: item.UNIDAD_MEDIDA || 'UND',
-        cantidad_sistema: Number(item.CANTIDAD_SISTEMA || 0)
-      })).filter(p => p.codigo);
-      
-      apiStatus.className = 'api-status success';
-      apiStatus.innerHTML = '<i class="bi bi-check-circle"></i> API Conectada';
-      actualizarBadgeProductos();
-      toast(`Productos cargados desde API: ${AppState.productos.length}`, 'success');
-    } else {
-      console.error('Error en la respuesta de la API:', response.status);
-      apiStatus.className = 'api-status error';
-      apiStatus.innerHTML = '<i class="bi bi-exclamation-triangle"></i> Error API';
-      toast('Error al cargar productos desde la API', 'error');
-    }
-  } catch (error) {
-    console.error('Error cargando productos desde API:', error);
-    apiStatus.className = 'api-status error';
-    apiStatus.innerHTML = '<i class="bi bi-exclamation-triangle"></i> Error de Red';
-    toast('Error de conexión al cargar productos', 'error');
-  }
+function resetApp(){
+  if(!confirm('Esto borrará Productos, Sesiones, Sistema, Comparación, Acciones y Proformas. ¿Continuar?')) return;
+  try { localStorage.removeItem('zs_app'); }catch{}
+  try { sessionStorage.removeItem('zs_app'); }catch{}
+  // Recargar el estado inicial
+  Object.assign(AppState, {
+    productos: [],
+    filtro: { ocultarCero:false, excluirCodigos:[] },
+    sesiones: { callao:[], malvinas:[] },
+    sistema: { callao:[], malvinas:[] },
+    comparacion: { almacen:null, filas:[] },
+    acciones: [],
+    proformas: [],
+    verificacion: {},
+    sesionActual: { numero: null, creadoPor: null, inicio: null, activo: false }
+  });
+  actualizarBadgeProductos();
+  try{ ['callao','malvinas'].forEach(a=>{ const tb=$(`tbl-${a}`)?.querySelector('tbody'); if(tb) tb.innerHTML=''; }); }catch{}
+  try{ const tb=$('tbl-comparacion')?.querySelector('tbody'); if(tb) tb.innerHTML=''; }catch{}
+  renderListado('callao'); renderListado('malvinas'); renderAcciones();
+  renderSesionBanner();
+  toast('Datos reiniciados. Ya puedes cargar tu nuevo archivo.','info');
 }
 
-// Funciones de almacenamiento local eliminadas - ahora se trabaja solo con APIs
+function loadLS(){ const a=ls.get('zs_app'); if(a) Object.assign(AppState,a); }
+function saveLS(){ ls.set('zs_app', AppState); }
 function openSesionNumeroModal(){ $('sn-pwd').value=''; $('sn-num').value = AppState.sesionActual?.numero || ''; $('sn-area').value='Administración'; $('sn-persona').value='Hervin'; $('sn-otro').classList.add('d-none'); openModal('#modalSesionNumero'); }
 function guardarSesionNumero(){ const pwd=$('sn-pwd').value||''; if(pwd!==JEFE_PWD){ alert('Contraseña incorrecta'); return; } const num=($('sn-num').value||'').trim(); if(!num){ alert('Ingrese el N° de inventario'); return; } const area=$('sn-area').value; let persona=$('sn-persona').value; if(persona==='Otro'){ persona = ($('sn-otro').value||'').trim(); if(!persona){ alert('Especifique el nombre'); return; } }
-  AppState.sesionActual.numero = num; AppState.sesionActual.creadoPor = `${area} • ${persona}`; AppState.sesionActual.inicio = fmt12(); AppState.sesionActual.activo = true; closeModal('#modalSesionNumero'); renderSesionBanner(); openModal('#modalAviso'); toast('Número de inventario asignado.','success'); }
+  AppState.sesionActual.numero = num; AppState.sesionActual.creadoPor = `${area} • ${persona}`; AppState.sesionActual.inicio = fmt12(); AppState.sesionActual.activo = true; saveLS(); closeModal('#modalSesionNumero'); renderSesionBanner(); openModal('#modalAviso'); toast('Número de inventario asignado.','success'); }
 function renderSesionBanner(){
   try{
     const s=AppState.sesionActual||{};
@@ -1164,8 +1133,8 @@ function renderSesionBanner(){
   }catch{}
 }
 function openUnirseModal(){ $('join-num').value = AppState.sesionActual?.numero || ''; openModal('#modalUnirse'); }
-function guardarUnirse(){ const num = ($('join-num').value||'').trim(); if(!num){ alert('Ingresa el N° de inventario'); return; } AppState.sesionActual.numero = num; AppState.sesionActual.activo = true; AppState.sesionActual.inicio = AppState.sesionActual.inicio || fmt12(); closeModal('#modalUnirse'); renderSesionBanner(); openModal('#modalAviso'); toast('Unido al inventario '+num,'success'); }
-function cerrarSesionNumero(){ const pwd = prompt('Contraseña para cerrar inventario'); if(pwd!==JEFE_PWD){ alert('Contraseña incorrecta'); return; } if(!confirm('¿Cerrar el inventario actual? No se podrán iniciar nuevos conteos con este número.')) return; AppState.sesionActual.activo=false; renderSesionBanner(); toast('Inventario cerrado.','success'); }
+function guardarUnirse(){ const num = ($('join-num').value||'').trim(); if(!num){ alert('Ingresa el N° de inventario'); return; } AppState.sesionActual.numero = num; AppState.sesionActual.activo = true; AppState.sesionActual.inicio = AppState.sesionActual.inicio || fmt12(); saveLS(); closeModal('#modalUnirse'); renderSesionBanner(); openModal('#modalAviso'); toast('Unido al inventario '+num,'success'); }
+function cerrarSesionNumero(){ const pwd = prompt('Contraseña para cerrar inventario'); if(pwd!==JEFE_PWD){ alert('Contraseña incorrecta'); return; } if(!confirm('¿Cerrar el inventario actual? No se podrán iniciar nuevos conteos con este número.')) return; AppState.sesionActual.activo=false; saveLS(); renderSesionBanner(); toast('Inventario cerrado.','success'); }
 
 function showView(v){
   qa('.sidebar .nav-item').forEach(link => {
@@ -1235,7 +1204,7 @@ async function leerArchivoGenerico(file){
 function parseCSV(txt){ const clean = txt.replace(/^\uFEFF/, '').trim(); if(!clean){ return []; } const lines = clean.split(/\r?\n/); const header = lines[0].split(','); const out=[]; for(let i=1;i<lines.length;i++){ if(!lines[i]) continue; const cols=lines[i].split(','); const obj={}; header.forEach((h,idx)=>{ obj[h.trim()]=cols[idx].trim(); }); out.push(obj); } return out; }
 function parseXLSX(arrayBuffer){ if(!window.XLSX) throw new Error('No se pudo cargar el lector de Excel.'); const wb = XLSX.read(arrayBuffer, {type:'array'}); const ws = wb.Sheets[wb.SheetNames[0]]; return XLSX.utils.sheet_to_json(ws); }
 function normalizarClave(k){ return String(k||'').toLowerCase().replace(/\s+/g,'_').replace(/[áàä]/g,'a').replace(/[éèë]/g,'e').replace(/[íìï]/g,'i').replace(/[óòö]/g,'o').replace(/[úùü]/g,'u'); }
-function cargarProductos(datos){ AppState.productos = (datos||[]).map((r,i)=>{ const m={}; Object.keys(r).forEach(k=> m[normalizarClave(k)]=r[k]); return { item:Number(m.item||i+1), producto:(m.producto||m.nombre||m.nombre_producto||m.descripcion||''), codigo:(m.codigo||m.cod||m.sku||'').toString(), unidad_medida:(m.unidad_medida||m.um||'UND'), cantidad_sistema:Number(m.cantidad_sistema||m.sistema||m.stock||0) }; }).filter(p=>p.codigo); actualizarBadgeProductos(); }
+function cargarProductos(datos){ AppState.productos = (datos||[]).map((r,i)=>{ const m={}; Object.keys(r).forEach(k=> m[normalizarClave(k)]=r[k]); return { item:Number(m.item||i+1), producto:(m.producto||m.nombre||m.nombre_producto||m.descripcion||''), codigo:(m.codigo||m.cod||m.sku||'').toString(), unidad_medida:(m.unidad_medida||m.um||'UND'), cantidad_sistema:Number(m.cantidad_sistema||m.sistema||m.stock||0) }; }).filter(p=>p.codigo); saveLS(); actualizarBadgeProductos(); }
 
 function openInventarioModal(almacen, tipo){
   if(AppState.productos.length===0){ alert('Primero sube el archivo de productos.'); return; }
@@ -1253,7 +1222,7 @@ function openInventarioModal(almacen, tipo){
   openModal('#modalInventario');
 }
 function validarModalInventario(){ let ok=true; const n=$('inv-numero'), rr=$('inv-registrado'), ro=$('inv-otro'); [n].forEach(el=>{ if(!el.value.trim()){ el.classList.add('is-invalid'); ok=false; } else el.classList.remove('is-invalid'); }); if(rr.value==='Otro'){ if(!ro.value.trim()){ ro.classList.add('is-invalid'); ok=false; } else ro.classList.remove('is-invalid'); } if(inventarioCtx.almacen==='malvinas'){ const sel = qa('input[name="inv-tienda"]:checked')[0]; if(!sel){ alert('Seleccione una tienda.'); ok=false; } else { const yaRegistrada = (AppState.sesiones.malvinas||[]).some(s=> s && s.fin && s.tienda===sel.value); if(yaRegistrada){ alert('La tienda seleccionada ya fue registrada.'); ok=false; } } } return ok; }
-function guardarModalInventario(){ if(!validarModalInventario()) return; const numero = $('inv-numero').value.trim(); let registrado = $('inv-registrado').value; if(registrado==='Otro') registrado = $('inv-otro').value.trim(); const inicio = $('inv-inicio').value; const id=uid(); const base = { id, numero, registrado, inicio, fin:null, tipo: $('inv-tipo').value, filas:[], pdfUrl:null }; if(inventarioCtx.almacen==='malvinas') base.tienda = qa('input[name="inv-tienda"]:checked')[0].value; if(inventarioCtx.almacen==='malvinas'){ const yaRegistrada = (AppState.sesiones.malvinas||[]).some(s=> s && s.fin && s.tienda===base.tienda); if(yaRegistrada){ toast(`La tienda ${base.tienda} ya fue registrada.`, 'info'); return; } } AppState.sesiones[inventarioCtx.almacen].push(base); if(inventarioCtx.almacen==='callao'){ $('callao-numero').textContent = numero; $('callao-registrado').textContent = registrado; $('callao-inicio').textContent = inicio; $('panel-callao').classList.remove('invis'); $('tabla-callao').classList.add('invis'); } else { $('malvinas-numero').textContent = numero; $('malvinas-registrado').textContent = registrado; $('malvinas-inicio').textContent = inicio; $('malvinas-tienda').textContent = base.tienda; $('panel-malvinas').classList.remove('invis'); $('tabla-malvinas').classList.add('invis'); setTiendaStatus(base.tienda, 'en_proceso'); } closeModal('#modalInventario'); }
+function guardarModalInventario(){ if(!validarModalInventario()) return; const numero = $('inv-numero').value.trim(); let registrado = $('inv-registrado').value; if(registrado==='Otro') registrado = $('inv-otro').value.trim(); const inicio = $('inv-inicio').value; const id=uid(); const base = { id, numero, registrado, inicio, fin:null, tipo: $('inv-tipo').value, filas:[], pdfUrl:null }; if(inventarioCtx.almacen==='malvinas') base.tienda = qa('input[name="inv-tienda"]:checked')[0].value; if(inventarioCtx.almacen==='malvinas'){ const yaRegistrada = (AppState.sesiones.malvinas||[]).some(s=> s && s.fin && s.tienda===base.tienda); if(yaRegistrada){ toast(`La tienda ${base.tienda} ya fue registrada.`, 'info'); return; } } AppState.sesiones[inventarioCtx.almacen].push(base); saveLS(); if(inventarioCtx.almacen==='callao'){ $('callao-numero').textContent = numero; $('callao-registrado').textContent = registrado; $('callao-inicio').textContent = inicio; $('panel-callao').classList.remove('invis'); $('tabla-callao').classList.add('invis'); } else { $('malvinas-numero').textContent = numero; $('malvinas-registrado').textContent = registrado; $('malvinas-inicio').textContent = inicio; $('malvinas-tienda').textContent = base.tienda; $('panel-malvinas').classList.remove('invis'); $('tabla-malvinas').classList.add('invis'); setTiendaStatus(base.tienda, 'en_proceso'); } closeModal('#modalInventario'); }
 function mostrarTablaInventario(almacen){
   const sesion = ultimoInventario(almacen); if(!sesion){ alert('No hay sesión activa.'); return; }
   const tbody = $(`tbl-${almacen}`).querySelector('tbody'); tbody.innerHTML='';
@@ -1289,8 +1258,8 @@ async function registrarInventario(almacen){
   const filas=[]; let faltantes=0;
   rows.forEach(r=>{ const tds = r.children; const item=tds[0].textContent; const producto=tds[1].textContent; const codigo=tds[2].textContent; const cant=tds[3].querySelector('input').value; const um=tds[4].textContent; if(cant==='') faltantes++; filas.push({item,producto,codigo,unidad_medida:um,cantidad:Number(cant||0)}); });
   if(faltantes>0){ if(!confirm(`Hay ${faltantes} sin cantidad. ¿Deseas continuar?`)) return; }
-  sesion.filas = filas; sesion.fin = fmt12();
-  sesion.pdfUrl = await generarPDFConteo(almacen, sesion);
+  sesion.filas = filas; sesion.fin = fmt12(); saveLS();
+  sesion.pdfUrl = await generarPDFConteo(almacen, sesion); saveLS();
   renderListado(almacen); if(almacen==='malvinas'){ setTiendaStatus(sesion.tienda,'listo'); }
   renderConsolidado(); renderRegistro();
   toast('Inventario registrado correctamente.','success');
@@ -1353,7 +1322,7 @@ function setTiendaStatus(){ renderTiendas(); }
 
 // ===== Comparación =====
 function buildMapaFisicoAcumulado(almacen){ const map = new Map(); const sesiones = (AppState.sesiones[almacen]||[]).filter(s=> s && s.fin); sesiones.forEach(s=>{ (s.filas||[]).forEach(f=>{ const c=f.codigo; if(!c) return; const prev = map.get(c) || { item:f.item, producto:f.producto, unidad_medida:f.unidad_medida, fis:0 }; prev.fis = Number(prev.fis||0) + (Number(f.cantidad)||0); if(!prev.producto && f.producto) prev.producto = f.producto; if(!prev.item && f.item) prev.item = f.item; map.set(c, prev); }); }); return {map, sesiones}; }
-function cargarSistema(e, almacen){ (async ()=>{ try{ const file=e.target.files[0]; const arr= await leerArchivoGenerico(file); AppState.sistema[almacen] = (arr||[]).map((r,i)=>{ const m={}; Object.keys(r).forEach(k=> m[normalizarClave(k)]=r[k]); const item = toNumberSafe(m.item ?? i+1) || (i+1); const producto = (m.producto ?? m.nombre ?? m.nombre_producto ?? m.descripcion ?? m.descripcion_producto ?? m.detalle ?? m.detalle_producto ?? m.desc) || ''; const codigo = (m.codigo ?? m.cod ?? m.code ?? m.sku ?? m.codigo_producto ?? m.codigo_interno ?? m.codigo_zeus ?? m.codigo_item ?? m.codigoitem ?? '').toString(); const cantidadSistema = toNumberSafe(m.cantidad_sistema ?? m.cantidad_sis ?? m.sistema ?? m.stock ?? m.cantidad ?? m.existencia ?? m.cantidadtotal ?? m.cantidad_total ?? m.qty ?? 0); return { item, producto, codigo, cantidad_sistema: cantidadSistema }; }).filter(x=> x.codigo); toast(`Archivo de sistema (${almacen}) cargado: ${AppState.sistema[almacen].length} filas.`,'success'); try{ const cnt = AppState.sistema[almacen].length; const targetBtn = almacen==='callao' ? document.getElementById('btn-alm-callao') : document.getElementById('btn-alm-malvinas'); if(targetBtn){ const ex = targetBtn.querySelector('.sys-count'); if(ex) ex.textContent = ` (${cnt})`; else { const s=document.createElement('span'); s.className='sys-count'; s.textContent=` (${cnt})`; targetBtn.appendChild(s); } targetBtn.classList.add('active-alm'); setTimeout(()=> targetBtn.classList.remove('active-alm'), 1200); } }catch{} }catch(err){ alert('Error al leer archivo del sistema: '+err.message); } })(); }
+function cargarSistema(e, almacen){ (async ()=>{ try{ const file=e.target.files[0]; const arr= await leerArchivoGenerico(file); AppState.sistema[almacen] = (arr||[]).map((r,i)=>{ const m={}; Object.keys(r).forEach(k=> m[normalizarClave(k)]=r[k]); const item = toNumberSafe(m.item ?? i+1) || (i+1); const producto = (m.producto ?? m.nombre ?? m.nombre_producto ?? m.descripcion ?? m.descripcion_producto ?? m.detalle ?? m.detalle_producto ?? m.desc) || ''; const codigo = (m.codigo ?? m.cod ?? m.code ?? m.sku ?? m.codigo_producto ?? m.codigo_interno ?? m.codigo_zeus ?? m.codigo_item ?? m.codigoitem ?? '').toString(); const cantidadSistema = toNumberSafe(m.cantidad_sistema ?? m.cantidad_sis ?? m.sistema ?? m.stock ?? m.cantidad ?? m.existencia ?? m.cantidadtotal ?? m.cantidad_total ?? m.qty ?? 0); return { item, producto, codigo, cantidad_sistema: cantidadSistema }; }).filter(x=> x.codigo); saveLS(); toast(`Archivo de sistema (${almacen}) cargado: ${AppState.sistema[almacen].length} filas.`,'success'); try{ const cnt = AppState.sistema[almacen].length; const targetBtn = almacen==='callao' ? document.getElementById('btn-alm-callao') : document.getElementById('btn-alm-malvinas'); if(targetBtn){ const ex = targetBtn.querySelector('.sys-count'); if(ex) ex.textContent = ` (${cnt})`; else { const s=document.createElement('span'); s.className='sys-count'; s.textContent=` (${cnt})`; targetBtn.appendChild(s); } targetBtn.classList.add('active-alm'); setTimeout(()=> targetBtn.classList.remove('active-alm'), 1200); } }catch{} }catch(err){ alert('Error al leer archivo del sistema: '+err.message); } })(); }
 function abrirComparacion(almacen){ const {map:mapFisAcu, sesiones} = buildMapaFisicoAcumulado(almacen); if(!sesiones || sesiones.length===0){ alert('No hay inventarios registrados para comparar.'); return; } if((AppState.sistema[almacen]||[]).length===0){ alert('Carga primero el archivo del sistema.'); return; } $('cmp-almacen').textContent = almacen.toUpperCase(); if(sesiones.length===1){ $('cmp-numero').textContent = sesiones[0].numero; $('cmp-fecha').textContent = sesiones[0].fin || sesiones[0].inicio; } else { $('cmp-numero').textContent = `MÚLTIPLES (${sesiones.length})`; const ultima = sesiones[sesiones.length-1]; $('cmp-fecha').textContent = ultima.fin || ultima.inicio; } const mapSis = new Map((AppState.sistema[almacen]||[]).map(s=>[s.codigo, s])); const codigos = new Set([ ...mapSis.keys(), ...mapFisAcu.keys() ]); const filas=[]; codigos.forEach(c=>{ const s = mapSis.get(c); const f = mapFisAcu.get(c); const prod = (f?.producto) || (s?.producto) || ''; const item = (f?.item) || (s?.item) || ''; const sis = Number(s?.cantidad_sistema||0); const fis = Number(f?.fis||0); const res = fis - sis; const estado = res===0 ? 'CONFORME' : (res>0 ? 'SOBRANTE' : 'FALTANTE'); filas.push({ item, producto:prod, codigo:c, sis, fis, res, estado }); }); AppState.comparacion = { almacen, filas }; pintarComparacion(); renderConsolidado(); $('panel-comparacion').classList.remove('invis'); try{ document.querySelectorAll('#btn-alm-callao, #btn-alm-malvinas').forEach(b=> b.classList.remove('active-alm')); const selBtn = document.getElementById(almacen==='callao' ? 'btn-alm-callao' : 'btn-alm-malvinas'); selBtn?.classList.add('active-alm'); }catch{} try{ const inp=document.getElementById('cmp-search'); if(inp){ inp.value=''; inp.classList.remove('filter-active'); } cmpFiltroTxt=''; cmpEstado='ALL'; }catch{} try{ actualizarTotalesFisicosComparar(); }catch{} }
 function pintarComparacion(){ const tb=$('tbl-comparacion')?.querySelector('tbody'); if(!tb) return; tb.innerHTML=''; let ok=0,bad=0; const soloSis = !!document.getElementById('cmp-solo-sistema')?.checked; const setSis = new Set(((AppState.sistema[AppState.comparacion?.almacen]||[])).map(s=>s.codigo)); (AppState.comparacion?.filas||[]).forEach(r=>{ if(soloSis && !setSis.has(r.codigo)) return; if(cmpFiltroTxt){ const code=String(r.codigo||'').toLowerCase(); const prod=String(r.producto||'').toLowerCase(); if(!code.includes(cmpFiltroTxt) && !prod.includes(cmpFiltroTxt)) return; } if(cmpEstado==='OK' && r.res!==0) return; if(cmpEstado==='BAD' && r.res===0) return; if(r.res===0) ok++; else bad++; const resTxt = r.res>0?`+${r.res}`:(r.res<0?`${r.res}`:'0'); const estCls = r.estado==='CONFORME'?'text-bg-success':(r.estado==='FALTANTE'?'text-bg-danger':'text-bg-warning'); const resCls = estCls; const tr=document.createElement('tr'); tr.innerHTML = `<td>${r.item}</td><td>${r.producto}</td><td>${r.codigo}</td><td class="text-center">${r.sis}</td><td class="text-center">${r.fis}</td><td class="text-center"><span class="badge ${resCls}">${resTxt}</span></td><td><span class="badge ${estCls}">${r.estado}</span></td><td><div class="position-relative d-inline-block" data-codigo="${r.codigo}"><button class="btn btn-sm btn-edit" onclick="abrirMenuEditar(event,'${r.codigo}')">Editar <i class="bi bi-caret-down-fill ms-1"></i></button><div class="mini-menu d-none"><button class="mm-item" onclick="accionEditarCantidadDesdeMenu(event,this)">Editar Cantidad</button><button class="mm-item" onclick="accionEditarSistemaDesdeMenu(event,this)">Editar Sistema</button><button class="mm-item" onclick="accionEditarVerificacionDesdeMenu(event,this)">Editar Verificación</button></div></div></td>`; tb.appendChild(tr); }); $('cmp-correctos').textContent=ok; $('cmp-incorrectos').textContent=bad; saveLS(); try{ actualizarTotalesFisicosComparar(); }catch{} }
 
@@ -1626,7 +1595,7 @@ function renderListadoProformas(){ const tb=$('tbl-list-proformas')?.querySelect
 function openProformaPDF(id){ const p=(AppState.proformas||[]).find(x=>x.id===id); if(!p||!p.pdfUrl){ alert('PDF no disponible'); return; } try{ const w=window.open(p.pdfUrl,'_blank','noopener'); if(!w){ const a=document.createElement('a'); a.href=p.pdfUrl; a.target='_blank'; a.rel='noopener'; document.body.appendChild(a); a.click(); a.remove(); } }catch(e){ alert('No se pudo abrir el PDF'); } }
 $('filtro-acciones')?.addEventListener('input', renderAcciones);
 $('filtro-proformas')?.addEventListener('input', renderListadoProformas);
-function toggleEstadoProforma(id){ const p=(AppState.proformas||[]).find(x=>x.id===id); if(!p) return; p.estado = (p.estado==='Ingreso') ? 'Emitido' : 'Ingreso'; try{ const sign = (p.estado==='Emitido') ? +1 : -1; _ajustarSistemaPorLineas(p.almacen, p.lineas||[], sign); }catch(err){ console.warn('[ZS] No se pudo ajustar sistema al cambiar estado de proforma:', err); } renderListadoProformas(); try{ renderConsolidado(); }catch{} toast('Estado de proforma actualizado y sistema ajustado.','success'); }
+function toggleEstadoProforma(id){ const p=(AppState.proformas||[]).find(x=>x.id===id); if(!p) return; p.estado = (p.estado==='Ingreso') ? 'Emitido' : 'Ingreso'; try{ const sign = (p.estado==='Emitido') ? +1 : -1; _ajustarSistemaPorLineas(p.almacen, p.lineas||[], sign); }catch(err){ console.warn('[ZS] No se pudo ajustar sistema al cambiar estado de proforma:', err); } saveLS(); renderListadoProformas(); try{ renderConsolidado(); }catch{} toast('Estado de proforma actualizado y sistema ajustado.','success'); }
 function pdfProformas(){ const { jsPDF } = window.jspdf; const doc=new jsPDF({unit:'pt', format:'a4'}); doc.setFontSize(14); doc.text('Listado de Proformas', 40, 40); const body=(AppState.proformas||[]).map(p=>[p.id,p.fecha,p.asesor,String(p.registrado||'').toUpperCase(),(p.almacen||'').toUpperCase(),p.num,p.estado]); doc.autoTable({startY:60, head:[["ID","Fecha","Asesor","Registrado","Almacén","N°","Estado"]], body}); doc.save('proformas.pdf'); }
 
 // ===== Procedimiento =====
@@ -1688,24 +1657,23 @@ function defaultProcedimiento(){
    - Click en el candado verde (unlock) → se solicita contraseña; si confirma, AppState.sesionActual.activo=false.
    - Desde ese momento no se aceptan nuevos conteos ni aperturas.
 
-12) Carga de Productos desde API
-   - Los productos se cargan automáticamente desde la API al iniciar la aplicación.
-   - API: https://productoscrud-2946605267.us-central1.run.app
-   - Formato de respuesta: {"NOMBRE": "...", "CODIGO": "..."}
+12) Respaldo / Reset (sólo administración)
+   - El botón "Restablecer datos" limpia localStorage (productos, sesiones, sistema, comparaciones, acciones y proformas).
+   - Úsese únicamente al iniciar un ciclo completamente nuevo de inventario.
 
 Notas de lógica clave
    - El registro exige sólo que exista un N° (sesionActual.numero). Si el JEFE cierra (activo=false), se bloquea.
-   - Los datos se gestionan mediante APIs en lugar de almacenamiento local.
+   - Los datos viven en localStorage por equipo; para trabajar en paralelo cada equipo se "une" al N°.
    - Campos de sistema y físico son números enteros; las diferencias se muestran con badges de color.
 `);
 }
-function openProcedimientoModal(){ try{ const txt = defaultProcedimiento(); if($('proc-texto')) $('proc-texto').value = txt; }catch{} openModal('#modalProcedimiento'); }
-function guardarProcedimiento(){ toast('Procedimiento cerrado.','info'); closeModal('#modalProcedimiento'); }
+function openProcedimientoModal(){ try{ let txt = (ls.get('zs_proc_texto')||'') || ''; if(!txt){ txt = defaultProcedimiento(); ls.set('zs_proc_texto', txt); } $('proc-texto').value = txt; }catch{} openModal('#modalProcedimiento'); }
+function guardarProcedimiento(){ try{ const val=$('proc-texto').value||''; if(!val.trim()){ if(!confirm('El texto está vacío. ¿Guardar de todas maneras?')) return; } ls.set('zs_proc_texto', val); toast('Procedimiento guardado.','success'); }catch{ alert('No se pudo guardar'); } closeModal('#modalProcedimiento'); }
 
 // ===== Emergencia =====
 function dispararEmergencia(almacen){ const pass = prompt('Contraseña de emergencia'); if(pass!==JEFE_PWD){ alert('Contraseña incorrecta'); return; } const inp = (almacen==='callao') ? $('emg-callao') : $('emg-malvinas'); if(!inp) return; const prevClass = inp.className; const prevPos = inp.style.position, prevLeft = inp.style.left, prevW = inp.style.width, prevH = inp.style.height, prevOp = inp.style.opacity, prevZ = inp.style.zIndex; inp.classList.remove('d-none'); inp.style.position='fixed'; inp.style.left='-9999px'; inp.style.width='1px'; inp.style.height='1px'; inp.style.opacity='0'; inp.style.zIndex='-1'; inp.click(); setTimeout(()=>{ inp.className = prevClass; inp.style.position=prevPos; inp.style.left=prevLeft; inp.style.width=prevW; inp.style.height=prevH; inp.style.opacity=prevOp; inp.style.zIndex=prevZ; }, 0); setTimeout(()=>{ if(!inp.files || inp.files.length===0){ toast('Operación cancelada. No se seleccionó archivo.','info'); } }, 800); }
 async function onEmergFileChange(almacen, input){ try{ const file=input.files[0]; if(!file) return; const arr = await leerArchivoGenerico(file); aplicarCargaEmergencia(almacen, arr); toast('Archivo de emergencia procesado.','success'); input.value=''; }catch(err){ alert('Error emergencia: '+err.message); } }
-function aplicarCargaEmergencia(almacen, datos){ const sesion = ultimoInventario(almacen); if(!sesion){ alert('Primero crea una sesión de inventario.'); return; } const normalizeCode = (c)=> String(c||'').trim(); const m = {}; (datos||[]).forEach(r=>{ const map={}; Object.keys(r).forEach(k=> map[normalizarClave(k)]=r[k]); const codigo = normalizeCode((map.codigo ?? map.cod ?? map.sku ?? map.codigo_producto ?? map.codigo_interno ?? map.codigo_zeus) || ''); const cantidad = Number(map.cantidad ?? map.cant ?? map.cantidad_fisica ?? map.stock ?? map.existencia ?? map.cantidadtotal ?? map.cantidad_total ?? 0); if(codigo){ m[codigo]=cantidad; } }); if(!Array.isArray(sesion.filas) || sesion.filas.length===0){ sesion.filas = (AppState.productos||[]).map(p=>({ item: p.item, producto: p.producto, codigo: normalizeCode(p.codigo), unidad_medida: p.unidad_medida, cantidad: Number(m[normalizeCode(p.codigo)]||0) })); } else { sesion.filas.forEach(f=>{ const c = normalizeCode(f.codigo); if(m[c] != null){ f.cantidad = Number(m[c])||0; } }); } mostrarTablaInventario(almacen); }
+function aplicarCargaEmergencia(almacen, datos){ const sesion = ultimoInventario(almacen); if(!sesion){ alert('Primero crea una sesión de inventario.'); return; } const normalizeCode = (c)=> String(c||'').trim(); const m = {}; (datos||[]).forEach(r=>{ const map={}; Object.keys(r).forEach(k=> map[normalizarClave(k)]=r[k]); const codigo = normalizeCode((map.codigo ?? map.cod ?? map.sku ?? map.codigo_producto ?? map.codigo_interno ?? map.codigo_zeus) || ''); const cantidad = Number(map.cantidad ?? map.cant ?? map.cantidad_fisica ?? map.stock ?? map.existencia ?? map.cantidadtotal ?? map.cantidad_total ?? 0); if(codigo){ m[codigo]=cantidad; } }); if(!Array.isArray(sesion.filas) || sesion.filas.length===0){ sesion.filas = (AppState.productos||[]).map(p=>({ item: p.item, producto: p.producto, codigo: normalizeCode(p.codigo), unidad_medida: p.unidad_medida, cantidad: Number(m[normalizeCode(p.codigo)]||0) })); } else { sesion.filas.forEach(f=>{ const c = normalizeCode(f.codigo); if(m[c] != null){ f.cantidad = Number(m[c])||0; } }); } saveLS(); mostrarTablaInventario(almacen); }
 
 // Placeholder de Gerencia (sin cambios)
 function renderGerencia() { /* sin implementación específica */ }
@@ -1723,8 +1691,24 @@ document.addEventListener('DOMContentLoaded', () => {
     $('filtro-list-callao')?.addEventListener('input', ()=>renderListado('callao'));
     $('filtro-list-malvinas')?.addEventListener('input', ()=>renderListado('malvinas'));
 
-    // Cargar productos desde API al iniciar
-    cargarProductosDesdeAPI();
+    // Subir Productos → leer archivo y cargar productos
+    const inpProd = $('inputProductos');
+    if (inpProd) {
+        inpProd.addEventListener('change', async (e) => {
+            try {
+                const file = e.target.files && e.target.files[0];
+                if (!file) return;
+                const datos = await leerArchivoGenerico(file);
+                cargarProductos(datos);
+                toast(`Productos cargados: ${AppState.productos.length}`, 'success');
+                e.target.value = '';
+            } catch (err) {
+                alert('Error al cargar productos: ' + (err?.message || err));
+            }
+        });
+    }
+
+    loadLS();
     showView('callao');
     renderListado('callao');
     renderListado('malvinas');
@@ -1748,7 +1732,7 @@ function inicializarVerificacionTotales(){ try{ const codigo=$('verif-rowkey')?.
   $('v-stock-fis').value=fis; $('v-stock-sis').value=sis; recalcularVerificacion(); }catch{} }
 function recalcularVerificacion(){ const compras=Number($('v-res-compras')?.value||0); const ventas=Number($('v-res-ventas')?.value||0); const exist=Math.max(0, compras-ventas); $('v-res-exist').value=exist; const fis=Number($('v-stock-fis')?.value||0); const sis=Number($('v-stock-sis')?.value||0); const box=$('v-resultado'); let txt='', cls=''; if(exist===fis && exist!==sis){ txt='Error de Sistema'; cls='badge-naranja'; } else if(exist===sis && exist!==fis){ txt='Error de Logística'; cls='text-bg-danger'; } else if(exist!==fis && exist!==sis){ txt='Realizar nuevo conteo'; cls='badge-amarillo'; } else { txt='CONFORME'; cls='text-bg-success'; } if(box){ box.innerHTML=`<span class="badge ${cls}">${txt}</span>`; } }
 function guardarVerificacion(){ const codigo=$('verif-rowkey')?.value||''; const data={ compras:{ fecha_ing:$('v-c-fecha-ing').value||'', hora_ing:$('v-c-hora-ing').value||'', num_acta:$('v-c-num-acta').value||'', fecha_desc:$('v-c-fecha-desc').value||'', hora_desc:$('v-c-hora-desc').value||'' }, ventas:{ fecha_desc_ventas:$('v-v-fecha-desc-ventas').value||'', hora_desc_ventas:$('v-v-hora-desc-ventas').value||'', fecha_desc_sis:$('v-v-fecha-desc-sis').value||'', hora_desc_sis:$('v-v-hora-desc-sis').value||'' }, resumen:{ compras_tot:Number($('v-res-compras').value||0), ventas_tot:Number($('v-res-ventas').value||0), exist:Number($('v-res-exist').value||0), stock_fis:Number($('v-stock-fis').value||0), stock_sis:Number($('v-stock-sis').value||0), resultado:($('v-resultado').innerText||'').trim() }, fecha_guardado: fmt12() };
-  if(!AppState.verificacion) AppState.verificacion={}; AppState.verificacion[codigo]=data; try{ const fila=(AppState.comparacion?.filas||[]).find(f=> String(f.codigo)===String(codigo)); if(fila){ (AppState.acciones||(AppState.acciones=[])).push({ id:(AppState.acciones?.length||0)+1, fecha:fmt12(), registrado:'Joseph', motivo:'VERIFICACIÓN', cantidad:'-', errorDe:'-', obs:data.resumen?.resultado||'', codigo, item:(fila?.item||''), producto:(fila?.producto||''), almacen:(AppState.comparacion?.almacen||'') }); renderAcciones(); } }catch{}
+  if(!AppState.verificacion) AppState.verificacion={}; AppState.verificacion[codigo]=data; saveLS(); try{ const fila=(AppState.comparacion?.filas||[]).find(f=> String(f.codigo)===String(codigo)); if(fila){ (AppState.acciones||(AppState.acciones=[])).push({ id:(AppState.acciones?.length||0)+1, fecha:fmt12(), registrado:'Joseph', motivo:'VERIFICACIÓN', cantidad:'-', errorDe:'-', obs:data.resumen?.resultado||'', codigo, item:(fila?.item||''), producto:(fila?.producto||''), almacen:(AppState.comparacion?.almacen||'') }); renderAcciones(); } }catch{}
   const lab=$('verif-fecha-guardado'); if(lab){ lab.textContent='Guardado: '+(data.fecha_guardado||''); lab.classList.remove('text-bg-secondary'); lab.classList.add('text-bg-success'); } toast('Verificación guardada.','success'); }
 function pdfVerificacion(){ try{ const { jsPDF } = window.jspdf; const doc=new jsPDF({unit:'pt', format:'a4'}); const fechaEmision=fmt12(); doc.setFontSize(16); doc.text('Resultado de Verificación – Zeus Safety', 40, 44); doc.setFontSize(10); doc.text(`Emitido: ${fechaEmision}`, 40, 60); const compras=[[ 'Fecha ingreso', $('v-c-fecha-ing').value||'' ],[ 'Hora ingreso', $('v-c-hora-ing').value||'' ],[ 'N° acta', $('v-c-num-acta').value||'' ],[ 'Fecha descarga inv.', $('v-c-fecha-desc').value||'' ],[ 'Hora descarga inv.', $('v-c-hora-desc').value||'' ]]; const ventas=[[ 'Fecha desc. ventas', $('v-v-fecha-desc-ventas').value||'' ],[ 'Hora desc. ventas', $('v-v-hora-desc-ventas').value||'' ],[ 'Fecha desc. sistema', $('v-v-fecha-desc-sis').value||'' ],[ 'Hora desc. sistema', $('v-v-hora-desc-sis').value||'' ]]; doc.autoTable({startY:78, head:[['COMPRAS','VALOR']], body:compras, theme:'grid', styles:{fontSize:10}, headStyles:{fillColor:[13,110,253]}}); const y2=doc.lastAutoTable.finalY+8; doc.autoTable({startY:y2, head:[['VENTAS','VALOR']], body:ventas, theme:'grid', styles:{fontSize:10}, headStyles:{fillColor:[13,110,253]}}); const y3=doc.lastAutoTable.finalY+14; doc.setFontSize(12); doc.text('Resumen General', 40, y3); const comprasTot=Number($('v-res-compras').value||0), ventasTot=Number($('v-res-ventas').value||0), exist=Number($('v-res-exist').value||0), fis=Number($('v-stock-fis').value||0), sis=Number($('v-stock-sis').value||0); const y4=y3+6; doc.autoTable({startY:y4, head:[['MÉTRICA','VALOR']], body:[[ 'Compras Totales', comprasTot ],[ 'Ventas Totales', ventasTot ],[ 'Stock de Existencias', exist ],[ 'Stock Físico', fis ],[ 'Stock Sistema', sis ]], theme:'striped', styles:{fontSize:10}}); const y5=doc.lastAutoTable.finalY+14; doc.setFontSize(12); doc.text('Resultado de Verificación', 40, y5); const badgeTxt=$('v-resultado').innerText||''; const y6=y5+10; doc.setFontSize(11); doc.text(badgeTxt, 40, y6); doc.setFontSize(9); doc.text('Zeus Safety · Sistema de Inventario', 40, 820); doc.save('verificacion.pdf'); }catch(err){ alert('No se pudo generar el PDF de verificación: '+err.message); }
 }
