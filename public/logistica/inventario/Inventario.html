@@ -1191,6 +1191,64 @@ async function cargarColaboradoresConteo() {
   await cargarColaboradoresInventario('VISTA_CONTEO_INVENTARIO', 'inv-registrado');
 }
 
+// Función para probar la conectividad de las APIs
+async function probarConectividadAPIs() {
+  console.log('Probando conectividad de APIs...');
+  
+  // Probar API de archivos
+  try {
+    const apiArchivos = "https://gestorarchivos-2946605267.us-central1.run.app";
+    console.log('Probando API de archivos:', apiArchivos);
+    const responseArchivos = await fetch(apiArchivos, { method: 'GET' });
+    console.log('API de archivos - Status:', responseArchivos.status);
+  } catch (error) {
+    console.error('Error conectando a API de archivos:', error);
+  }
+  
+  // Probar API de inventario
+  try {
+    const apiInventario = "https://inventario-2946605267.us-central1.run.app";
+    console.log('Probando API de inventario:', apiInventario);
+    const responseInventario = await fetch(apiInventario, { method: 'GET' });
+    console.log('API de inventario - Status:', responseInventario.status);
+  } catch (error) {
+    console.error('Error conectando a API de inventario:', error);
+  }
+}
+
+// Función para obtener el ID del inventario por su nombre
+async function obtenerIdInventario(nombreInventario) {
+  try {
+    console.log('Buscando ID para inventario:', nombreInventario);
+    
+    const api = "https://inventario-2946605267.us-central1.run.app";
+    const method = "listar_inventarios";
+    const response = await fetch(`${api}?method=${method}`);
+    
+    if (response.status !== 200) {
+      throw new Error(`Error HTTP: ${response.status}`);
+    }
+    
+    const inventarios = await response.json();
+    console.log('Inventarios disponibles:', inventarios);
+    
+    // Buscar el inventario por nombre
+    const inventario = inventarios.find(inv => inv.NOMBRE === nombreInventario);
+    
+    if (inventario) {
+      console.log('Inventario encontrado:', inventario);
+      return inventario.ID;
+    } else {
+      console.warn('Inventario no encontrado, usando nombre como fallback');
+      return nombreInventario; // Fallback al nombre si no se encuentra
+    }
+  } catch (error) {
+    console.error('Error obteniendo ID del inventario:', error);
+    console.warn('Usando nombre como fallback');
+    return nombreInventario; // Fallback al nombre en caso de error
+  }
+}
+
 // Cargar lista de inventarios disponibles desde la API
 async function cargarInventariosDisponibles() {
   try {
@@ -1746,9 +1804,14 @@ async function registrarInventario(almacen){
   // Mostrar toast de procesamiento
   toast('Generando PDF y registrando inventario...', 'info');
   
+  // Probar conectividad antes de proceder
+  await probarConectividadAPIs();
+  
   try {
     // 1. Generar PDF y obtener blob
+    console.log('Generando PDF...');
     const pdfBlob = await generarPDFConteoBlob(almacen, sesion);
+    console.log('PDF generado, tamaño:', pdfBlob.size, 'bytes');
     
     // 2. Subir PDF a la API de archivos
     const apiArchivos = "https://gestorarchivos-2946605267.us-central1.run.app";
@@ -1758,17 +1821,31 @@ async function registrarInventario(almacen){
     const nombreArchivo = `inventario_${almacen}_${sesion.numero.replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}.pdf`;
     formData.append('file', pdfBlob, nombreArchivo);
     
+    console.log('Subiendo archivo:', nombreArchivo);
+    console.log('URL de la API:', `${apiArchivos}?folder_bucket=${folderBucket}`);
+    
+    // Crear AbortController para timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 segundos timeout
+    
     const responseArchivo = await fetch(`${apiArchivos}?folder_bucket=${folderBucket}`, {
       method: 'POST',
-      body: formData
+      body: formData,
+      signal: controller.signal
     });
     
+    clearTimeout(timeoutId);
+    
+    console.log('Respuesta de la API de archivos:', responseArchivo.status, responseArchivo.statusText);
+    
     if (responseArchivo.status !== 200) {
-      throw new Error('Error al subir el PDF');
+      const errorText = await responseArchivo.text();
+      console.error('Error de la API de archivos:', errorText);
+      throw new Error(`Error al subir el PDF: ${responseArchivo.status} - ${errorText}`);
     }
     
     const dataArchivo = await responseArchivo.json();
-    console.log('Archivo subido:', dataArchivo);
+    console.log('Archivo subido exitosamente:', dataArchivo);
     
     const urlArchivo = dataArchivo.url;
     sesion.pdfUrl = urlArchivo;
@@ -1780,6 +1857,11 @@ async function registrarInventario(almacen){
     const idRegistradoPor = sesion.registradoId || obtenerIdRegistradoPor(sesion.registrado);
     const idPuntoOperacion = obtenerIdPuntoOperacion(almacen, sesion.tienda);
     
+    // Obtener el ID del inventario por su nombre
+    console.log('Obteniendo ID del inventario para:', sesion.numero);
+    const idInventario = await obtenerIdInventario(sesion.numero);
+    console.log('ID del inventario obtenido:', idInventario);
+    
     // Preparar array de productos (solo los que tienen cantidad > 0)
     const productosParaAPI = filas
       .filter(f => f.cantidad > 0)
@@ -1790,7 +1872,7 @@ async function registrarInventario(almacen){
       }));
     
     const dataInventario = {
-      id_inventario: sesion.numero,
+      id_inventario: idInventario, // Usar el ID en lugar del nombre
       id_punto_operacion: idPuntoOperacion,
       fecha_inicio: fechaInicio,
       fecha_final: fechaFinal,
@@ -1804,21 +1886,35 @@ async function registrarInventario(almacen){
     // 4. Enviar datos a la API de inventario
     const apiInventario = "https://inventario-2946605267.us-central1.run.app";
     const method = "insertar_conteo";
+    const urlInventario = `${apiInventario}?method=${method}`;
     
-    const responseInventario = await fetch(`${apiInventario}?method=${method}`, {
+    console.log('Enviando datos a API de inventario:', urlInventario);
+    
+    // Crear AbortController para timeout
+    const controller2 = new AbortController();
+    const timeoutId2 = setTimeout(() => controller2.abort(), 30000); // 30 segundos timeout
+    
+    const responseInventario = await fetch(urlInventario, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(dataInventario)
+      body: JSON.stringify(dataInventario),
+      signal: controller2.signal
     });
     
+    clearTimeout(timeoutId2);
+    
+    console.log('Respuesta de la API de inventario:', responseInventario.status, responseInventario.statusText);
+    
     if (responseInventario.status !== 200) {
-      throw new Error('Error al registrar el inventario en la base de datos');
+      const errorText = await responseInventario.text();
+      console.error('Error de la API de inventario:', errorText);
+      throw new Error(`Error al registrar el inventario en la base de datos: ${responseInventario.status} - ${errorText}`);
     }
     
     const resultInventario = await responseInventario.json();
-    console.log('Inventario registrado:', resultInventario);
+    console.log('Inventario registrado exitosamente:', resultInventario);
     
     // 5. Actualizar interfaz
     renderListado(almacen); 
@@ -1830,8 +1926,21 @@ async function registrarInventario(almacen){
     
   } catch (error) {
     console.error('Error al registrar inventario:', error);
-    toast('Error al registrar el inventario: ' + error.message, 'error');
-    alert('Ocurrió un error al registrar el inventario. Por favor, intente nuevamente.');
+    
+    let mensajeError = 'Error desconocido';
+    
+    if (error.name === 'AbortError') {
+      mensajeError = 'Timeout: La operación tardó demasiado tiempo. Verifique su conexión a internet.';
+    } else if (error.message.includes('Failed to fetch')) {
+      mensajeError = 'Error de conexión: No se pudo conectar con el servidor. Verifique su conexión a internet.';
+    } else if (error.message.includes('CORS')) {
+      mensajeError = 'Error CORS: Problema de permisos del navegador.';
+    } else {
+      mensajeError = error.message || 'Error desconocido';
+    }
+    
+    toast('Error al registrar el inventario: ' + mensajeError, 'error');
+    alert('Ocurrió un error al registrar el inventario:\n\n' + mensajeError + '\n\nPor favor, intente nuevamente.');
   }
 }
 function renderListado(almacen){ const tb = $(`list-${almacen}`).querySelector('tbody'); tb.innerHTML=''; const filtro = $(`filtro-list-${almacen}`)?.value?.toLowerCase() || ''; AppState.sesiones[almacen].forEach((s,idx)=>{ if(filtro && !(`${s.numero} ${s.registrado} ${s.inicio} ${s.tienda||''}`.toLowerCase().includes(filtro))) return; const tr = document.createElement('tr'); const pdf = s.pdfUrl? `<a class="link-primary" href="${s.pdfUrl}" target="_blank"><i class="bi bi-file-earmark-pdf"></i> PDF</a>`:'-'; tr.innerHTML = `${almacen==='malvinas'?`<td>${idx+1}</td><td>${s.inicio}</td><td>${s.numero}</td><td>${s.tienda||''}</td><td>${s.registrado}</td><td>${pdf}</td><td>${s.fin||'-'}</td>`:`<td>${idx+1}</td><td>${s.inicio}</td><td>${s.numero}</td><td>${s.registrado}</td><td>${pdf}</td><td>${s.fin||'-'}</td>`}`; tb.appendChild(tr); }); }
