@@ -83,6 +83,16 @@
     background-color: #fee2e2;
     color: #991b1b;
   }
+  
+  /* Animación de carga */
+  .spin {
+    animation: spin 1s linear infinite;
+  }
+  
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
 
   /* --- Estructura del Dashboard --- */
   .sidebar {
@@ -533,6 +543,9 @@
             <h5 class="mb-0">Listado de Conteo – Callao</h5>
             <div class="d-flex gap-2">
               <input id="filtro-list-callao" class="form-control form-control-sm" placeholder="Buscar...">
+              <button class="btn btn-outline-primary btn-sm" onclick="cargarConteosCallao()" title="Actualizar datos desde la API">
+                <i class="bi bi-arrow-clockwise"></i> Actualizar
+              </button>
               <button class="btn btn-outline-dark btn-sm" onclick="pdfListado('callao')"><i class="bi bi-file-earmark-pdf"></i> Generar reporte</button>
             </div>
           </div>
@@ -1249,6 +1262,163 @@ async function obtenerIdInventario(nombreInventario) {
   }
 }
 
+// Función para cargar conteos desde la API
+async function cargarConteosDesdeAPI(idInventario, almacen) {
+  try {
+    console.log('Cargando conteos desde API para inventario:', idInventario, 'almacén:', almacen);
+    
+    const api = "https://inventario-2946605267.us-central1.run.app";
+    const method = "extraer_inventarios_conteos";
+    const id = `${idInventario}-${almacen.toUpperCase()}`;
+    
+    console.log('URL completa:', `${api}?method=${method}&id=${id}`);
+    
+    const response = await fetch(`${api}?method=${method}&id=${id}`);
+    
+    console.log('Respuesta de la API:', response.status, response.statusText);
+    
+    if (response.status !== 200) {
+      const errorText = await response.text();
+      console.error('Error de la API:', errorText);
+      throw new Error(`Error HTTP: ${response.status} - ${errorText}`);
+    }
+    
+    const conteos = await response.json();
+    console.log('Conteos cargados desde API:', conteos);
+    
+    // Limpiar sesiones existentes para este almacén
+    AppState.sesiones[almacen] = [];
+    
+    // Convertir datos de la API al formato interno
+    conteos.forEach((conteo, index) => {
+      const sesion = {
+        id: `api_${conteo.ID}`,
+        numero: conteo.INVENTARIO,
+        registrado: conteo.NOMBRE,
+        inicio: formatearFechaDesdeAPI(conteo.FECHA_INICIO),
+        fin: formatearFechaDesdeAPI(conteo.FECHA_FINAL),
+        tipo: 'API', // Marcar como cargado desde API
+        filas: [], // Los productos se cargarán por separado si es necesario
+        pdfUrl: conteo.LINK_ARCHIVO_PDF,
+        apiId: conteo.ID // Guardar el ID de la API
+      };
+      
+      AppState.sesiones[almacen].push(sesion);
+    });
+    
+    console.log(`Cargados ${conteos.length} conteos para ${almacen}`);
+    
+    // Actualizar la interfaz
+    renderListado(almacen);
+    
+    return conteos;
+  } catch (error) {
+    console.error('Error cargando conteos desde API:', error);
+    toast('Error al cargar conteos desde la API', 'error');
+    return [];
+  }
+}
+
+// Función específica para cargar conteos de Callao desde la API
+async function cargarConteosCallao() {
+  try {
+    console.log('Cargando conteos de Callao desde API...');
+    
+    // Mostrar indicador de carga
+    const tbody = $('#list-callao')?.querySelector('tbody');
+    if (tbody) {
+      tbody.innerHTML = '<tr><td colspan="6" class="text-center"><i class="bi bi-arrow-clockwise spin"></i> Cargando datos desde la API...</td></tr>';
+    }
+    
+    const api = "https://inventario-2946605267.us-central1.run.app";
+    const method = "extraer_inventarios_conteos";
+    const id = "CALLAO";
+    
+    console.log('URL completa para Callao:', `${api}?method=${method}&id=${id}`);
+    
+    const response = await fetch(`${api}?method=${method}&id=${id}`);
+    
+    console.log('Respuesta de la API para Callao:', response.status, response.statusText);
+    
+    if (response.status !== 200) {
+      const errorText = await response.text();
+      console.error('Error de la API para Callao:', errorText);
+      throw new Error(`Error HTTP: ${response.status} - ${errorText}`);
+    }
+    
+    const conteos = await response.json();
+    console.log('Conteos de Callao cargados desde API:', conteos);
+    
+    // Limpiar sesiones existentes para Callao
+    AppState.sesiones.callao = [];
+    
+    // Convertir datos de la API al formato interno
+    conteos.forEach((conteo, index) => {
+      const sesion = {
+        id: `api_${conteo.ID}`,
+        numero: conteo.INVENTARIO,
+        registrado: conteo.NOMBRE,
+        inicio: formatearFechaDesdeAPI(conteo.FECHA_INICIO),
+        fin: formatearFechaDesdeAPI(conteo.FECHA_FINAL),
+        tipo: 'API', // Marcar como cargado desde API
+        filas: [], // Los productos se cargarán por separado si es necesario
+        pdfUrl: conteo.LINK_ARCHIVO_PDF,
+        apiId: conteo.ID // Guardar el ID de la API
+      };
+      
+      AppState.sesiones.callao.push(sesion);
+    });
+    
+    console.log(`Cargados ${conteos.length} conteos para Callao`);
+    
+    // Actualizar la interfaz
+    renderListado('callao');
+    
+    // Mostrar mensaje de éxito
+    if (conteos.length > 0) {
+      toast(`Cargados ${conteos.length} conteos de Callao`, 'success');
+    } else {
+      toast('No se encontraron conteos para Callao', 'info');
+    }
+    
+    return conteos;
+  } catch (error) {
+    console.error('Error cargando conteos de Callao desde API:', error);
+    toast('Error al cargar conteos de Callao desde la API', 'error');
+    
+    // Mostrar mensaje de error en la tabla
+    const tbody = $('#list-callao')?.querySelector('tbody');
+    if (tbody) {
+      tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger"><i class="bi bi-exclamation-triangle"></i> Error al cargar datos</td></tr>';
+    }
+    
+    return [];
+  }
+}
+
+// Función auxiliar para formatear fechas desde la API
+function formatearFechaDesdeAPI(fechaAPI) {
+  try {
+    // Formato entrada: "2025-10-22 10:08:05"
+    // Formato salida: "10/22/2025 10:08 AM"
+    const fecha = new Date(fechaAPI);
+    const mes = (fecha.getMonth() + 1).toString().padStart(2, '0');
+    const dia = fecha.getDate().toString().padStart(2, '0');
+    const anio = fecha.getFullYear();
+    let hora = fecha.getHours();
+    const minuto = fecha.getMinutes().toString().padStart(2, '0');
+    const ampm = hora >= 12 ? 'PM' : 'AM';
+    
+    hora = hora % 12;
+    if (hora === 0) hora = 12;
+    
+    return `${mes}/${dia}/${anio} ${hora}:${minuto} ${ampm}`;
+  } catch (error) {
+    console.error('Error formateando fecha:', error);
+    return fechaAPI; // Retornar fecha original si hay error
+  }
+}
+
 // Cargar lista de inventarios disponibles desde la API
 async function cargarInventariosDisponibles() {
   try {
@@ -1265,6 +1435,13 @@ async function cargarInventariosDisponibles() {
         option.value = inv.NOMBRE; // El nombre del inventario
         option.textContent = inv.NOMBRE; // Mostrar el nombre
         option.dataset.id = inv.ID; // Guardar el ID como data attribute
+        
+        console.log('Agregando inventario al select:', {
+          nombre: inv.NOMBRE,
+          id: inv.ID,
+          datasetId: option.dataset.id
+        });
+        
         selectInventario.appendChild(option);
       });
       
@@ -1370,7 +1547,7 @@ function openUnirseModal(){
   openModal('#modalUnirse'); 
 }
 
-function guardarUnirse(){ 
+async function guardarUnirse(){ 
   const select = $('join-num');
   const num = (select?.value||'').trim(); 
   
@@ -1383,10 +1560,36 @@ function guardarUnirse(){
   const selectedOption = select.selectedOptions[0];
   const inventarioId = selectedOption?.dataset?.id || null;
   
+  console.log('Datos del inventario seleccionado:');
+  console.log('- Nombre:', num);
+  console.log('- ID:', inventarioId);
+  console.log('- Selected option:', selectedOption);
+  
   AppState.sesionActual.numero = num; 
   AppState.sesionActual.inventarioId = inventarioId; // Guardar el ID también
   AppState.sesionActual.activo = true; 
   AppState.sesionActual.inicio = AppState.sesionActual.inicio || fmt12(); 
+  
+  // Cargar conteos desde la API para ambos almacenes
+  if (inventarioId) {
+    console.log('Cargando conteos para inventario ID:', inventarioId);
+    
+    try {
+      // Cargar conteos para Callao
+      await cargarConteosDesdeAPI(inventarioId, 'callao');
+      
+      // Cargar conteos para Malvinas
+      await cargarConteosDesdeAPI(inventarioId, 'malvinas');
+      
+      toast(`Conteos cargados para inventario ${num}`, 'success');
+    } catch (error) {
+      console.error('Error cargando conteos:', error);
+      toast('Error al cargar conteos, pero puedes continuar', 'warning');
+    }
+  } else {
+    console.warn('No se encontró ID del inventario, no se pueden cargar conteos');
+    toast('No se pudieron cargar los conteos (ID no disponible)', 'warning');
+  }
   
   closeModal('#modalUnirse'); 
   renderSesionBanner(); 
@@ -1402,7 +1605,10 @@ function showView(v){
   ['callao','malvinas','comparar','consolidado','registro','proformas', 'gerencia'].forEach(id=>{
     const el = $(`view-${id}`); if(el) el.classList.toggle('invis', id!==v);
   });
-  if(v==='callao'){ renderListado('callao'); }
+  if(v==='callao'){ 
+    // Cargar conteos de Callao desde la API automáticamente
+    cargarConteosCallao();
+  }
   if(v==='malvinas'){ renderTiendas(); renderListado('malvinas'); }
   if(v==='consolidado'){ renderConsolidado(); }
   if(v==='registro'){ renderRegistro(); }
@@ -1862,12 +2068,11 @@ async function registrarInventario(almacen){
     const idInventario = await obtenerIdInventario(sesion.numero);
     console.log('ID del inventario obtenido:', idInventario);
     
-    // Preparar array de productos (solo los que tienen cantidad > 0)
+    // Preparar array de productos (TODOS los productos, incluso con cantidad 0)
     const productosParaAPI = filas
-      .filter(f => f.cantidad > 0)
       .map(f => ({
         id_productos: String(f.id_producto),
-        cantidad: String(f.cantidad),
+        cantidad: String(f.cantidad || 0), // Asegurar que sea 0 si está vacío
         unidad_medida: f.unidad_medida
       }));
     
