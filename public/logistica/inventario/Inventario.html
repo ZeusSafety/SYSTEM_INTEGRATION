@@ -624,6 +624,9 @@
             <h5 class="mb-0">Listado de Conteo – Malvinas</h5>
             <div class="d-flex gap-2">
               <input id="filtro-list-malvinas" class="form-control form-control-sm" placeholder="Buscar...">
+              <button class="btn btn-outline-primary btn-sm" onclick="cargarConteosMalvinas()" title="Actualizar datos desde la API">
+                <i class="bi bi-arrow-clockwise"></i> Actualizar
+              </button>
               <button class="btn btn-outline-dark btn-sm" onclick="pdfListado('malvinas')"><i class="bi bi-file-earmark-pdf"></i> Generar reporte</button>
             </div>
           </div>
@@ -1396,6 +1399,135 @@ async function cargarConteosCallao() {
   }
 }
 
+// Función específica para cargar conteos de Malvinas desde la API
+async function cargarConteosMalvinas() {
+  try {
+    console.log('Cargando conteos de Malvinas desde API...');
+    
+    // Mostrar indicador de carga
+    const tbody = $('#list-malvinas')?.querySelector('tbody');
+    if (tbody) {
+      tbody.innerHTML = '<tr><td colspan="7" class="text-center"><i class="bi bi-arrow-clockwise spin"></i> Cargando datos desde la API...</td></tr>';
+    }
+    
+    const api = "https://inventario-2946605267.us-central1.run.app";
+    const method = "extraer_inventarios_conteos";
+    const id = "MALVINAS";
+    
+    console.log('URL completa para Malvinas:', `${api}?method=${method}&id=${id}`);
+    
+    const response = await fetch(`${api}?method=${method}&id=${id}`);
+    
+    console.log('Respuesta de la API para Malvinas:', response.status, response.statusText);
+    
+    if (response.status !== 200) {
+      const errorText = await response.text();
+      console.error('Error de la API para Malvinas:', errorText);
+      throw new Error(`Error HTTP: ${response.status} - ${errorText}`);
+    }
+    
+    const conteos = await response.json();
+    console.log('Conteos de Malvinas cargados desde API:', conteos);
+    
+    // Limpiar sesiones existentes para Malvinas
+    AppState.sesiones.malvinas = [];
+    
+    // Convertir datos de la API al formato interno
+    conteos.forEach((conteo, index) => {
+      const sesion = {
+        id: `api_${conteo.ID}`,
+        numero: conteo.INVENTARIO,
+        registrado: conteo.NOMBRE,
+        inicio: formatearFechaDesdeAPI(conteo.FECHA_INICIO),
+        fin: formatearFechaDesdeAPI(conteo.FECHA_FINAL),
+        tipo: 'API', // Marcar como cargado desde API
+        filas: [], // Los productos se cargarán por separado si es necesario
+        pdfUrl: conteo.LINK_ARCHIVO_PDF,
+        apiId: conteo.ID, // Guardar el ID de la API
+        tienda: conteo.TIENDA || '' // Agregar información de tienda si está disponible
+      };
+      
+      AppState.sesiones.malvinas.push(sesion);
+    });
+    
+    console.log(`Cargados ${conteos.length} conteos para Malvinas`);
+    
+    // Actualizar la interfaz
+    renderListado('malvinas');
+    
+    // Mostrar mensaje de éxito
+    if (conteos.length > 0) {
+      toast(`Cargados ${conteos.length} conteos de Malvinas`, 'success');
+    } else {
+      toast('No se encontraron conteos para Malvinas', 'info');
+    }
+    
+    return conteos;
+  } catch (error) {
+    console.error('Error cargando conteos de Malvinas desde API:', error);
+    toast('Error al cargar conteos de Malvinas desde la API', 'error');
+    
+    // Mostrar mensaje de error en la tabla
+    const tbody = $('#list-malvinas')?.querySelector('tbody');
+    if (tbody) {
+      tbody.innerHTML = '<tr><td colspan="7" class="text-center text-danger"><i class="bi bi-exclamation-triangle"></i> Error al cargar datos</td></tr>';
+    }
+    
+    return [];
+  }
+}
+
+// Función para cargar tiendas de Malvinas desde la API
+async function cargarTiendasMalvinas() {
+  try {
+    console.log('Cargando tiendas de Malvinas desde API...');
+    
+    const api = "https://inventario-2946605267.us-central1.run.app";
+    const method = "colaboradores_imventario";
+    const selector = "TIENDAS_MALVINAS";
+    
+    console.log('URL completa para tiendas:', `${api}?method=${method}&selector=${selector}`);
+    
+    const response = await fetch(`${api}?method=${method}&selector=${selector}`);
+    
+    console.log('Respuesta de la API para tiendas:', response.status, response.statusText);
+    
+    if (response.status !== 200) {
+      const errorText = await response.text();
+      console.error('Error de la API para tiendas:', errorText);
+      throw new Error(`Error HTTP: ${response.status} - ${errorText}`);
+    }
+    
+    const tiendas = await response.json();
+    console.log('Tiendas de Malvinas cargadas desde API:', tiendas);
+    
+    // Actualizar el select de tiendas
+    const selectTienda = $('#inv-tienda');
+    if (selectTienda) {
+      selectTienda.innerHTML = '<option value="">Seleccione una tienda...</option>';
+      
+      tiendas.forEach(tienda => {
+        const option = document.createElement('option');
+        option.value = tienda.NOMBRE;
+        option.textContent = tienda.NOMBRE;
+        option.dataset.id = tienda.ID; // Guardar el ID de la tienda
+        selectTienda.appendChild(option);
+      });
+      
+      if (tiendas.length === 0) {
+        selectTienda.innerHTML = '<option value="">No hay tiendas disponibles</option>';
+      }
+    }
+    
+    console.log(`Cargadas ${tiendas.length} tiendas para Malvinas`);
+    return tiendas;
+  } catch (error) {
+    console.error('Error cargando tiendas de Malvinas:', error);
+    toast('Error al cargar tiendas de Malvinas', 'error');
+    return [];
+  }
+}
+
 // Función auxiliar para formatear fechas desde la API
 function formatearFechaDesdeAPI(fechaAPI) {
   try {
@@ -1609,7 +1741,11 @@ function showView(v){
     // Cargar conteos de Callao desde la API automáticamente
     cargarConteosCallao();
   }
-  if(v==='malvinas'){ renderTiendas(); renderListado('malvinas'); }
+  if(v==='malvinas'){ 
+    // Cargar tiendas y conteos de Malvinas desde la API automáticamente
+    cargarTiendasMalvinas();
+    cargarConteosMalvinas();
+  }
   if(v==='consolidado'){ renderConsolidado(); }
   if(v==='registro'){ renderRegistro(); }
   if(v==='proformas'){ renderListadoProformas(); }
@@ -1683,6 +1819,11 @@ async function openInventarioModal(almacen, tipo){
   // Cargar colaboradores desde la API antes de abrir el modal
   await cargarColaboradoresConteo();
   
+  // Si es Malvinas, cargar las tiendas desde la API
+  if (almacen === 'malvinas') {
+    await cargarTiendasMalvinas();
+  }
+  
   $('inv-otro').classList.add('d-none');
   $('inv-almacen').value = almacen; $('inv-tipo').value = tipo;
   q('#bloque-tiendas').classList.toggle('d-none', almacen!=='malvinas');
@@ -1716,8 +1857,11 @@ function guardarModalInventario(){
     pdfUrl: null 
   }; 
   
-  if(inventarioCtx.almacen==='malvinas') base.tienda = qa('input[name="inv-tienda"]:checked')[0].value; 
-  if(inventarioCtx.almacen==='malvinas'){ 
+  if(inventarioCtx.almacen==='malvinas') {
+    const tiendaSeleccionada = qa('input[name="inv-tienda"]:checked')[0];
+    base.tienda = tiendaSeleccionada.value;
+    base.tiendaId = tiendaSeleccionada.dataset?.id; // Guardar el ID de la tienda
+    
     const yaRegistrada = (AppState.sesiones.malvinas||[]).some(s=> s && s.fin && s.tienda===base.tienda); 
     if(yaRegistrada){ toast(`La tienda ${base.tienda} ya fue registrada.`, 'info'); return; } 
   } 
@@ -1956,15 +2100,31 @@ function obtenerIdRegistradoPor(nombre) {
 // Función para obtener ID del punto de operación
 function obtenerIdPuntoOperacion(almacen, tienda = null) {
   if (almacen === 'callao') return '2';
-  // Para Malvinas, mapear según la tienda
-  const mapeoTiendas = {
-    'TIENDA 3006': '3',
-    'TIENDA 3006 B': '4',
-    'TIENDA 3131': '5',
-    'TIENDA 3133': '6',
-    'TIENDA 412-A': '7'
-  };
-  return tienda ? (mapeoTiendas[tienda] || '3') : '3';
+  
+  // Para Malvinas, obtener el ID de la tienda desde el select
+  if (almacen === 'malvinas' && tienda) {
+    const selectTienda = $('#inv-tienda');
+    if (selectTienda) {
+      const selectedOption = selectTienda.selectedOptions[0];
+      const tiendaId = selectedOption?.dataset?.id;
+      if (tiendaId) {
+        console.log('ID de tienda obtenido:', tiendaId);
+        return tiendaId;
+      }
+    }
+    
+    // Fallback al mapeo manual si no se encuentra el ID
+    const mapeoTiendas = {
+      'TIENDA 3006': '3',
+      'TIENDA 3006 B': '4',
+      'TIENDA 3131': '5',
+      'TIENDA 3133': '6',
+      'TIENDA 412-A': '7'
+    };
+    return mapeoTiendas[tienda] || '3';
+  }
+  
+  return '3'; // Fallback por defecto
 }
 
 async function registrarInventario(almacen){
