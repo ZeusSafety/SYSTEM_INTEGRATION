@@ -1291,7 +1291,19 @@
 
         // Función para formatear fechas
         function formatDate(dateString) {
-            const date = new Date(dateString);
+            // Si la fecha viene en formato YYYY-MM-DD, manejarla directamente
+            if (dateString && dateString.includes('-') && dateString.length === 10) {
+                const partes = dateString.split('-');
+                if (partes.length === 3) {
+                    const año = partes[0];
+                    const mes = partes[1];
+                    const dia = partes[2];
+                    return `${dia}/${mes}/${año}`;
+                }
+            }
+            
+            // Fallback para otros formatos
+            const date = new Date(dateString + 'T00:00:00');
             return date.toLocaleDateString('es-ES', {
                 year: 'numeric',
                 month: '2-digit',

@@ -771,10 +771,10 @@
                 id: Date.now(),
                 comprobante: comprobante || 'Sin comprobante',
                 monto: parseFloat(monto) || 0,
-                medioPago: medioPago || 'No especificado',
-                asesor: asesor || 'No especificado',
+                medioPago: (medioPago || 'No especificado').trim(),
+                asesor: (asesor || 'No especificado').trim(),
                 fechaRegularizacion: fechaRegularizacion || new Date().toISOString().split('T')[0],
-                observacionDetalle: observacionDetalle || '',
+                observacionDetalle: (observacionDetalle || '').trim(),
                 estado: estado || 'VALIDO'
             };
 
@@ -949,12 +949,12 @@
 
             // Preparar detalle de comprobantes
             const detalle = comprobantes.map(item => ({
-                comprobantes: item.comprobante,
+                comprobantes: item.comprobante.trim(),
                 monto: item.monto,
-                medio_de_pago: item.medioPago,
-                asesor: item.asesor,
+                medio_de_pago: item.medioPago.trim(),
+                asesor: item.asesor.trim(),
                 fecha_regularizacion: item.fechaRegularizacion,
-                observacion: item.observacionDetalle,
+                observacion: item.observacionDetalle.trim(),
                 validacion: item.estado
             }));
 

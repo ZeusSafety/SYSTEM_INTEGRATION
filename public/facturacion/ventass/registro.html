@@ -1378,8 +1378,8 @@
             const idDistrito = distritoData[distrito] || null;
             const idLugar = lugarData[lugar] || null;
 
-            // Construir el número de comprobante completo
-            const nComprobante = `${tipoCompr.charAt(0)} ${nCompr}`;
+            // Construir el número de comprobante completo y limpiar espacios
+            const nComprobante = `${tipoCompr.charAt(0)} ${nCompr}`.trim();
 
             // Preparar el detalle de productos
             const detalle = productosEnTabla.map(producto => ({
