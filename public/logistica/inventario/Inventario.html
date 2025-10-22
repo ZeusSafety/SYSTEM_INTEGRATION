@@ -2260,10 +2260,18 @@ async function registrarInventario(almacen){
     const idRegistradoPor = sesion.registradoId || obtenerIdRegistradoPor(sesion.registrado);
     const idPuntoOperacion = obtenerIdPuntoOperacion(almacen, sesion.tienda);
     
-    // Obtener el ID del inventario por su nombre
-    console.log('Obteniendo ID del inventario para:', sesion.numero);
-    const idInventario = await obtenerIdInventario(sesion.numero);
-    console.log('ID del inventario obtenido:', idInventario);
+    // Obtener el ID del inventario
+    let idInventario;
+    if (AppState.sesionActual?.inventarioId) {
+      // Usar el ID guardado al unirse al inventario
+      idInventario = AppState.sesionActual.inventarioId;
+      console.log('Usando ID del inventario guardado:', idInventario);
+    } else {
+      // Fallback: buscar por nombre (para compatibilidad)
+      console.log('Obteniendo ID del inventario por nombre para:', sesion.numero);
+      idInventario = await obtenerIdInventario(sesion.numero);
+      console.log('ID del inventario obtenido por nombre:', idInventario);
+    }
     
     // Preparar array de productos (TODOS los productos, incluso con cantidad 0)
     const productosParaAPI = filas
@@ -2283,7 +2291,12 @@ async function registrarInventario(almacen){
       productos: productosParaAPI
     };
     
-    console.log('Datos a enviar:', dataInventario);
+    console.log('Datos a enviar a la API:');
+    console.log('- id_inventario:', idInventario);
+    console.log('- id_punto_operacion:', idPuntoOperacion);
+    console.log('- registrado_por:', idRegistradoPor);
+    console.log('- productos:', productosParaAPI.length);
+    console.log('Datos completos:', dataInventario);
     
     // 4. Enviar datos a la API de inventario
     const apiInventario = "https://inventario-2946605267.us-central1.run.app";
