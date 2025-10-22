@@ -1148,14 +1148,19 @@ async function cargarProductosDesdeAPI() {
 const INVENTARIO_API = "https://inventario-2946605267.us-central1.run.app";
 
 // Cargar colaboradores desde la API
-async function cargarColaboradoresInventario() {
+// Función genérica para cargar colaboradores desde la API
+async function cargarColaboradoresInventario(selector = 'VISTA_INVENTARIO', targetSelectId = 'sn-persona') {
   try {
-    const response = await fetch(`${INVENTARIO_API}?method=colaboradores_imventario`);
-    if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
-    const colaboradores = await response.json();
-    console.log('Colaboradores cargados:', colaboradores);
+    const api = "https://inventario-2946605267.us-central1.run.app";
+    const method = "colaboradores_imventario";
+    const response = await fetch(`${api}?method=${method}&selector=${selector}`);
     
-    const selectPersona = $('sn-persona');
+    if (response.status !== 200) throw new Error(`Error HTTP: ${response.status}`);
+    
+    const colaboradores = await response.json();
+    console.log(`Colaboradores cargados (${selector}):`, colaboradores);
+    
+    const selectPersona = $(targetSelectId);
     if (selectPersona) {
       selectPersona.innerHTML = '<option value="">Seleccione...</option>';
       (colaboradores || []).forEach(col => {
@@ -1174,11 +1179,16 @@ async function cargarColaboradoresInventario() {
     console.error('Error al cargar colaboradores:', error);
     toast('Error al cargar colaboradores. Usando valores por defecto.', 'error');
     // Valores por defecto en caso de error
-    const selectPersona = $('sn-persona');
+    const selectPersona = $(targetSelectId);
     if (selectPersona) {
       selectPersona.innerHTML = '<option value="1">Hervin</option><option value="2">Kimberly</option><option value="3">Joseph</option><option value="Otro">Otro</option>';
     }
   }
+}
+
+// Función específica para cargar colaboradores del conteo de inventario
+async function cargarColaboradoresConteo() {
+  await cargarColaboradoresInventario('VISTA_CONTEO_INVENTARIO', 'inv-registrado');
 }
 
 // Cargar lista de inventarios disponibles desde la API
@@ -1397,7 +1407,7 @@ function parseXLSX(arrayBuffer){ if(!window.XLSX) throw new Error('No se pudo ca
 function normalizarClave(k){ return String(k||'').toLowerCase().replace(/\s+/g,'_').replace(/[áàä]/g,'a').replace(/[éèë]/g,'e').replace(/[íìï]/g,'i').replace(/[óòö]/g,'o').replace(/[úùü]/g,'u'); }
 function cargarProductos(datos){ AppState.productos = (datos||[]).map((r,i)=>{ const m={}; Object.keys(r).forEach(k=> m[normalizarClave(k)]=r[k]); return { item:Number(m.item||i+1), producto:(m.producto||m.nombre||m.nombre_producto||m.descripcion||''), codigo:(m.codigo||m.cod||m.sku||'').toString(), unidad_medida:(m.unidad_medida||m.um||'UND'), cantidad_sistema:Number(m.cantidad_sistema||m.sistema||m.stock||0) }; }).filter(p=>p.codigo); actualizarBadgeProductos(); }
 
-function openInventarioModal(almacen, tipo){
+async function openInventarioModal(almacen, tipo){
   if(AppState.productos.length===0){ alert('Primero sube el archivo de productos.'); return; }
   if(!(AppState.sesionActual?.numero)){ alert('No hay N° de inventario activo. Asigna o únete a uno.'); return; }
   if(almacen==='callao'){ const yaCerrado = (AppState.sesiones.callao||[]).some(s=> s && s.tipo===tipo && !!s.fin); if(yaCerrado){ toast(`El conteo por ${tipo} ya fue registrado.`, 'info'); return; } }
@@ -1405,7 +1415,10 @@ function openInventarioModal(almacen, tipo){
   $('inv-inicio').value = fmt12();
   $('inv-numero').value = AppState.sesionActual?.numero || `INV-${new Date().getFullYear()}-${(Math.floor(Math.random()*900)+100)}`;
   if(AppState.sesionActual?.activo && AppState.sesionActual?.numero) $('inv-numero').setAttribute('disabled','disabled'); else $('inv-numero').removeAttribute('disabled');
-  $('inv-registrado').value = 'Joseph';
+  
+  // Cargar colaboradores desde la API antes de abrir el modal
+  await cargarColaboradoresConteo();
+  
   $('inv-otro').classList.add('d-none');
   $('inv-almacen').value = almacen; $('inv-tipo').value = tipo;
   q('#bloque-tiendas').classList.toggle('d-none', almacen!=='malvinas');
@@ -1413,7 +1426,58 @@ function openInventarioModal(almacen, tipo){
   openModal('#modalInventario');
 }
 function validarModalInventario(){ let ok=true; const n=$('inv-numero'), rr=$('inv-registrado'), ro=$('inv-otro'); [n].forEach(el=>{ if(!el.value.trim()){ el.classList.add('is-invalid'); ok=false; } else el.classList.remove('is-invalid'); }); if(rr.value==='Otro'){ if(!ro.value.trim()){ ro.classList.add('is-invalid'); ok=false; } else ro.classList.remove('is-invalid'); } if(inventarioCtx.almacen==='malvinas'){ const sel = qa('input[name="inv-tienda"]:checked')[0]; if(!sel){ alert('Seleccione una tienda.'); ok=false; } else { const yaRegistrada = (AppState.sesiones.malvinas||[]).some(s=> s && s.fin && s.tienda===sel.value); if(yaRegistrada){ alert('La tienda seleccionada ya fue registrada.'); ok=false; } } } return ok; }
-function guardarModalInventario(){ if(!validarModalInventario()) return; const numero = $('inv-numero').value.trim(); let registrado = $('inv-registrado').value; if(registrado==='Otro') registrado = $('inv-otro').value.trim(); const inicio = $('inv-inicio').value; const id=uid(); const base = { id, numero, registrado, inicio, fin:null, tipo: $('inv-tipo').value, filas:[], pdfUrl:null }; if(inventarioCtx.almacen==='malvinas') base.tienda = qa('input[name="inv-tienda"]:checked')[0].value; if(inventarioCtx.almacen==='malvinas'){ const yaRegistrada = (AppState.sesiones.malvinas||[]).some(s=> s && s.fin && s.tienda===base.tienda); if(yaRegistrada){ toast(`La tienda ${base.tienda} ya fue registrada.`, 'info'); return; } } AppState.sesiones[inventarioCtx.almacen].push(base); if(inventarioCtx.almacen==='callao'){ $('callao-numero').textContent = numero; $('callao-registrado').textContent = registrado; $('callao-inicio').textContent = inicio; $('panel-callao').classList.remove('invis'); $('tabla-callao').classList.add('invis'); } else { $('malvinas-numero').textContent = numero; $('malvinas-registrado').textContent = registrado; $('malvinas-inicio').textContent = inicio; $('malvinas-tienda').textContent = base.tienda; $('panel-malvinas').classList.remove('invis'); $('tabla-malvinas').classList.add('invis'); setTiendaStatus(base.tienda, 'en_proceso'); } closeModal('#modalInventario'); }
+function guardarModalInventario(){ 
+  if(!validarModalInventario()) return; 
+  const numero = $('inv-numero').value.trim(); 
+  const selectRegistrado = $('inv-registrado');
+  let registradoId = selectRegistrado.value;
+  let registradoNombre = selectRegistrado.selectedOptions[0]?.textContent || '';
+  
+  if(registradoId === 'Otro') {
+    registradoNombre = $('inv-otro').value.trim();
+    registradoId = null; // No hay ID para "Otro"
+  }
+  
+  const inicio = $('inv-inicio').value; 
+  const id = uid(); 
+  const base = { 
+    id, 
+    numero, 
+    registrado: registradoNombre,
+    registradoId: registradoId, // Guardar el ID por separado
+    inicio, 
+    fin: null, 
+    tipo: $('inv-tipo').value, 
+    filas: [], 
+    pdfUrl: null 
+  }; 
+  
+  if(inventarioCtx.almacen==='malvinas') base.tienda = qa('input[name="inv-tienda"]:checked')[0].value; 
+  if(inventarioCtx.almacen==='malvinas'){ 
+    const yaRegistrada = (AppState.sesiones.malvinas||[]).some(s=> s && s.fin && s.tienda===base.tienda); 
+    if(yaRegistrada){ toast(`La tienda ${base.tienda} ya fue registrada.`, 'info'); return; } 
+  } 
+  
+  AppState.sesiones[inventarioCtx.almacen].push(base); 
+  
+  if(inventarioCtx.almacen==='callao'){ 
+    $('callao-numero').textContent = numero; 
+    $('callao-registrado').textContent = registradoNombre; 
+    $('callao-inicio').textContent = inicio; 
+    $('panel-callao').classList.remove('invis'); 
+    $('tabla-callao').classList.add('invis'); 
+  } else { 
+    $('malvinas-numero').textContent = numero; 
+    $('malvinas-registrado').textContent = registradoNombre; 
+    $('malvinas-inicio').textContent = inicio; 
+    $('malvinas-tienda').textContent = base.tienda; 
+    $('panel-malvinas').classList.remove('invis'); 
+    $('tabla-malvinas').classList.add('invis'); 
+    setTiendaStatus(base.tienda, 'en_proceso'); 
+  } 
+  
+  closeModal('#modalInventario'); 
+}
 function mostrarTablaInventario(almacen){
   const sesion = ultimoInventario(almacen); if(!sesion){ alert('No hay sesión activa.'); return; }
   const tbody = $(`tbl-${almacen}`).querySelector('tbody'); tbody.innerHTML='';
@@ -1588,8 +1652,60 @@ function filterTablaInventario(almacen){
   renderPaginaInventario(almacen);
 }
 function ultimoInventario(almacen){ const arr = AppState.sesiones[almacen]; return arr[arr.length-1] || null; }
+// Función auxiliar para convertir fecha 12h a formato MySQL timestamp
+function convertirFechaToMySQL(fechaStr) {
+  // Formato entrada: "10/21/2025 03:15 PM"
+  // Formato salida: "2025-10-21 15:15:05"
+  try {
+    const partes = fechaStr.match(/(\d{2})\/(\d{2})\/(\d{4})\s+(\d{1,2}):(\d{2})\s+(AM|PM)/);
+    if (!partes) return null;
+    
+    const mes = partes[1];
+    const dia = partes[2];
+    const anio = partes[3];
+    let hora = parseInt(partes[4]);
+    const minuto = partes[5];
+    const ampm = partes[6];
+    
+    // Convertir a formato 24h
+    if (ampm === 'PM' && hora !== 12) hora += 12;
+    if (ampm === 'AM' && hora === 12) hora = 0;
+    
+    const horaStr = hora.toString().padStart(2, '0');
+    return `${anio}-${mes}-${dia} ${horaStr}:${minuto}:05`;
+  } catch (error) {
+    console.error('Error convirtiendo fecha:', error);
+    return null;
+  }
+}
+
+// Función para mapear nombre de registrado a ID
+function obtenerIdRegistradoPor(nombre) {
+  const mapeo = {
+    'Joseph': '1',
+    'Joselyn': '2',
+    'Manuel': '3'
+  };
+  return mapeo[nombre] || '1'; // Default a Joseph
+}
+
+// Función para obtener ID del punto de operación
+function obtenerIdPuntoOperacion(almacen, tienda = null) {
+  if (almacen === 'callao') return '2';
+  // Para Malvinas, mapear según la tienda
+  const mapeoTiendas = {
+    'TIENDA 3006': '3',
+    'TIENDA 3006 B': '4',
+    'TIENDA 3131': '5',
+    'TIENDA 3133': '6',
+    'TIENDA 412-A': '7'
+  };
+  return tienda ? (mapeoTiendas[tienda] || '3') : '3';
+}
+
 async function registrarInventario(almacen){
-  const sesion = ultimoInventario(almacen); if(!sesion){ alert('No hay sesión.'); return; }
+  const sesion = ultimoInventario(almacen); 
+  if(!sesion){ alert('No hay sesión.'); return; }
   
   // Obtener los productos filtrados
   const excl = new Set(AppState.filtro.excluirCodigos.map(s=>s.trim()).filter(Boolean));
@@ -1615,7 +1731,8 @@ async function registrarInventario(almacen){
       producto: p.producto,
       codigo: p.codigo,
       unidad_medida: p.unidad_medida,
-      cantidad: Number(cantidad || 0)
+      cantidad: Number(cantidad || 0),
+      id_producto: p.id // Agregar ID del producto
     });
   });
   
@@ -1625,15 +1742,119 @@ async function registrarInventario(almacen){
   
   sesion.filas = filas; 
   sesion.fin = fmt12();
-  sesion.pdfUrl = await generarPDFConteo(almacen, sesion);
-  renderListado(almacen); 
-  if(almacen==='malvinas'){ setTiendaStatus(sesion.tienda,'listo'); }
-  renderConsolidado(); 
-  renderRegistro();
-  toast('Inventario registrado correctamente.','success');
+  
+  // Mostrar toast de procesamiento
+  toast('Generando PDF y registrando inventario...', 'info');
+  
+  try {
+    // 1. Generar PDF y obtener blob
+    const pdfBlob = await generarPDFConteoBlob(almacen, sesion);
+    
+    // 2. Subir PDF a la API de archivos
+    const apiArchivos = "https://gestorarchivos-2946605267.us-central1.run.app";
+    const folderBucket = "inventario_conteo";
+    
+    const formData = new FormData();
+    const nombreArchivo = `inventario_${almacen}_${sesion.numero.replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}.pdf`;
+    formData.append('file', pdfBlob, nombreArchivo);
+    
+    const responseArchivo = await fetch(`${apiArchivos}?folder_bucket=${folderBucket}`, {
+      method: 'POST',
+      body: formData
+    });
+    
+    if (responseArchivo.status !== 200) {
+      throw new Error('Error al subir el PDF');
+    }
+    
+    const dataArchivo = await responseArchivo.json();
+    console.log('Archivo subido:', dataArchivo);
+    
+    const urlArchivo = dataArchivo.url;
+    sesion.pdfUrl = urlArchivo;
+    
+    // 3. Preparar datos para la API de inventario
+    const fechaInicio = convertirFechaToMySQL(sesion.inicio);
+    const fechaFinal = convertirFechaToMySQL(sesion.fin);
+    // Usar el ID almacenado si existe, sino buscar por nombre
+    const idRegistradoPor = sesion.registradoId || obtenerIdRegistradoPor(sesion.registrado);
+    const idPuntoOperacion = obtenerIdPuntoOperacion(almacen, sesion.tienda);
+    
+    // Preparar array de productos (solo los que tienen cantidad > 0)
+    const productosParaAPI = filas
+      .filter(f => f.cantidad > 0)
+      .map(f => ({
+        id_productos: String(f.id_producto),
+        cantidad: String(f.cantidad),
+        unidad_medida: f.unidad_medida
+      }));
+    
+    const dataInventario = {
+      id_inventario: sesion.numero,
+      id_punto_operacion: idPuntoOperacion,
+      fecha_inicio: fechaInicio,
+      fecha_final: fechaFinal,
+      registrado_por: idRegistradoPor,
+      url_archivo: urlArchivo,
+      productos: productosParaAPI
+    };
+    
+    console.log('Datos a enviar:', dataInventario);
+    
+    // 4. Enviar datos a la API de inventario
+    const apiInventario = "https://inventario-2946605267.us-central1.run.app";
+    const method = "insertar_conteo";
+    
+    const responseInventario = await fetch(`${apiInventario}?method=${method}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(dataInventario)
+    });
+    
+    if (responseInventario.status !== 200) {
+      throw new Error('Error al registrar el inventario en la base de datos');
+    }
+    
+    const resultInventario = await responseInventario.json();
+    console.log('Inventario registrado:', resultInventario);
+    
+    // 5. Actualizar interfaz
+    renderListado(almacen); 
+    if(almacen==='malvinas'){ setTiendaStatus(sesion.tienda,'listo'); }
+    renderConsolidado(); 
+    renderRegistro();
+    
+    toast('Inventario registrado correctamente en la base de datos', 'success');
+    
+  } catch (error) {
+    console.error('Error al registrar inventario:', error);
+    toast('Error al registrar el inventario: ' + error.message, 'error');
+    alert('Ocurrió un error al registrar el inventario. Por favor, intente nuevamente.');
+  }
 }
 function renderListado(almacen){ const tb = $(`list-${almacen}`).querySelector('tbody'); tb.innerHTML=''; const filtro = $(`filtro-list-${almacen}`)?.value?.toLowerCase() || ''; AppState.sesiones[almacen].forEach((s,idx)=>{ if(filtro && !(`${s.numero} ${s.registrado} ${s.inicio} ${s.tienda||''}`.toLowerCase().includes(filtro))) return; const tr = document.createElement('tr'); const pdf = s.pdfUrl? `<a class="link-primary" href="${s.pdfUrl}" target="_blank"><i class="bi bi-file-earmark-pdf"></i> PDF</a>`:'-'; tr.innerHTML = `${almacen==='malvinas'?`<td>${idx+1}</td><td>${s.inicio}</td><td>${s.numero}</td><td>${s.tienda||''}</td><td>${s.registrado}</td><td>${pdf}</td><td>${s.fin||'-'}</td>`:`<td>${idx+1}</td><td>${s.inicio}</td><td>${s.numero}</td><td>${s.registrado}</td><td>${pdf}</td><td>${s.fin||'-'}</td>`}`; tb.appendChild(tr); }); }
-async function generarPDFConteo(almacen, sesion){ const { jsPDF } = window.jspdf; const doc = new jsPDF({unit:'pt', format:'a4'}); doc.setFontSize(14); doc.text(`Inventario ${almacen.toUpperCase()} – ${sesion.numero}`, 40, 40); doc.setFontSize(10); doc.text(`Registrado por: ${sesion.registrado} · Inicio: ${sesion.inicio} · Fin: ${sesion.fin||''} ${sesion.tienda? '· Tienda: '+sesion.tienda:''}`, 40, 58); const body = sesion.filas.map(f=>[f.item, f.producto, f.codigo, f.cantidad.toString(), f.unidad_medida]); doc.autoTable({ startY:80, head:[["Item","Producto","Código","Cantidad","UM"]], body }); const blob = doc.output('blob'); return URL.createObjectURL(blob); }
+
+// Generar PDF y retornar como Blob para subir a la API
+async function generarPDFConteoBlob(almacen, sesion){ 
+  const { jsPDF } = window.jspdf; 
+  const doc = new jsPDF({unit:'pt', format:'a4'}); 
+  doc.setFontSize(14); 
+  doc.text(`Inventario ${almacen.toUpperCase()} – ${sesion.numero}`, 40, 40); 
+  doc.setFontSize(10); 
+  doc.text(`Registrado por: ${sesion.registrado} · Inicio: ${sesion.inicio} · Fin: ${sesion.fin||''} ${sesion.tienda? '· Tienda: '+sesion.tienda:''}`, 40, 58); 
+  const body = sesion.filas.map(f=>[f.item, f.producto, f.codigo, f.cantidad.toString(), f.unidad_medida]); 
+  doc.autoTable({ startY:80, head:[["Item","Producto","Código","Cantidad","UM"]], body }); 
+  const blob = doc.output('blob'); 
+  return blob;
+}
+
+// Generar PDF y retornar URL local (para vistas previas)
+async function generarPDFConteo(almacen, sesion){ 
+  const blob = await generarPDFConteoBlob(almacen, sesion);
+  return URL.createObjectURL(blob); 
+}
 function pdfListado(almacen){ const { jsPDF } = window.jspdf; const doc = new jsPDF({unit:'pt', format:'a4'}); doc.setFontSize(14); doc.text(`Listado de Conteos – ${almacen.toUpperCase()}`, 40, 40); const arr = AppState.sesiones[almacen].map((s,i)=> [ i+1, s.inicio, s.numero, (almacen==='malvinas'?(s.tienda||''):'-'), s.fin||'-' ]); const head = (almacen==='malvinas')? [["ID","Inicio","N° Inventario","Tienda","Hora Final"]] : [["ID","Inicio","N° Inventario","Hora Final"]]; doc.autoTable({startY:60, head, body: arr}); doc.save(`listado_${almacen}.pdf`); }
 function toast(msg,type='info'){
   // Toast flotante no intrusivo, no empuja el layout
@@ -2084,6 +2305,19 @@ document.addEventListener('DOMContentLoaded', () => {
       $('sn-area')?.addEventListener('change', ()=>{ 
         // Recargar colaboradores cuando cambia el área
         cargarColaboradoresInventario();
+      });
+      
+      // Event listener para el combo "registrado por" en el modal de inventario
+      $('inv-registrado')?.addEventListener('change', ()=>{ 
+        const v=$('inv-registrado').value; 
+        const el=$('inv-otro'); 
+        if(v==='Otro'){ 
+          el.classList.remove('d-none'); 
+          el.focus(); 
+        } else { 
+          el.classList.add('d-none'); 
+          el.value=''; 
+        } 
       });
     }catch{}
 });
