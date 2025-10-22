@@ -1444,7 +1444,7 @@ async function cargarConteosMalvinas() {
         filas: [], // Los productos se cargarán por separado si es necesario
         pdfUrl: conteo.LINK_ARCHIVO_PDF,
         apiId: conteo.ID, // Guardar el ID de la API
-        tienda: conteo.TIENDA || '' // Agregar información de tienda si está disponible
+        tienda: conteo.PUNTO_OPERACION || '' // Usar PUNTO_OPERACION como tienda
       };
       
       AppState.sesiones.malvinas.push(sesion);
@@ -1948,7 +1948,7 @@ function renderPaginaInventario(almacen){
     const tr = document.createElement('tr');
     const val = mapCant.has(p.codigo) ? String(mapCant.get(p.codigo)) : '';
     const estadoBadge = val==='' ? '<span class="badge text-bg-danger">PENDIENTE</span>' : '<span class="badge text-bg-success">REGISTRADO</span>';
-    tr.innerHTML = `<td>${p.item}</td><td>${p.producto}</td><td>${p.codigo}</td><td><input type="number" class="form-control form-control-sm" style="width:100px; text-align:center" min="0" data-codigo="${p.codigo}" data-almacen="${almacen}" value="${val}" oninput="syncObsYGuardar(this, '${almacen}')"></td><td>${p.unidad_medida}</td><td class="fw-semibold">${estadoBadge}</td>`;
+    tr.innerHTML = `<td>${p.item}</td><td>${p.producto}</td><td>${p.codigo}</td><td><input type="number" class="form-control form-control-sm" style="width:100px; text-align:center" min="0" data-codigo="${p.codigo}" data-almacen="${almacen}" value="${val}" oninput="syncObsYGuardar(this, '${almacen}')"></td><td><select class="form-select form-select-sm" style="width:80px" data-codigo="${p.codigo}" data-almacen="${almacen}" onchange="actualizarUnidadMedida(this, '${almacen}')"><option value="UNI" ${p.unidad_medida === 'UNI' ? 'selected' : ''}>UNI</option><option value="DOC" ${p.unidad_medida === 'DOC' ? 'selected' : ''}>DOC</option></select></td><td class="fw-semibold">${estadoBadge}</td>`;
     tbody.appendChild(tr);
   });
   
@@ -2052,6 +2052,43 @@ function syncObsYGuardar(inp, almacen){
       });
     }
   }
+}
+
+// Función para actualizar la unidad de medida cuando cambia el combo box
+function actualizarUnidadMedida(select, almacen) {
+  const codigo = select.dataset.codigo;
+  const nuevaUnidad = select.value;
+  
+  // Actualizar en la sesión actual
+  const sesion = ultimoInventario(almacen);
+  if (sesion) {
+    if (!sesion.filas) sesion.filas = [];
+    let fila = sesion.filas.find(f => f.codigo === codigo);
+    
+    if (fila) {
+      fila.unidad_medida = nuevaUnidad;
+    } else {
+      // Crear nueva fila si no existe
+      const producto = AppState.productos.find(p => p.codigo === codigo);
+      if (producto) {
+        sesion.filas.push({
+          item: producto.item,
+          producto: producto.producto,
+          codigo: codigo,
+          cantidad: 0,
+          unidad_medida: nuevaUnidad
+        });
+      }
+    }
+  }
+  
+  // También actualizar en el producto base para mantener consistencia
+  const producto = AppState.productos.find(p => p.codigo === codigo);
+  if (producto) {
+    producto.unidad_medida = nuevaUnidad;
+  }
+  
+  console.log(`Unidad de medida actualizada para ${codigo}: ${nuevaUnidad}`);
 }
 
 function filterTablaInventario(almacen){ 
