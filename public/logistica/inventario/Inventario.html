@@ -93,6 +93,18 @@
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
   }
+  
+  /* Estilos para botones de comparación */
+  .btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  
+  .sys-count {
+    font-size: 0.8rem;
+    font-weight: 500;
+    margin-left: 4px;
+  }
 
   /* --- Estructura del Dashboard --- */
   .sidebar {
@@ -653,12 +665,12 @@
                     <i class="bi bi-upload"></i> Subir Sistema Callao
                     <input type="file" accept=".json,.csv,.xlsx,.xls" class="d-none" onchange="cargarSistema(event,'callao')">
                 </label>
-                <button id="btn-alm-callao" class="btn btn-primary" onclick="abrirComparacion('callao')"><i class="bi bi-building"></i> Almacén Callao</button>
+                <button id="btn-alm-callao" class="btn btn-primary" onclick="cargarYComparar('callao')"><i class="bi bi-building"></i> Almacén Callao</button>
                 <label class="btn btn-primary-soft mb-0 ms-2">
                     <i class="bi bi-upload"></i> Subir Sistema Malvinas
                     <input type="file" accept=".json,.csv,.xlsx,.xls" class="d-none" onchange="cargarSistema(event,'malvinas')">
                 </label>
-                <button id="btn-alm-malvinas" class="btn btn-primary" onclick="abrirComparacion('malvinas')"><i class="bi bi-shop"></i> Almacén Malvinas</button>
+                <button id="btn-alm-malvinas" class="btn btn-primary" onclick="cargarYComparar('malvinas')"><i class="bi bi-shop"></i> Almacén Malvinas</button>
             </div>
         </header>
 
@@ -2435,8 +2447,210 @@ function setTiendaStatus(){ renderTiendas(); }
 
 // ===== Comparación =====
 function buildMapaFisicoAcumulado(almacen){ const map = new Map(); const sesiones = (AppState.sesiones[almacen]||[]).filter(s=> s && s.fin); sesiones.forEach(s=>{ (s.filas||[]).forEach(f=>{ const c=f.codigo; if(!c) return; const prev = map.get(c) || { item:f.item, producto:f.producto, unidad_medida:f.unidad_medida, fis:0 }; prev.fis = Number(prev.fis||0) + (Number(f.cantidad)||0); if(!prev.producto && f.producto) prev.producto = f.producto; if(!prev.item && f.item) prev.item = f.item; map.set(c, prev); }); }); return {map, sesiones}; }
+
+// Función para cargar datos de comparación desde API
+async function cargarDatosComparacionDesdeAPI(almacen) {
+  console.log('Cargando datos de comparación desde API para:', almacen);
+  
+  if (!AppState.sesionActual?.numero) {
+    throw new Error('No hay inventario activo');
+  }
+  
+  const INVENTARIO_API = "https://inventario-2946605267.us-central1.run.app";
+  const method = "listar_conteo_punto_operacion";
+  
+  // Construir ID: "nombre_inventario-almacen"
+  const idInventario = `${AppState.sesionActual.numero}-${almacen}`;
+  console.log('ID para API:', idInventario);
+  
+  const url = `${INVENTARIO_API}?method=${method}&id=${encodeURIComponent(idInventario)}`;
+  
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 segundos timeout
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      signal: controller.signal
+    });
+    
+    clearTimeout(timeoutId);
+    
+    if (!response.ok) {
+      throw new Error(`Error HTTP: ${response.status} - ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    console.log('Datos recibidos de API:', data);
+    
+    if (!Array.isArray(data)) {
+      console.warn('API no devolvió un array:', data);
+      AppState.sistema[almacen] = [];
+      return;
+    }
+    
+    // Convertir datos de API al formato esperado por el sistema
+    const datosSistema = data.map((item, index) => ({
+      item: index + 1,
+      producto: item.PRODUCTO || '',
+      codigo: item.CODIGO || '',
+      cantidad_sistema: Number(item.TOTAL) || 0,
+      unidad_medida: item.UNIDAD_MEDIDA || 'UNI'
+    })).filter(item => item.codigo); // Solo productos con código
+    
+    AppState.sistema[almacen] = datosSistema;
+    
+    console.log(`Datos del sistema cargados para ${almacen}:`, datosSistema.length, 'productos');
+    
+    // Actualizar UI del botón
+    try {
+      const targetBtn = almacen === 'callao' ? 
+        document.getElementById('btn-alm-callao') : 
+        document.getElementById('btn-alm-malvinas');
+      
+      if (targetBtn) {
+        const ex = targetBtn.querySelector('.sys-count');
+        if (ex) {
+          ex.textContent = ` (${datosSistema.length})`;
+        } else {
+          const s = document.createElement('span');
+          s.className = 'sys-count';
+          s.textContent = ` (${datosSistema.length})`;
+          targetBtn.appendChild(s);
+        }
+        targetBtn.classList.add('active-alm');
+        setTimeout(() => targetBtn.classList.remove('active-alm'), 1200);
+      }
+    } catch (uiError) {
+      console.warn('Error actualizando UI:', uiError);
+    }
+    
+  } catch (error) {
+    console.error('Error cargando datos de comparación:', error);
+    
+    if (error.name === 'AbortError') {
+      throw new Error('Timeout: La API tardó más de 30 segundos en responder');
+    } else if (error.message.includes('Failed to fetch')) {
+      throw new Error('Error de conexión: No se pudo conectar con la API');
+    } else {
+      throw new Error(`Error cargando datos: ${error.message}`);
+    }
+  }
+}
+
+// Función para cargar datos y abrir comparación automáticamente
+async function cargarYComparar(almacen) {
+  console.log('Cargando y comparando para:', almacen);
+  
+  // Mostrar indicador de carga
+  const btn = document.getElementById(almacen === 'callao' ? 'btn-alm-callao' : 'btn-alm-malvinas');
+  const originalText = btn.innerHTML;
+  btn.innerHTML = `<i class="bi bi-arrow-repeat spin"></i> Cargando...`;
+  btn.disabled = true;
+  
+  try {
+    // Cargar datos desde API
+    await cargarDatosComparacionDesdeAPI(almacen);
+    
+    // Abrir comparación
+    await abrirComparacion(almacen);
+    
+    toast(`Datos de ${almacen} cargados y comparación abierta`, 'success');
+    
+  } catch (error) {
+    console.error('Error en cargarYComparar:', error);
+    alert(`Error: ${error.message}`);
+  } finally {
+    // Restaurar botón
+    btn.innerHTML = originalText;
+    btn.disabled = false;
+  }
+}
+
 function cargarSistema(e, almacen){ (async ()=>{ try{ const file=e.target.files[0]; const arr= await leerArchivoGenerico(file); AppState.sistema[almacen] = (arr||[]).map((r,i)=>{ const m={}; Object.keys(r).forEach(k=> m[normalizarClave(k)]=r[k]); const item = toNumberSafe(m.item ?? i+1) || (i+1); const producto = (m.producto ?? m.nombre ?? m.nombre_producto ?? m.descripcion ?? m.descripcion_producto ?? m.detalle ?? m.detalle_producto ?? m.desc) || ''; const codigo = (m.codigo ?? m.cod ?? m.code ?? m.sku ?? m.codigo_producto ?? m.codigo_interno ?? m.codigo_zeus ?? m.codigo_item ?? m.codigoitem ?? '').toString(); const cantidadSistema = toNumberSafe(m.cantidad_sistema ?? m.cantidad_sis ?? m.sistema ?? m.stock ?? m.cantidad ?? m.existencia ?? m.cantidadtotal ?? m.cantidad_total ?? m.qty ?? 0); return { item, producto, codigo, cantidad_sistema: cantidadSistema }; }).filter(x=> x.codigo); toast(`Archivo de sistema (${almacen}) cargado: ${AppState.sistema[almacen].length} filas.`,'success'); try{ const cnt = AppState.sistema[almacen].length; const targetBtn = almacen==='callao' ? document.getElementById('btn-alm-callao') : document.getElementById('btn-alm-malvinas'); if(targetBtn){ const ex = targetBtn.querySelector('.sys-count'); if(ex) ex.textContent = ` (${cnt})`; else { const s=document.createElement('span'); s.className='sys-count'; s.textContent=` (${cnt})`; targetBtn.appendChild(s); } targetBtn.classList.add('active-alm'); setTimeout(()=> targetBtn.classList.remove('active-alm'), 1200); } }catch{} }catch(err){ alert('Error al leer archivo del sistema: '+err.message); } })(); }
-function abrirComparacion(almacen){ const {map:mapFisAcu, sesiones} = buildMapaFisicoAcumulado(almacen); if(!sesiones || sesiones.length===0){ alert('No hay inventarios registrados para comparar.'); return; } if((AppState.sistema[almacen]||[]).length===0){ alert('Carga primero el archivo del sistema.'); return; } $('cmp-almacen').textContent = almacen.toUpperCase(); if(sesiones.length===1){ $('cmp-numero').textContent = sesiones[0].numero; $('cmp-fecha').textContent = sesiones[0].fin || sesiones[0].inicio; } else { $('cmp-numero').textContent = `MÚLTIPLES (${sesiones.length})`; const ultima = sesiones[sesiones.length-1]; $('cmp-fecha').textContent = ultima.fin || ultima.inicio; } const mapSis = new Map((AppState.sistema[almacen]||[]).map(s=>[s.codigo, s])); const codigos = new Set([ ...mapSis.keys(), ...mapFisAcu.keys() ]); const filas=[]; codigos.forEach(c=>{ const s = mapSis.get(c); const f = mapFisAcu.get(c); const prod = (f?.producto) || (s?.producto) || ''; const item = (f?.item) || (s?.item) || ''; const sis = Number(s?.cantidad_sistema||0); const fis = Number(f?.fis||0); const res = fis - sis; const estado = res===0 ? 'CONFORME' : (res>0 ? 'SOBRANTE' : 'FALTANTE'); filas.push({ item, producto:prod, codigo:c, sis, fis, res, estado }); }); AppState.comparacion = { almacen, filas }; pintarComparacion(); renderConsolidado(); $('panel-comparacion').classList.remove('invis'); try{ document.querySelectorAll('#btn-alm-callao, #btn-alm-malvinas').forEach(b=> b.classList.remove('active-alm')); const selBtn = document.getElementById(almacen==='callao' ? 'btn-alm-callao' : 'btn-alm-malvinas'); selBtn?.classList.add('active-alm'); }catch{} try{ const inp=document.getElementById('cmp-search'); if(inp){ inp.value=''; inp.classList.remove('filter-active'); } cmpFiltroTxt=''; cmpEstado='ALL'; }catch{} try{ actualizarTotalesFisicosComparar(); }catch{} }
+async function abrirComparacion(almacen){ 
+  console.log('Abriendo comparación para:', almacen);
+  
+  // 1. Verificar que hay inventario activo
+  if (!AppState.sesionActual?.numero) {
+    alert('No hay inventario activo. Debe unirse a un inventario primero.');
+    return;
+  }
+  
+  // 2. Cargar datos desde API
+  try {
+    await cargarDatosComparacionDesdeAPI(almacen);
+  } catch (error) {
+    console.error('Error cargando datos de comparación:', error);
+    alert('Error al cargar datos de comparación. Intente nuevamente.');
+    return;
+  }
+  
+  // 3. Construir comparación
+  const {map:mapFisAcu, sesiones} = buildMapaFisicoAcumulado(almacen); 
+  if(!sesiones || sesiones.length===0){ 
+    alert('No hay inventarios registrados para comparar.'); 
+    return; 
+  } 
+  
+  if((AppState.sistema[almacen]||[]).length===0){ 
+    alert('No hay datos del sistema cargados.'); 
+    return; 
+  } 
+  
+  $('cmp-almacen').textContent = almacen.toUpperCase(); 
+  if(sesiones.length===1){ 
+    $('cmp-numero').textContent = sesiones[0].numero; 
+    $('cmp-fecha').textContent = sesiones[0].fin || sesiones[0].inicio; 
+  } else { 
+    $('cmp-numero').textContent = `MÚLTIPLES (${sesiones.length})`; 
+    const ultima = sesiones[sesiones.length-1]; 
+    $('cmp-fecha').textContent = ultima.fin || ultima.inicio; 
+  } 
+  
+  const mapSis = new Map((AppState.sistema[almacen]||[]).map(s=>[s.codigo, s])); 
+  const codigos = new Set([ ...mapSis.keys(), ...mapFisAcu.keys() ]); 
+  const filas=[]; 
+  codigos.forEach(c=>{ 
+    const s = mapSis.get(c); 
+    const f = mapFisAcu.get(c); 
+    const prod = (f?.producto) || (s?.producto) || ''; 
+    const item = (f?.item) || (s?.item) || ''; 
+    const sis = Number(s?.cantidad_sistema||0); 
+    const fis = Number(f?.fis||0); 
+    const res = fis - sis; 
+    const estado = res===0 ? 'CONFORME' : (res>0 ? 'SOBRANTE' : 'FALTANTE'); 
+    filas.push({ item, producto:prod, codigo:c, sis, fis, res, estado }); 
+  }); 
+  
+  AppState.comparacion = { almacen, filas }; 
+  pintarComparacion(); 
+  renderConsolidado(); 
+  $('panel-comparacion').classList.remove('invis'); 
+  
+  try{ 
+    document.querySelectorAll('#btn-alm-callao, #btn-alm-malvinas').forEach(b=> b.classList.remove('active-alm')); 
+    const selBtn = document.getElementById(almacen==='callao' ? 'btn-alm-callao' : 'btn-alm-malvinas'); 
+    selBtn?.classList.add('active-alm'); 
+  }catch{} 
+  
+  try{ 
+    const inp=document.getElementById('cmp-search'); 
+    if(inp){ 
+      inp.value=''; 
+      inp.classList.remove('filter-active'); 
+    } 
+    cmpFiltroTxt=''; 
+    cmpEstado='ALL'; 
+  }catch{} 
+  
+  try{ 
+    actualizarTotalesFisicosComparar(); 
+  }catch{} 
+}
 function pintarComparacion(){ const tb=$('tbl-comparacion')?.querySelector('tbody'); if(!tb) return; tb.innerHTML=''; let ok=0,bad=0; const soloSis = !!document.getElementById('cmp-solo-sistema')?.checked; const setSis = new Set(((AppState.sistema[AppState.comparacion?.almacen]||[])).map(s=>s.codigo)); (AppState.comparacion?.filas||[]).forEach(r=>{ if(soloSis && !setSis.has(r.codigo)) return; if(cmpFiltroTxt){ const code=String(r.codigo||'').toLowerCase(); const prod=String(r.producto||'').toLowerCase(); if(!code.includes(cmpFiltroTxt) && !prod.includes(cmpFiltroTxt)) return; } if(cmpEstado==='OK' && r.res!==0) return; if(cmpEstado==='BAD' && r.res===0) return; if(r.res===0) ok++; else bad++; const resTxt = r.res>0?`+${r.res}`:(r.res<0?`${r.res}`:'0'); const estCls = r.estado==='CONFORME'?'text-bg-success':(r.estado==='FALTANTE'?'text-bg-danger':'text-bg-warning'); const resCls = estCls; const tr=document.createElement('tr'); tr.innerHTML = `<td>${r.item}</td><td>${r.producto}</td><td>${r.codigo}</td><td class="text-center">${r.sis}</td><td class="text-center">${r.fis}</td><td class="text-center"><span class="badge ${resCls}">${resTxt}</span></td><td><span class="badge ${estCls}">${r.estado}</span></td><td><div class="position-relative d-inline-block" data-codigo="${r.codigo}"><button class="btn btn-sm btn-edit" onclick="abrirMenuEditar(event,'${r.codigo}')">Editar <i class="bi bi-caret-down-fill ms-1"></i></button><div class="mini-menu d-none"><button class="mm-item" onclick="accionEditarCantidadDesdeMenu(event,this)">Editar Cantidad</button><button class="mm-item" onclick="accionEditarSistemaDesdeMenu(event,this)">Editar Sistema</button><button class="mm-item" onclick="accionEditarVerificacionDesdeMenu(event,this)">Editar Verificación</button></div></div></td>`; tb.appendChild(tr); }); $('cmp-correctos').textContent=ok; $('cmp-incorrectos').textContent=bad; saveLS(); try{ actualizarTotalesFisicosComparar(); }catch{} }
 
 // Mini menú de edición en Comparar
