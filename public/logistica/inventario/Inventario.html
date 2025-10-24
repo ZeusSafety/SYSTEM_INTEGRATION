@@ -2624,6 +2624,12 @@ async function cargarDatosComparacionDesdeAPI(almacen) {
 async function cargarYComparar(almacen) {
   console.log('Cargando y comparando para:', almacen);
   
+  // Verificar que hay datos del sistema (Excel) cargados
+  if (!AppState.sistema[almacen] || AppState.sistema[almacen].length === 0) {
+    alert(`No hay datos del sistema cargados para ${almacen}.\n\nDebe adjuntar un archivo Excel primero usando el botón "Subir Sistema ${almacen.toUpperCase()}".`);
+    return;
+  }
+  
   // Mostrar indicador de carga
   const btn = document.getElementById(almacen === 'callao' ? 'btn-alm-callao' : 'btn-alm-malvinas');
   const originalText = btn.innerHTML;
@@ -2631,13 +2637,10 @@ async function cargarYComparar(almacen) {
   btn.disabled = true;
   
   try {
-    // Cargar datos desde API
-    await cargarDatosComparacionDesdeAPI(almacen);
-    
     // Abrir comparación
     await abrirComparacion(almacen);
     
-    toast(`Datos de ${almacen} cargados y comparación abierta`, 'success');
+    toast(`Comparación abierta para ${almacen}`, 'success');
     
   } catch (error) {
     console.error('Error en cargarYComparar:', error);
@@ -2659,18 +2662,12 @@ async function abrirComparacion(almacen){
     return;
   }
   
-  // 2. Verificar si ya tenemos datos del sistema cargados
+  // 2. Verificar si ya tenemos datos del sistema cargados (del Excel adjuntado)
   if (!AppState.sistema[almacen] || AppState.sistema[almacen].length === 0) {
-    console.log('No hay datos del sistema, cargando desde API...');
-    try {
-      await cargarDatosComparacionDesdeAPI(almacen);
-    } catch (error) {
-      console.error('Error cargando datos de comparación:', error);
-      alert('Error al cargar datos de comparación. Intente nuevamente.');
-      return;
-    }
+    alert('No hay datos del sistema cargados. Debe adjuntar un archivo Excel primero usando el botón "Subir Sistema".');
+    return;
   } else {
-    console.log('Datos del sistema ya cargados:', AppState.sistema[almacen].length, 'productos');
+    console.log('Datos del sistema (Excel) ya cargados:', AppState.sistema[almacen].length, 'productos');
   }
   
   // 3. Cargar datos físicos desde API
