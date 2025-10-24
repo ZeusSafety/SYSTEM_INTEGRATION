@@ -1156,7 +1156,7 @@ async function cargarProductosDesdeAPI() {
       
       apiStatus.className = 'api-status success';
       apiStatus.innerHTML = '<i class="bi bi-check-circle"></i> API Conectada';
-      actualizarBadgeProductos();
+  actualizarBadgeProductos();
       toast(`Productos cargados desde API: ${AppState.productos.length}`, 'success');
     } else {
       console.error('Error en la respuesta de la API:', response.status);
@@ -2213,6 +2213,7 @@ async function registrarInventario(almacen){
     if(!confirm(`Hay ${faltantes} productos sin cantidad registrada. ¿Deseas continuar?`)) return; 
   }
   
+  // Actualizar sesión local para referencia
   sesion.filas = filas; 
   sesion.fin = fmt12();
   
@@ -2448,6 +2449,75 @@ function setTiendaStatus(){ renderTiendas(); }
 // ===== Comparación =====
 function buildMapaFisicoAcumulado(almacen){ const map = new Map(); const sesiones = (AppState.sesiones[almacen]||[]).filter(s=> s && s.fin); sesiones.forEach(s=>{ (s.filas||[]).forEach(f=>{ const c=f.codigo; if(!c) return; const prev = map.get(c) || { item:f.item, producto:f.producto, unidad_medida:f.unidad_medida, fis:0 }; prev.fis = Number(prev.fis||0) + (Number(f.cantidad)||0); if(!prev.producto && f.producto) prev.producto = f.producto; if(!prev.item && f.item) prev.item = f.item; map.set(c, prev); }); }); return {map, sesiones}; }
 
+// Función para cargar datos físicos desde API
+async function cargarDatosFisicosDesdeAPI(almacen) {
+  console.log('Cargando datos físicos desde API para:', almacen);
+  
+  if (!AppState.sesionActual?.numero) {
+    throw new Error('No hay inventario activo');
+  }
+  
+  const INVENTARIO_API = "https://inventario-2946605267.us-central1.run.app";
+  const method = "listar_conteo_punto_operacion";
+  
+  // Construir ID: "nombre_inventario-almacen"
+  const idInventario = `${AppState.sesionActual.numero}-${almacen}`;
+  console.log('ID para API de datos físicos:', idInventario);
+  
+  const url = `${INVENTARIO_API}?method=${method}&id=${encodeURIComponent(idInventario)}`;
+  
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 segundos timeout
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      signal: controller.signal
+    });
+    
+    clearTimeout(timeoutId);
+    
+    if (!response.ok) {
+      throw new Error(`Error HTTP: ${response.status} - ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    console.log('Datos físicos recibidos de API:', data);
+    
+    if (!Array.isArray(data)) {
+      console.warn('API no devolvió un array:', data);
+      return [];
+    }
+    
+    // Convertir datos de API al formato esperado por el sistema
+    const datosFisicos = data.map((item, index) => ({
+      item: index + 1,
+      producto: item.PRODUCTO || '',
+      codigo: item.CODIGO || '',
+      cantidad_fisica: Number(item.TOTAL) || 0,
+      unidad_medida: item.UNIDAD_MEDIDA || 'UNI'
+    })).filter(item => item.codigo); // Solo productos con código
+    
+    console.log(`Datos físicos cargados para ${almacen}:`, datosFisicos.length, 'productos');
+    
+    return datosFisicos;
+    
+  } catch (error) {
+    console.error('Error cargando datos físicos:', error);
+    
+    if (error.name === 'AbortError') {
+      throw new Error('Timeout: La API tardó más de 30 segundos en responder');
+    } else if (error.message.includes('Failed to fetch')) {
+      throw new Error('Error de conexión: No se pudo conectar con la API');
+    } else {
+      throw new Error(`Error cargando datos físicos: ${error.message}`);
+    }
+  }
+}
+
 // Función para cargar datos de comparación desde API
 async function cargarDatosComparacionDesdeAPI(almacen) {
   console.log('Cargando datos de comparación desde API para:', almacen);
@@ -2485,6 +2555,8 @@ async function cargarDatosComparacionDesdeAPI(almacen) {
     
     const data = await response.json();
     console.log('Datos recibidos de API:', data);
+    console.log('Primer elemento de la API:', data[0]);
+    console.log('Campos disponibles en el primer elemento:', Object.keys(data[0] || {}));
     
     if (!Array.isArray(data)) {
       console.warn('API no devolvió un array:', data);
@@ -2499,11 +2571,18 @@ async function cargarDatosComparacionDesdeAPI(almacen) {
       codigo: item.CODIGO || '',
       cantidad_sistema: Number(item.TOTAL) || 0,
       unidad_medida: item.UNIDAD_MEDIDA || 'UNI'
-    })).filter(item => item.codigo); // Solo productos con código
+    }));
     
-    AppState.sistema[almacen] = datosSistema;
+    console.log('Datos convertidos (primeros 3):', datosSistema.slice(0, 3));
+    console.log('Productos con código:', datosSistema.filter(item => item.codigo).length);
+    console.log('Productos sin código:', datosSistema.filter(item => !item.codigo).length);
     
-    console.log(`Datos del sistema cargados para ${almacen}:`, datosSistema.length, 'productos');
+    // Filtrar solo productos con código
+    const datosFiltrados = datosSistema.filter(item => item.codigo);
+    
+    AppState.sistema[almacen] = datosFiltrados;
+    
+    console.log(`Datos del sistema cargados para ${almacen}:`, datosFiltrados.length, 'productos');
     
     // Actualizar UI del botón
     try {
@@ -2514,11 +2593,11 @@ async function cargarDatosComparacionDesdeAPI(almacen) {
       if (targetBtn) {
         const ex = targetBtn.querySelector('.sys-count');
         if (ex) {
-          ex.textContent = ` (${datosSistema.length})`;
+          ex.textContent = ` (${datosFiltrados.length})`;
         } else {
           const s = document.createElement('span');
           s.className = 'sys-count';
-          s.textContent = ` (${datosSistema.length})`;
+          s.textContent = ` (${datosFiltrados.length})`;
           targetBtn.appendChild(s);
         }
         targetBtn.classList.add('active-alm');
@@ -2580,21 +2659,37 @@ async function abrirComparacion(almacen){
     return;
   }
   
-  // 2. Cargar datos desde API
+  // 2. Verificar si ya tenemos datos del sistema cargados
+  if (!AppState.sistema[almacen] || AppState.sistema[almacen].length === 0) {
+    console.log('No hay datos del sistema, cargando desde API...');
+    try {
+      await cargarDatosComparacionDesdeAPI(almacen);
+    } catch (error) {
+      console.error('Error cargando datos de comparación:', error);
+      alert('Error al cargar datos de comparación. Intente nuevamente.');
+      return;
+    }
+  } else {
+    console.log('Datos del sistema ya cargados:', AppState.sistema[almacen].length, 'productos');
+  }
+  
+  // 3. Cargar datos físicos desde API
+  console.log('Cargando datos físicos desde API para:', almacen);
+  
+  let datosFisicos = [];
   try {
-    await cargarDatosComparacionDesdeAPI(almacen);
+    datosFisicos = await cargarDatosFisicosDesdeAPI(almacen);
+    console.log('Datos físicos cargados:', datosFisicos.length, 'productos');
   } catch (error) {
-    console.error('Error cargando datos de comparación:', error);
-    alert('Error al cargar datos de comparación. Intente nuevamente.');
+    console.error('Error cargando datos físicos:', error);
+    alert('Error al cargar datos físicos desde la API. Intente nuevamente.');
     return;
   }
   
-  // 3. Construir comparación
-  const {map:mapFisAcu, sesiones} = buildMapaFisicoAcumulado(almacen); 
-  if(!sesiones || sesiones.length===0){ 
-    alert('No hay inventarios registrados para comparar.'); 
-    return; 
-  } 
+  if(datosFisicos.length === 0) {
+    alert('No hay datos físicos registrados para comparar.');
+    return;
+  }
   
   if((AppState.sistema[almacen]||[]).length===0){ 
     alert('No hay datos del sistema cargados.'); 
@@ -2602,29 +2697,38 @@ async function abrirComparacion(almacen){
   } 
   
   $('cmp-almacen').textContent = almacen.toUpperCase(); 
-  if(sesiones.length===1){ 
-    $('cmp-numero').textContent = sesiones[0].numero; 
-    $('cmp-fecha').textContent = sesiones[0].fin || sesiones[0].inicio; 
-  } else { 
-    $('cmp-numero').textContent = `MÚLTIPLES (${sesiones.length})`; 
-    const ultima = sesiones[sesiones.length-1]; 
-    $('cmp-fecha').textContent = ultima.fin || ultima.inicio; 
-  } 
+  $('cmp-numero').textContent = AppState.sesionActual.numero; 
+  $('cmp-fecha').textContent = fmt12(); 
   
+  // Crear mapas para comparación
   const mapSis = new Map((AppState.sistema[almacen]||[]).map(s=>[s.codigo, s])); 
-  const codigos = new Set([ ...mapSis.keys(), ...mapFisAcu.keys() ]); 
+  const mapFis = new Map(datosFisicos.map(f=>[f.codigo, f])); 
+  
+  console.log('Mapa del sistema creado:', mapSis.size, 'productos');
+  console.log('Mapa físico creado:', mapFis.size, 'productos');
+  console.log('Primeros 3 productos del sistema:', Array.from(mapSis.entries()).slice(0, 3));
+  console.log('Primeros 3 productos físicos:', Array.from(mapFis.entries()).slice(0, 3));
+  
+  const codigos = new Set([ ...mapSis.keys(), ...mapFis.keys() ]); 
+  console.log('Total de códigos únicos:', codigos.size);
+  console.log('Códigos del sistema:', mapSis.size);
+  console.log('Códigos físicos:', mapFis.size);
+  
   const filas=[]; 
   codigos.forEach(c=>{ 
     const s = mapSis.get(c); 
-    const f = mapFisAcu.get(c); 
+    const f = mapFis.get(c); 
     const prod = (f?.producto) || (s?.producto) || ''; 
     const item = (f?.item) || (s?.item) || ''; 
     const sis = Number(s?.cantidad_sistema||0); 
-    const fis = Number(f?.fis||0); 
+    const fis = Number(f?.cantidad_fisica||0); 
     const res = fis - sis; 
     const estado = res===0 ? 'CONFORME' : (res>0 ? 'SOBRANTE' : 'FALTANTE'); 
     filas.push({ item, producto:prod, codigo:c, sis, fis, res, estado }); 
-  }); 
+  });
+  
+  console.log('Filas de comparación generadas:', filas.length);
+  console.log('Primeras 3 filas:', filas.slice(0, 3)); 
   
   AppState.comparacion = { almacen, filas }; 
   pintarComparacion(); 
@@ -2651,7 +2755,7 @@ async function abrirComparacion(almacen){
     actualizarTotalesFisicosComparar(); 
   }catch{} 
 }
-function pintarComparacion(){ const tb=$('tbl-comparacion')?.querySelector('tbody'); if(!tb) return; tb.innerHTML=''; let ok=0,bad=0; const soloSis = !!document.getElementById('cmp-solo-sistema')?.checked; const setSis = new Set(((AppState.sistema[AppState.comparacion?.almacen]||[])).map(s=>s.codigo)); (AppState.comparacion?.filas||[]).forEach(r=>{ if(soloSis && !setSis.has(r.codigo)) return; if(cmpFiltroTxt){ const code=String(r.codigo||'').toLowerCase(); const prod=String(r.producto||'').toLowerCase(); if(!code.includes(cmpFiltroTxt) && !prod.includes(cmpFiltroTxt)) return; } if(cmpEstado==='OK' && r.res!==0) return; if(cmpEstado==='BAD' && r.res===0) return; if(r.res===0) ok++; else bad++; const resTxt = r.res>0?`+${r.res}`:(r.res<0?`${r.res}`:'0'); const estCls = r.estado==='CONFORME'?'text-bg-success':(r.estado==='FALTANTE'?'text-bg-danger':'text-bg-warning'); const resCls = estCls; const tr=document.createElement('tr'); tr.innerHTML = `<td>${r.item}</td><td>${r.producto}</td><td>${r.codigo}</td><td class="text-center">${r.sis}</td><td class="text-center">${r.fis}</td><td class="text-center"><span class="badge ${resCls}">${resTxt}</span></td><td><span class="badge ${estCls}">${r.estado}</span></td><td><div class="position-relative d-inline-block" data-codigo="${r.codigo}"><button class="btn btn-sm btn-edit" onclick="abrirMenuEditar(event,'${r.codigo}')">Editar <i class="bi bi-caret-down-fill ms-1"></i></button><div class="mini-menu d-none"><button class="mm-item" onclick="accionEditarCantidadDesdeMenu(event,this)">Editar Cantidad</button><button class="mm-item" onclick="accionEditarSistemaDesdeMenu(event,this)">Editar Sistema</button><button class="mm-item" onclick="accionEditarVerificacionDesdeMenu(event,this)">Editar Verificación</button></div></div></td>`; tb.appendChild(tr); }); $('cmp-correctos').textContent=ok; $('cmp-incorrectos').textContent=bad; saveLS(); try{ actualizarTotalesFisicosComparar(); }catch{} }
+function pintarComparacion(){ const tb=$('tbl-comparacion')?.querySelector('tbody'); if(!tb) return; tb.innerHTML=''; let ok=0,bad=0; const soloSis = !!document.getElementById('cmp-solo-sistema')?.checked; const setSis = new Set(((AppState.sistema[AppState.comparacion?.almacen]||[])).map(s=>s.codigo)); (AppState.comparacion?.filas||[]).forEach(r=>{ if(soloSis && !setSis.has(r.codigo)) return; if(cmpFiltroTxt){ const code=String(r.codigo||'').toLowerCase(); const prod=String(r.producto||'').toLowerCase(); if(!code.includes(cmpFiltroTxt) && !prod.includes(cmpFiltroTxt)) return; } if(cmpEstado==='OK' && r.res!==0) return; if(cmpEstado==='BAD' && r.res===0) return; if(r.res===0) ok++; else bad++; const resTxt = r.res>0?`+${r.res}`:(r.res<0?`${r.res}`:'0'); const estCls = r.estado==='CONFORME'?'text-bg-success':(r.estado==='FALTANTE'?'text-bg-danger':'text-bg-warning'); const resCls = estCls; const tr=document.createElement('tr'); tr.innerHTML = `<td>${r.item}</td><td>${r.producto}</td><td>${r.codigo}</td><td class="text-center">${r.sis}</td><td class="text-center">${r.fis}</td><td class="text-center"><span class="badge ${resCls}">${resTxt}</span></td><td><span class="badge ${estCls}">${r.estado}</span></td><td><div class="position-relative d-inline-block" data-codigo="${r.codigo}"><button class="btn btn-sm btn-edit" onclick="abrirMenuEditar(event,'${r.codigo}')">Editar <i class="bi bi-caret-down-fill ms-1"></i></button><div class="mini-menu d-none"><button class="mm-item" onclick="accionEditarCantidadDesdeMenu(event,this)">Editar Cantidad</button><button class="mm-item" onclick="accionEditarSistemaDesdeMenu(event,this)">Editar Sistema</button><button class="mm-item" onclick="accionEditarVerificacionDesdeMenu(event,this)">Editar Verificación</button></div></div></td>`; tb.appendChild(tr); }); $('cmp-correctos').textContent=ok; $('cmp-incorrectos').textContent=bad; try{ actualizarTotalesFisicosComparar(); }catch{} }
 
 // Mini menú de edición en Comparar
 let __miniMenuPortal = { menu:null, placeholder:null };
@@ -3056,7 +3160,7 @@ document.addEventListener('DOMContentLoaded', () => {
           el.classList.add('d-none'); 
           el.value=''; 
         } 
-      });
+    });
     }catch{}
 });
 
