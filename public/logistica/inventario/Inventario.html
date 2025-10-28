@@ -724,7 +724,7 @@
               <table class="table table-sm" id="tbl-acciones">
                 <thead>
                 <tr>
-                  <th>Item/Producto</th><th>Fecha y Hora</th><th>Registrado por</th><th>Almacén</th><th>Motivo</th><th>Cantidad</th><th>Error de</th><th>Observaciones</th>
+                  <th>Item/Producto</th><th>Fecha y Hora</th><th>Registrado por</th><th>Almacén</th><th>Motivo</th><th>Cantidad</th><th>Error de</th><th>Tipo</th><th>Observaciones</th>
                 </tr>
                 </thead>
                 <tbody></tbody>
@@ -1735,6 +1735,13 @@ async function guardarUnirse(){
     toast('No se pudieron cargar los conteos (ID no disponible)', 'warning');
   }
   
+  // Cargar listado de acciones
+  try {
+    await cargarListadoAcciones();
+  } catch (error) {
+    console.error('Error cargando listado de acciones:', error);
+  }
+  
   closeModal('#modalUnirse'); 
   renderSesionBanner(); 
   openModal('#modalAviso'); 
@@ -2436,8 +2443,47 @@ function buildCmpSugerencias(q){ const arr=(AppState.comparacion?.filas)||[]; co
 function showCmpSugerencias(){ const box=document.getElementById('cmp-suggest'); const inp=document.getElementById('cmp-search'); if(!box||!inp) return; const q=(inp.value||'').trim(); if(!q){ box.classList.add('d-none'); box.innerHTML=''; return; } const items=buildCmpSugerencias(q); if(items.length===0){ box.classList.add('d-none'); box.innerHTML=''; return; } box.innerHTML = items.map(v=>`<div class="item" data-v="${v.replace(/\"/g,'&quot;')}">${v}</div>`).join(''); box.classList.remove('d-none'); box.querySelectorAll('.item').forEach(el=> el.addEventListener('click', ()=>{ const v=el.getAttribute('data-v')||''; inp.value=v; cmpFiltroTxt=v.toLowerCase(); inp.classList.add('filter-active'); box.classList.add('d-none'); try{ pintarComparacion(); renderConsolidado(); }catch{} })); }
 
 // ===== Acciones =====
-function renderAcciones(){ const tb=$('tbl-acciones')?.querySelector('tbody'); if(!tb) return; tb.innerHTML=''; const filtro=$('filtro-acciones')?.value?.toLowerCase()||''; const norm=(s)=>{ s=String(s||'').toLowerCase(); return s.charAt(0).toUpperCase()+s.slice(1); }; (AppState.acciones||[]).forEach(a=>{ const key=`${a.fecha} ${a.registrado} ${a.motivo} ${a.errorDe||''} ${a.obs||''} ${a.producto||''} ${a.almacen||''}`.toLowerCase(); if(filtro && !key.includes(filtro)) return; const idRef = (a.item?`Item ${a.item}`:'') + (a.producto? (a.item?' · ':'')+a.producto : ''); const cant = (a.cantidad!==undefined && a.cantidad!==null && String(a.cantidad)!=='') ? a.cantidad : '-'; const tr=document.createElement('tr'); tr.innerHTML=`<td>${idRef||a.id}</td><td>${a.fecha}</td><td class="text-center">${norm(a.registrado)}</td><td>${norm(a.almacen)}</td><td>${norm(a.motivo)}</td><td>${cant}</td><td>${norm(a.errorDe)||'-'}</td><td class="text-center"><i class="bi bi-eye cursor-pointer" onclick="verObs('${a.id}')"></i></td>`; tb.appendChild(tr); }); }
-function pdfAcciones(){ const { jsPDF } = window.jspdf; const doc = new jsPDF({unit:'pt', format:'a4'}); const norm=(s)=>{ s=String(s||'').toLowerCase(); return s.charAt(0).toUpperCase()+s.slice(1); }; doc.setFontSize(14); doc.text('Listado de Acciones', 40, 40); const body=(AppState.acciones||[]).map(a=>{ const idRef = (a.item?`Item ${a.item}`:'') + (a.producto? (a.item?' · ':'')+a.producto : ''); const cant = (a.cantidad!==undefined && a.cantidad!==null && String(a.cantidad)!=='') ? a.cantidad : '-'; return [idRef||a.id, a.fecha, norm(a.registrado), norm(a.almacen), norm(a.motivo), String(cant), norm(a.errorDe), (a.obs||'')]; }); doc.autoTable({startY:60, head:[["Item/Producto","Fecha y Hora","Registrado","Almacén","Motivo","Cantidad","Error de","Observaciones"]], body}); doc.save('acciones.pdf'); }
+function renderAcciones(){ 
+  const tb=$('tbl-acciones')?.querySelector('tbody'); 
+  if(!tb) return; 
+  tb.innerHTML=''; 
+  const filtro=$('filtro-acciones')?.value?.toLowerCase()||''; 
+  const norm=(s)=>{ 
+    s=String(s||'').toLowerCase(); 
+    return s.charAt(0).toUpperCase()+s.slice(1); 
+  }; 
+  
+  (AppState.acciones||[]).forEach(a=>{ 
+    const key=`${a.fecha} ${a.registrado} ${a.motivo} ${a.errorDe||''} ${a.obs||''} ${a.producto||''} ${a.almacen||''}`.toLowerCase(); 
+    if(filtro && !key.includes(filtro)) return; 
+    
+    const idRef = (a.item?`Item ${a.item}`:'') + (a.producto? (a.item?' · ':'')+a.producto : ''); 
+    const cant = (a.cantidad!==undefined && a.cantidad!==null && String(a.cantidad)!=='') ? a.cantidad : '-'; 
+    const tipoError = a.tipoError || 'N/A';
+    
+    const tr=document.createElement('tr'); 
+    tr.innerHTML=`<td>${idRef||a.id}</td><td>${a.fecha}</td><td class="text-center">${norm(a.registrado)}</td><td>${norm(a.almacen)}</td><td>${norm(a.motivo)}</td><td>${cant}</td><td>${norm(a.errorDe)||'-'}</td><td class="text-center"><span class="badge ${tipoError==='CANTIDAD'?'bg-warning':'bg-info'}">${tipoError}</span></td><td class="text-center"><i class="bi bi-eye cursor-pointer" onclick="verObs('${a.id}')"></i></td>`; 
+    tb.appendChild(tr); 
+  }); 
+}
+function pdfAcciones(){ 
+  const { jsPDF } = window.jspdf; 
+  const doc = new jsPDF({unit:'pt', format:'a4'}); 
+  const norm=(s)=>{ 
+    s=String(s||'').toLowerCase(); 
+    return s.charAt(0).toUpperCase()+s.slice(1); 
+  }; 
+  doc.setFontSize(14); 
+  doc.text('Listado de Acciones', 40, 40); 
+  const body=(AppState.acciones||[]).map(a=>{ 
+    const idRef = (a.item?`Item ${a.item}`:'') + (a.producto? (a.item?' · ':'')+a.producto : ''); 
+    const cant = (a.cantidad!==undefined && a.cantidad!==null && String(a.cantidad)!=='') ? a.cantidad : '-'; 
+    const tipoError = a.tipoError || 'N/A';
+    return [idRef||a.id, a.fecha, norm(a.registrado), norm(a.almacen), norm(a.motivo), String(cant), norm(a.errorDe), tipoError, (a.obs||'')]; 
+  }); 
+  doc.autoTable({startY:60, head:[["Item/Producto","Fecha y Hora","Registrado","Almacén","Motivo","Cantidad","Error de","Tipo","Observaciones"]], body}); 
+  doc.save('acciones.pdf'); 
+}
 function verObs(id){ const a=(AppState.acciones||[]).find(x=>String(x.id)===String(id)); const el=document.getElementById('obs-contenido'); if(el) el.textContent=a?.obs||'(Sin observaciones)'; openModal('#modalObs'); }
 
 // ===== Malvinas: estado de tiendas =====
@@ -2617,6 +2663,208 @@ async function cargarDatosComparacionDesdeAPI(almacen) {
     } else {
       throw new Error(`Error cargando datos: ${error.message}`);
     }
+  }
+}
+
+// ===== FUNCIONES DE AUDITORÍA =====
+
+// Función para cargar colaboradores para auditoría
+async function cargarColaboradoresAuditoria() {
+  try {
+    console.log('Cargando colaboradores para auditoría...');
+    
+    const response = await fetch('https://inventario-2946605267.us-central1.run.app?method=colaboradores_imventario&selector=COLABORADORES_COMBO_AUDITORIA', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Error HTTP: ${response.status}`);
+    }
+    
+    const colaboradores = await response.json();
+    console.log('Colaboradores cargados para auditoría:', colaboradores);
+    
+    // Llenar selects de colaboradores en modales de auditoría
+    const selects = ['cmp-registrado-por', 'cmp-error-de', 'es-registrado', 'es-error'];
+    
+    selects.forEach(selectId => {
+      const select = document.getElementById(selectId);
+      if (select) {
+        // Limpiar opciones existentes (excepto la primera)
+        while (select.children.length > 1) {
+          select.removeChild(select.lastChild);
+        }
+        
+        // Agregar colaboradores
+        colaboradores.forEach(col => {
+          const option = document.createElement('option');
+          option.value = col.NOMBRE;
+          option.textContent = col.NOMBRE;
+          select.appendChild(option);
+        });
+        
+        // Agregar opción "Otro"
+        const otroOption = document.createElement('option');
+        otroOption.value = 'Otro';
+        otroOption.textContent = 'Otro';
+        select.appendChild(otroOption);
+      }
+    });
+    
+    return colaboradores;
+  } catch (error) {
+    console.error('Error cargando colaboradores para auditoría:', error);
+    throw error;
+  }
+}
+
+// Función para obtener ID del producto por código
+async function obtenerIdProducto(codigo) {
+  try {
+    const producto = (AppState.productos || []).find(p => String(p.codigo) === String(codigo));
+    if (producto) {
+      return producto.id;
+    }
+    
+    // Si no está en productos cargados, buscar en API
+    const response = await fetch('https://productoscrud-2946605267.us-central1.run.app?metodo=LISTADO_INVENTARIO', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Error HTTP: ${response.status}`);
+    }
+    
+    const productos = await response.json();
+    const productoEncontrado = productos.find(p => String(p.codigo) === String(codigo));
+    
+    return productoEncontrado ? productoEncontrado.id : null;
+  } catch (error) {
+    console.error('Error obteniendo ID del producto:', error);
+    return null;
+  }
+}
+
+// Función para registrar auditoría
+async function registrarAuditoria(tipoError, codigo, motivo, registradoPor, errorDe, observaciones, cantidad = 0) {
+  try {
+    console.log('Registrando auditoría:', { tipoError, codigo, motivo, registradoPor, errorDe, observaciones });
+    
+    // Obtener datos necesarios
+    const inventarioId = AppState.sesionActual?.inventarioId;
+    if (!inventarioId) {
+      throw new Error('No hay inventario activo');
+    }
+    
+    const almacen = AppState.comparacion?.almacen;
+    if (!almacen) {
+      throw new Error('No hay almacén activo');
+    }
+    
+    const idAlmacen = almacen === 'callao' ? '2' : '1';
+    const idProducto = await obtenerIdProducto(codigo);
+    if (!idProducto) {
+      throw new Error('No se pudo encontrar el ID del producto');
+    }
+    
+    // Obtener IDs de colaboradores
+    const registradoPorId = await obtenerIdRegistradoPor(registradoPor);
+    const errorDeId = await obtenerIdRegistradoPor(errorDe);
+    
+    // Crear JSON para la auditoría
+    const auditoriaData = {
+      ID_INVENTARIO: inventarioId.toString(),
+      ID_ALMACEN: idAlmacen,
+      TIPO_ERROR: tipoError,
+      ID_PRODUCTO: idProducto.toString(),
+      MOTIVO: motivo,
+      REGISTRADO_POR_ID: registradoPorId.toString(),
+      ERROR_ID: errorDeId.toString(),
+      OBSERVACIONES: observaciones || '',
+      CANTIDAD: cantidad
+    };
+    
+    console.log('Datos de auditoría a enviar:', auditoriaData);
+    
+    // Enviar a la API
+    const response = await fetch('https://inventario-2946605267.us-central1.run.app?method=auditoria_conteo', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        json: JSON.stringify(auditoriaData)
+      })
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Error HTTP: ${response.status}`);
+    }
+    
+    const result = await response.json();
+    console.log('Auditoría registrada:', result);
+    
+    // Recargar listado de acciones
+    await cargarListadoAcciones();
+    
+    return result;
+  } catch (error) {
+    console.error('Error registrando auditoría:', error);
+    throw error;
+  }
+}
+
+// Función para cargar listado de acciones
+async function cargarListadoAcciones() {
+  try {
+    const inventarioId = AppState.sesionActual?.inventarioId;
+    if (!inventarioId) {
+      console.log('No hay inventario activo para cargar acciones');
+      return;
+    }
+    
+    console.log('Cargando listado de acciones para inventario:', inventarioId);
+    
+    const response = await fetch(`https://inventario-2946605267.us-central1.run.app?method=auditoria_conteos&id=${inventarioId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Error HTTP: ${response.status}`);
+    }
+    
+    const acciones = await response.json();
+    console.log('Acciones cargadas:', acciones);
+    
+    // Convertir a formato esperado por la UI
+    AppState.acciones = acciones.map(acc => ({
+      id: acc.ID,
+      fecha: formatearFechaDesdeAPI(acc.FECHA_REGISTRO),
+      registrado: acc.REGISTRADO_POR,
+      almacen: acc.ALMACEN,
+      motivo: acc.MOTIVO,
+      producto: acc.NOMBRE,
+      errorDe: acc.ERROR_DE || '',
+      obs: acc.OBSERVACIONES || '',
+      tipoError: acc.TIPO_ERROR
+    }));
+    
+    // Actualizar la tabla de acciones
+    renderAcciones();
+    
+    return acciones;
+  } catch (error) {
+    console.error('Error cargando listado de acciones:', error);
+    throw error;
   }
 }
 
@@ -2842,18 +3090,195 @@ function ocultarMiniMenu(menu){
 }
 function cerrarTodosMiniMenus(){ try{ document.querySelectorAll('.mini-menu.show, .mini-menu:not(.d-none)').forEach(m=> ocultarMiniMenu(m)); }catch{} }
 
-function editarCmp(codigo){ if(!codigo) return; const r=(AppState.comparacion?.filas||[]).find(x=>x.codigo===codigo); if(!r) return; $('cmp-codigo').value=r.codigo; $('cmp-cant').value=r.fis; $('cmp-motivo').value='Error de conteo'; $('cmp-obs').value=''; $('cmp-rowkey').value=r.codigo; toggleTraslado(); openModal('#modalEditarCmp'); }
+async function editarCmp(codigo){ 
+  if(!codigo) return; 
+  const r=(AppState.comparacion?.filas||[]).find(x=>x.codigo===codigo); 
+  if(!r) return; 
+  
+  // Cargar colaboradores desde API
+  try {
+    await cargarColaboradoresAuditoria();
+  } catch (error) {
+    console.error('Error cargando colaboradores:', error);
+    // Continuar con valores por defecto
+  }
+  
+  $('cmp-codigo').value=r.codigo; 
+  $('cmp-cant').value=r.fis; 
+  $('cmp-motivo').value='Error de conteo'; 
+  $('cmp-obs').value=''; 
+  $('cmp-rowkey').value=r.codigo; 
+  toggleTraslado(); 
+  openModal('#modalEditarCmp'); 
+}
 function toggleTraslado(){ const show=false; $('bloque-traslado').classList.add('d-none'); }
 let otroNombreCtx = { target:null };
 function onChangeRegistradoPor(){ const sel=$('cmp-registrado-por').value; const otro=$('cmp-registrado-otro'); if(sel==='Otro'){ otroNombreCtx.target='registrado'; $('otro-nombre-input').value=''; openModal('#modalOtroNombre'); } else { otro.classList.add('d-none'); otro.value=''; } }
 function onChangeErrorDe(){ const sel=$('cmp-error-de').value; const otro=$('cmp-error-otro'); if(sel==='Otro'){ otroNombreCtx.target='error'; $('otro-nombre-input').value=''; openModal('#modalOtroNombre'); } else { otro.classList.add('d-none'); otro.value=''; } }
 function cancelarOtroNombre(){ if(otroNombreCtx.target==='registrado'){ $('cmp-registrado-por').value='Joseph'; } if(otroNombreCtx.target==='error'){ $('cmp-error-de').value='Joseph'; } closeModal('#modalOtroNombre'); }
 function guardarOtroNombre(){ const val=$('otro-nombre-input').value.trim(); if(!val){ alert('Ingrese un nombre'); return; } if(otroNombreCtx.target==='registrado'){ const otro=$('cmp-registrado-otro'); otro.value=val; otro.classList.remove('d-none'); } if(otroNombreCtx.target==='error'){ const otro=$('cmp-error-otro'); otro.value=val; otro.classList.remove('d-none'); } closeModal('#modalOtroNombre'); }
-function guardarEdicionCmp(){ const codigo=$('cmp-rowkey').value; const nuevoFis=Number($('cmp-cant').value||0); if(nuevoFis<0){ alert('Cantidad no puede ser negativa.'); return; } const motivoSel=$('cmp-motivo').value; const motivo = motivoSel; const obs=$('cmp-obs').value.trim(); const fila=(AppState.comparacion?.filas||[]).find(x=>x.codigo===codigo); if(!fila) return; const ses=ultimoInventario(AppState.comparacion?.almacen); const fSes=ses?.filas?.find(f=>f.codigo===codigo); if(fSes){ fSes.cantidad=nuevoFis; } let registradoPor=$('cmp-registrado-por').value; if(registradoPor==='Otro'){ registradoPor=$('cmp-registrado-otro').value.trim()||'Otro'; } let errorDe=$('cmp-error-de').value; if(errorDe==='Otro'){ errorDe=$('cmp-error-otro').value.trim()||'Otro'; } fila.fis=nuevoFis; fila.res=fila.fis-fila.sis; fila.estado= fila.res===0?'CONFORME':(fila.res>0?'SOBRANTE':'FALTANTE'); (AppState.acciones|| (AppState.acciones=[])).push({ id:(AppState.acciones?.length||0)+1, fecha: fmt12(), codigo, item: fila.item, producto: fila.producto, registrado: registradoPor, motivo, cantidad: nuevoFis, errorDe, obs, almacen: (AppState.comparacion?.almacen||'') }); pintarComparacion(); renderAcciones(); renderConsolidado(); saveLS(); closeModal('#modalEditarCmp'); toast('Cambios aplicados.','success'); }
-function editarSistema(codigo){ const r=(AppState.comparacion?.filas||[]).find(x=>x.codigo===codigo); if(!r) return; $('es-codigo').value = r.codigo; $('es-cant').value = ''; $('es-mov').value = 'COMPRA'; $('es-registrado').value = 'Joseph'; $('es-registrado-otro').value=''; $('es-registrado-otro').classList.add('d-none'); $('es-error').value = 'Joseph'; $('es-error-otro').value=''; $('es-error-otro').classList.add('d-none'); $('es-obs').value = ''; $('es-rowkey').value = r.codigo; openModal('#modalEditarSistema'); }
+async function guardarEdicionCmp(){ 
+  const codigo=$('cmp-rowkey').value; 
+  const nuevoFis=Number($('cmp-cant').value||0); 
+  if(nuevoFis<0){ 
+    alert('Cantidad no puede ser negativa.'); 
+    return; 
+  } 
+  
+  const motivoSel=$('cmp-motivo').value; 
+  const motivo = motivoSel; 
+  const obs=$('cmp-obs').value.trim(); 
+  const fila=(AppState.comparacion?.filas||[]).find(x=>x.codigo===codigo); 
+  if(!fila) return; 
+  
+  const ses=ultimoInventario(AppState.comparacion?.almacen); 
+  const fSes=ses?.filas?.find(f=>f.codigo===codigo); 
+  if(fSes){ 
+    fSes.cantidad=nuevoFis; 
+  } 
+  
+  let registradoPor=$('cmp-registrado-por').value; 
+  if(registradoPor==='Otro'){ 
+    registradoPor=$('cmp-registrado-otro').value.trim()||'Otro'; 
+  } 
+  
+  let errorDe=$('cmp-error-de').value; 
+  if(errorDe==='Otro'){ 
+    errorDe=$('cmp-error-otro').value.trim()||'Otro'; 
+  } 
+  
+  fila.fis=nuevoFis; 
+  fila.res=fila.fis-fila.sis; 
+  fila.estado= fila.res===0?'CONFORME':(fila.res>0?'SOBRANTE':'FALTANTE'); 
+  
+  try {
+    // Registrar auditoría en la API
+    await registrarAuditoria('CANTIDAD', codigo, motivo, registradoPor, errorDe, obs, nuevoFis);
+    
+    // Actualizar UI local
+    (AppState.acciones|| (AppState.acciones=[])).push({ 
+      id:(AppState.acciones?.length||0)+1, 
+      fecha: fmt12(), 
+      codigo, 
+      item: fila.item, 
+      producto: fila.producto, 
+      registrado: registradoPor, 
+      motivo, 
+      cantidad: nuevoFis, 
+      errorDe, 
+      obs, 
+      almacen: (AppState.comparacion?.almacen||''),
+      tipoError: 'CANTIDAD'
+    }); 
+    
+    pintarComparacion(); 
+    renderAcciones(); 
+    renderConsolidado(); 
+    closeModal('#modalEditarCmp'); 
+    toast('Cantidad física actualizada y auditoría registrada','success');
+  } catch (error) {
+    console.error('Error registrando auditoría:', error);
+    alert('Error al registrar auditoría: ' + error.message);
+  }
+}
+async function editarSistema(codigo){ 
+  const r=(AppState.comparacion?.filas||[]).find(x=>x.codigo===codigo); 
+  if(!r) return; 
+  
+  // Cargar colaboradores desde API
+  try {
+    await cargarColaboradoresAuditoria();
+  } catch (error) {
+    console.error('Error cargando colaboradores:', error);
+    // Continuar con valores por defecto
+  }
+  
+  $('es-codigo').value = r.codigo; 
+  $('es-cant').value = ''; 
+  $('es-mov').value = 'COMPRA'; 
+  $('es-registrado').value = 'Joseph'; 
+  $('es-registrado-otro').value=''; 
+  $('es-registrado-otro').classList.add('d-none'); 
+  $('es-error').value = 'Joseph'; 
+  $('es-error-otro').value=''; 
+  $('es-error-otro').classList.add('d-none'); 
+  $('es-obs').value = ''; 
+  $('es-rowkey').value = r.codigo; 
+  openModal('#modalEditarSistema'); 
+}
 function onEsRegistradoChange(){ const sel=$('es-registrado').value; const otro=$('es-registrado-otro'); if(sel==='Otro'){ otro.disabled=false; otro.classList.remove('d-none'); otro.focus(); } else { otro.value=''; otro.classList.add('d-none'); otro.disabled=true; } }
 function onEsErrorChange(){ const sel=$('es-error').value; const otro=$('es-error-otro'); if(sel==='Otro'){ otro.disabled=false; otro.classList.remove('d-none'); otro.focus(); } else { otro.value=''; otro.classList.add('d-none'); otro.disabled=true; } }
-function guardarEdicionSistema(){ const codigo=$('es-rowkey').value; const mov=$('es-mov').value; const delta=Number($('es-cant').value||0); if(!codigo) return; if(delta<=0 || !isFinite(delta)) { alert('Ingresa una cantidad válida (> 0).'); return; } const alm=AppState.comparacion?.almacen; if(!alm){ alert('No hay almacén activo.'); return; } const arr=AppState.sistema[alm]||[]; const row=arr.find(x=> String(x.codigo)===String(codigo)); if(!row){ alert('Código no existe en el sistema cargado.'); return; } const sign=(mov==='COMPRA')?+1:-1; row.cantidad_sistema=Math.max(0, Number(row.cantidad_sistema||0)+sign*delta); const fila=(AppState.comparacion?.filas||[]).find(f=> f.codigo===codigo); if(fila){ fila.sis=Number(row.cantidad_sistema||0); fila.res=Number(fila.fis||0)-Number(fila.sis||0); fila.estado = fila.res===0?'CONFORME':(fila.res>0?'SOBRANTE':'FALTANTE'); } const registrado = ($('es-registrado').value==='Otro')? ($('es-registrado-otro').value.trim()||'Otro') : $('es-registrado').value; const errorDe = ($('es-error').value==='Otro')? ($('es-error-otro').value.trim()||'Otro') : $('es-error').value; const obs=$('es-obs').value.trim(); (AppState.acciones||(AppState.acciones=[])).push({ id:(AppState.acciones?.length||0)+1, fecha:fmt12(), registrado, motivo:(mov==='COMPRA'?'UNA COMPRA':'UNA VENTA'), cantidad:delta, errorDe, obs, codigo, item:(fila?.item||''), producto:(fila?.producto||''), almacen:(AppState.comparacion?.almacen||'') }); saveLS(); try{ pintarComparacion(); renderConsolidado(); renderAcciones(); }catch{} closeModal('#modalEditarSistema'); toast('Sistema actualizado','success'); }
+async function guardarEdicionSistema(){ 
+  const codigo=$('es-rowkey').value; 
+  const mov=$('es-mov').value; 
+  const delta=Number($('es-cant').value||0); 
+  if(!codigo) return; 
+  if(delta<=0 || !isFinite(delta)) { 
+    alert('Ingresa una cantidad válida (> 0).'); 
+    return; 
+  } 
+  
+  const alm=AppState.comparacion?.almacen; 
+  if(!alm){ 
+    alert('No hay almacén activo.'); 
+    return; 
+  } 
+  
+  const arr=AppState.sistema[alm]||[]; 
+  const row=arr.find(x=> String(x.codigo)===String(codigo)); 
+  if(!row){ 
+    alert('Código no existe en el sistema cargado.'); 
+    return; 
+  } 
+  
+  const sign=(mov==='COMPRA')?+1:-1; 
+  row.cantidad_sistema=Math.max(0, Number(row.cantidad_sistema||0)+sign*delta); 
+  
+  const fila=(AppState.comparacion?.filas||[]).find(f=> f.codigo===codigo); 
+  if(fila){ 
+    fila.sis=Number(row.cantidad_sistema||0); 
+    fila.res=Number(fila.fis||0)-Number(fila.sis||0); 
+    fila.estado = fila.res===0?'CONFORME':(fila.res>0?'SOBRANTE':'FALTANTE'); 
+  } 
+  
+  const registrado = ($('es-registrado').value==='Otro')? ($('es-registrado-otro').value.trim()||'Otro') : $('es-registrado').value; 
+  const errorDe = ($('es-error').value==='Otro')? ($('es-error-otro').value.trim()||'Otro') : $('es-error').value; 
+  const obs=$('es-obs').value.trim(); 
+  const motivo = (mov==='COMPRA'?'UNA COMPRA':'UNA VENTA');
+  
+  try {
+    // Registrar auditoría en la API
+    await registrarAuditoria('SISTEMA', codigo, motivo, registrado, errorDe, obs, delta);
+    
+    // Actualizar UI local
+    (AppState.acciones||(AppState.acciones=[])).push({ 
+      id:(AppState.acciones?.length||0)+1, 
+      fecha:fmt12(), 
+      registrado, 
+      motivo, 
+      cantidad:delta, 
+      errorDe, 
+      obs, 
+      codigo, 
+      item:(fila?.item||''), 
+      producto:(fila?.producto||''), 
+      almacen:(AppState.comparacion?.almacen||''),
+      tipoError: 'SISTEMA'
+    }); 
+    
+    try{ 
+      pintarComparacion(); 
+      renderConsolidado(); 
+      renderAcciones(); 
+    }catch{} 
+    
+    closeModal('#modalEditarSistema'); 
+    toast('Sistema actualizado y auditoría registrada','success');
+  } catch (error) {
+    console.error('Error registrando auditoría:', error);
+    alert('Error al registrar auditoría: ' + error.message);
+  }
+}
 
 function exportComparacionPDF(){ const { jsPDF } = window.jspdf; const doc=new jsPDF({unit:'pt', format:'a4'}); doc.setFontSize(14); doc.text('Comparación de Inventario', 40, 40); const alm = (AppState.comparacion?.almacen||'').toUpperCase(); const num = $('cmp-numero')?.textContent||''; const fecha=$('cmp-fecha')?.textContent||''; doc.setFontSize(10); doc.text(`Almacén: ${alm}   Inventario: ${num}   Fecha: ${fecha}`, 40, 58); const rows = (AppState.comparacion?.filas||[]).filter(f=>{ if(cmpFiltroTxt){ const code=String(f.codigo||'').toLowerCase(); const prod=String(f.producto||'').toLowerCase(); if(!code.includes(cmpFiltroTxt) && !prod.includes(cmpFiltroTxt)) return false; } if(cmpEstado==='OK' && f.res!==0) return false; if(cmpEstado==='BAD' && f.res===0) return false; return true; }).map(f=>[f.item, f.producto, f.codigo, String(f.sis), String(f.fis), String(f.res), f.estado]); doc.autoTable({startY:74, head:[["Item","Producto","Código","Sis","Fis","Res","Estado"]], body: rows}); doc.save(`Comparacion_${alm||'ALL'}.pdf`); }
 function exportComparacionExcel(){ try{ const data = (AppState.comparacion?.filas||[]).filter(f=>{ if(cmpFiltroTxt){ const code=String(f.codigo||'').toLowerCase(); const prod=String(f.producto||'').toLowerCase(); if(!code.includes(cmpFiltroTxt) && !prod.includes(cmpFiltroTxt)) return false; } if(cmpEstado==='OK' && f.res!==0) return false; if(cmpEstado==='BAD' && f.res===0) return false; return true; }).map(f=>({ Item:f.item, Producto:f.producto, Código:f.codigo, Sistema:f.sis, Físico:f.fis, Resultado:f.res, Estado:f.estado })); const ws = XLSX.utils.json_to_sheet(data); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Comparacion'); XLSX.writeFile(wb, 'Comparacion.xlsx'); }catch(e){ alert('No se pudo exportar a Excel'); } }
