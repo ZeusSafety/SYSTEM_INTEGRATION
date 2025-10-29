@@ -1102,6 +1102,10 @@ const fmt12 = (d=new Date())=>{
 };
 const uid = () => Math.random().toString(36).slice(2,10);
 
+// Bandera para controlar si se guarda/renderiza el conteo localmente al editar
+// Mantener en false para desactivar el guardado local (solo API)
+const LOCAL_CONTEO_ACTIVO = false;
+
 const AppState = {
   productos: [],
   filtro: { ocultarCero:false, excluirCodigos:[] },
@@ -3193,11 +3197,14 @@ async function guardarEdicionCmp(){
   const fila=(AppState.comparacion?.filas||[]).find(x=>x.codigo===codigo); 
   if(!fila) return; 
   
-  const ses=ultimoInventario(AppState.comparacion?.almacen); 
-  const fSes=ses?.filas?.find(f=>f.codigo===codigo); 
-  if(fSes){ 
-    fSes.cantidad=nuevoFis; 
-  } 
+  // Actualización local desactivada por defecto
+  if (LOCAL_CONTEO_ACTIVO) {
+    const ses=ultimoInventario(AppState.comparacion?.almacen); 
+    const fSes=ses?.filas?.find(f=>f.codigo===codigo); 
+    if(fSes){ 
+      fSes.cantidad=nuevoFis; 
+    } 
+  }
   
   let registradoPor=$('cmp-registrado-por').value; 
   if(registradoPor==='Otro'){ 
@@ -3209,35 +3216,39 @@ async function guardarEdicionCmp(){
     errorDe=$('cmp-error-otro').value.trim()||'Otro'; 
   } 
   
-  fila.fis=nuevoFis; 
-  fila.res=fila.fis-fila.sis; 
-  fila.estado= fila.res===0?'CONFORME':(fila.res>0?'SOBRANTE':'FALTANTE'); 
+  if (LOCAL_CONTEO_ACTIVO) {
+    fila.fis=nuevoFis; 
+    fila.res=fila.fis-fila.sis; 
+    fila.estado= fila.res===0?'CONFORME':(fila.res>0?'SOBRANTE':'FALTANTE'); 
+  }
   
   try {
     // Registrar auditoría en la API
     await registrarAuditoria('CANTIDAD', codigo, motivo, registradoPor, errorDe, obs, nuevoFis);
     
-    // Actualizar UI local
-    (AppState.acciones|| (AppState.acciones=[])).push({ 
-      id:(AppState.acciones?.length||0)+1, 
-      fecha: fmt12(), 
-      codigo, 
-      item: fila.item, 
-      producto: fila.producto, 
-      registrado: registradoPor, 
-      motivo, 
-      cantidad: nuevoFis, 
-      errorDe, 
-      obs, 
-      almacen: (AppState.comparacion?.almacen||''),
-      tipoError: 'CANTIDAD'
-    }); 
-    
-    pintarComparacion(); 
-    renderAcciones(); 
-    renderConsolidado(); 
+    // Actualización local y re-render condicional
+    if (LOCAL_CONTEO_ACTIVO) {
+      (AppState.acciones|| (AppState.acciones=[])).push({ 
+        id:(AppState.acciones?.length||0)+1, 
+        fecha: fmt12(), 
+        codigo, 
+        item: fila.item, 
+        producto: fila.producto, 
+        registrado: registradoPor, 
+        motivo, 
+        cantidad: nuevoFis, 
+        errorDe, 
+        obs, 
+        almacen: (AppState.comparacion?.almacen||''),
+        tipoError: 'CANTIDAD'
+      }); 
+      pintarComparacion(); 
+      renderConsolidado(); 
+    }
+    // Siempre refrescar acciones desde servidor
+    try { await cargarListadoAcciones(); } catch {}
     closeModal('#modalEditarCmp'); 
-    toast('Cantidad física actualizada y auditoría registrada','success');
+    toast('Auditoría registrada','success');
   } catch (error) {
     console.error('Error registrando auditoría:', error);
     alert('Error al registrar auditoría: ' + error.message);
@@ -3286,22 +3297,22 @@ async function guardarEdicionSistema(){
     return; 
   } 
   
-  const arr=AppState.sistema[alm]||[]; 
-  const row=arr.find(x=> String(x.codigo)===String(codigo)); 
-  if(!row){ 
-    alert('Código no existe en el sistema cargado.'); 
-    return; 
-  } 
-  
-  const sign=(mov==='COMPRA')?+1:-1; 
-  row.cantidad_sistema=Math.max(0, Number(row.cantidad_sistema||0)+sign*delta); 
-  
-  const fila=(AppState.comparacion?.filas||[]).find(f=> f.codigo===codigo); 
-  if(fila){ 
-    fila.sis=Number(row.cantidad_sistema||0); 
-    fila.res=Number(fila.fis||0)-Number(fila.sis||0); 
-    fila.estado = fila.res===0?'CONFORME':(fila.res>0?'SOBRANTE':'FALTANTE'); 
-  } 
+  if (LOCAL_CONTEO_ACTIVO) {
+    const arr=AppState.sistema[alm]||[]; 
+    const row=arr.find(x=> String(x.codigo)===String(codigo)); 
+    if(!row){ 
+      alert('Código no existe en el sistema cargado.'); 
+      return; 
+    } 
+    const sign=(mov==='COMPRA')?+1:-1; 
+    row.cantidad_sistema=Math.max(0, Number(row.cantidad_sistema||0)+sign*delta); 
+    const fila=(AppState.comparacion?.filas||[]).find(f=> f.codigo===codigo); 
+    if(fila){ 
+      fila.sis=Number(row.cantidad_sistema||0); 
+      fila.res=Number(fila.fis||0)-Number(fila.sis||0); 
+      fila.estado = fila.res===0?'CONFORME':(fila.res>0?'SOBRANTE':'FALTANTE'); 
+    }
+  }
   
   const registrado = ($('es-registrado').value==='Otro')? ($('es-registrado-otro').value.trim()||'Otro') : $('es-registrado').value; 
   const errorDe = ($('es-error').value==='Otro')? ($('es-error-otro').value.trim()||'Otro') : $('es-error').value; 
@@ -3312,30 +3323,32 @@ async function guardarEdicionSistema(){
     // Registrar auditoría en la API
     await registrarAuditoria('SISTEMA', codigo, motivo, registrado, errorDe, obs, delta);
     
-    // Actualizar UI local
-    (AppState.acciones||(AppState.acciones=[])).push({ 
-      id:(AppState.acciones?.length||0)+1, 
-      fecha:fmt12(), 
-      registrado, 
-      motivo, 
-      cantidad:delta, 
-      errorDe, 
-      obs, 
-      codigo, 
-      item:(fila?.item||''), 
-      producto:(fila?.producto||''), 
-      almacen:(AppState.comparacion?.almacen||''),
-      tipoError: 'SISTEMA'
-    }); 
-    
-    try{ 
-      pintarComparacion(); 
-      renderConsolidado(); 
-      renderAcciones(); 
-    }catch{} 
+    if (LOCAL_CONTEO_ACTIVO) {
+      // Actualización local opcional
+      (AppState.acciones||(AppState.acciones=[])).push({ 
+        id:(AppState.acciones?.length||0)+1, 
+        fecha:fmt12(), 
+        registrado, 
+        motivo, 
+        cantidad:delta, 
+        errorDe, 
+        obs, 
+        codigo, 
+        item:'', 
+        producto:'', 
+        almacen:(AppState.comparacion?.almacen||''),
+        tipoError: 'SISTEMA'
+      }); 
+      try{ 
+        pintarComparacion(); 
+        renderConsolidado(); 
+      }catch{}
+    }
+    // Siempre refrescar acciones desde servidor
+    try { await cargarListadoAcciones(); } catch {}
     
     closeModal('#modalEditarSistema'); 
-    toast('Sistema actualizado y auditoría registrada','success');
+    toast('Auditoría registrada','success');
   } catch (error) {
     console.error('Error registrando auditoría:', error);
     alert('Error al registrar auditoría: ' + error.message);
