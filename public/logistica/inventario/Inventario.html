@@ -1078,7 +1078,7 @@
 </div>
 <!-- ... Resto de modales sin cambios ... -->
 <div class="modal fade" id="modalFiltro" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header"><h6 class="modal-title"><i class="bi bi-funnel"></i> Filtro de productos</h6><button class="btn-close" onclick="closeModal('#modalFiltro')"></button></div><div class="modal-body"><div class="form-check mb-2"><input class="form-check-input" type="checkbox" id="f-ocultar-cero"><label class="form-check-label" for="f-ocultar-cero">Ocultar productos sin stock (cantidad_sistema ≤ 0)</label></div><div class="mini-hint">También puedes excluir manualmente códigos:</div><div class="input-group"><input id="f-excluir-codigos" class="form-control" placeholder="Códigos separados por coma (ej: ABC-1,ABC-2)"><button class="btn btn-outline-secondary" onclick="aplicarFiltroProductos()"><i class="bi bi-check2"></i> Aplicar</button></div></div></div></div></div>
-<div class="modal fade" id="modalEditarCmp" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header"><h6 class="modal-title"><i class="bi bi-pencil-square"></i> Editar Cantidad / Motivo</h6><button class="btn-close" onclick="closeModal('#modalEditarCmp')"></button></div><div class="modal-body"><div class="row g-3"><div class="col-md-4"><div class="form-floating"><input id="cmp-codigo" class="form-control" disabled placeholder="Código"><label>Código</label></div></div><div class="col-md-4"><div class="form-floating"><input id="cmp-cant" type="number" class="form-control" placeholder="Cantidad Física"><label>Cantidad Física (corregir)</label></div></div><div class="col-md-4"><div class="form-floating"><select id="cmp-motivo" class="form-select" onchange="toggleTraslado()"><option>Error de conteo</option><option>Otro</option></select><label>Motivo</label></div></div><div class="col-md-4"><div class="form-floating"><select id="cmp-registrado-por" class="form-select" onchange="onChangeRegistradoPor()"><option>Joseph</option><option>Joselyn</option><option>Otro</option></select><label>Registrado por</label></div><input id="cmp-registrado-otro" class="form-control mt-2 d-none" placeholder="Otro nombre (auto)" disabled></div><div class="col-md-4"><div class="form-floating"><select id="cmp-error-de" class="form-select" onchange="onChangeErrorDe()"><option>Joseph</option><option>Joselyn</option><option>Otro</option></select><label>Error de</label></div><input id="cmp-error-otro" class="form-control mt-2 d-none" placeholder="Otro nombre (auto)" disabled></div><div id="bloque-traslado" class="row g-3 d-none"><div class="col-md-4"><div class="form-floating"><select id="tr-de" class="form-select"><option value="callao">Almacén Callao</option><option value="malvinas">Almacén Malvinas</option></select><label>De</label></div></div><div class="col-md-4"><div class="form-floating"><select id="tr-hacia" class="form-select"><option value="callao">Almacén Callao</option><option value="malvinas">Almacén Malvinas</option></select><label>Hacia</label></div></div><div class="col-md-4"><div class="form-floating"><input id="tr-cantidad" type="number" class="form-control" placeholder="Cantidad"><label>Cantidad</label></div></div></div><div class="col-12"><div class="form-floating"><textarea id="cmp-obs" class="form-control" style="height:90px" placeholder="Observaciones"></textarea><label>Observaciones</label></div></div><input type="hidden" id="cmp-rowkey"></div></div><div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('#modalEditarCmp')">Cancelar</button><button class="btn btn-primary zs-btn" onclick="guardarEdicionCmp()"><i class="bi bi-save"></i> Guardar cambios</button></div></div></div></div>
+<div class="modal fade" id="modalEditarCmp" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header"><h6 class="modal-title"><i class="bi bi-pencil-square"></i> Editar Cantidad / Motivo</h6><button class="btn-close" onclick="closeModal('#modalEditarCmp')"></button></div><div class="modal-body"><div class="row g-3"><div class="col-md-4"><div class="form-floating"><input id="cmp-codigo" class="form-control" disabled placeholder="Código"><label>Código</label></div></div><div class="col-md-4"><div class="form-floating"><input id="cmp-cant" type="number" class="form-control" placeholder="Cantidad Física"><label>Cantidad Física (corregir)</label></div></div><div class="col-md-4"><div class="form-floating"><select id="cmp-motivo" class="form-select" onchange="toggleTraslado()"><option>Error de conteo</option><option>Otro</option></select><label>Motivo</label></div></div><div id="cmp-tienda-container" class="col-md-4 d-none"><div class="form-floating"><select id="cmp-tienda" class="form-select"><option value="3">TIENDA 3006</option><option value="4">TIENDA 3006 B</option><option value="5">TIENDA 3131</option><option value="6">TIENDA 3133</option><option value="7">TIENDA 412-A</option></select><label>Tienda</label></div></div><div class="col-md-4"><div class="form-floating"><select id="cmp-registrado-por" class="form-select" onchange="onChangeRegistradoPor()"><option>Joseph</option><option>Joselyn</option><option>Otro</option></select><label>Registrado por</label></div><input id="cmp-registrado-otro" class="form-control mt-2 d-none" placeholder="Otro nombre (auto)" disabled></div><div class="col-md-4"><div class="form-floating"><select id="cmp-error-de" class="form-select" onchange="onChangeErrorDe()"><option>Joseph</option><option>Joselyn</option><option>Otro</option></select><label>Error de</label></div><input id="cmp-error-otro" class="form-control mt-2 d-none" placeholder="Otro nombre (auto)" disabled></div><div id="bloque-traslado" class="row g-3 d-none"><div class="col-md-4"><div class="form-floating"><select id="tr-de" class="form-select"><option value="callao">Almacén Callao</option><option value="malvinas">Almacén Malvinas</option></select><label>De</label></div></div><div class="col-md-4"><div class="form-floating"><select id="tr-hacia" class="form-select"><option value="callao">Almacén Callao</option><option value="malvinas">Almacén Malvinas</option></select><label>Hacia</label></div></div><div class="col-md-4"><div class="form-floating"><input id="tr-cantidad" type="number" class="form-control" placeholder="Cantidad"><label>Cantidad</label></div></div></div><div class="col-12"><div class="form-floating"><textarea id="cmp-obs" class="form-control" style="height:90px" placeholder="Observaciones"></textarea><label>Observaciones</label></div></div><input type="hidden" id="cmp-rowkey"></div></div><div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('#modalEditarCmp')">Cancelar</button><button class="btn btn-primary zs-btn" onclick="guardarEdicionCmp()"><i class="bi bi-save"></i> Guardar cambios</button></div></div></div></div>
 <div class="modal fade" id="modalEditarSistema" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header"><h6 class="modal-title"><i class="bi bi-database-gear"></i> Editar Sistema</h6><button class="btn-close" onclick="closeModal('#modalEditarSistema')"></button></div><div class="modal-body"><div class="row g-3"><div class="col-md-4"><div class="form-floating"><input id="es-codigo" class="form-control" disabled placeholder="Código"><label>Código</label></div></div><div class="col-md-4"><div class="form-floating"><input id="es-cant" type="number" class="form-control" placeholder="Cantidad Sistema (corregir)"><label>Cantidad Sistema (corregir)</label></div></div><div class="col-md-4"><div class="form-floating"><select id="es-mov" class="form-select"><option value="COMPRA">UNA COMPRA</option><option value="VENTA">UNA VENTA</option></select><label>Motivo</label></div></div><div class="col-md-4"><div class="form-floating"><select id="es-registrado" class="form-select" onchange="onEsRegistradoChange()"><option>Joseph</option><option>Joselyn</option><option>Otro</option></select><label>Registrado por</label></div><input id="es-registrado-otro" class="form-control mt-2 d-none" placeholder="Otro nombre" disabled></div><div class="col-md-4"><div class="form-floating"><select id="es-error" class="form-select" onchange="onEsErrorChange()"><option>Joseph</option><option>Joselyn</option><option>Otro</option></select><label>Error de</label></div><input id="es-error-otro" class="form-control mt-2 d-none" placeholder="Otro nombre" disabled></div><div class="col-12"><div class="form-floating"><textarea id="es-obs" class="form-control" style="height:90px" placeholder="Observaciones"></textarea><label>Observaciones</label></div></div><input type="hidden" id="es-rowkey"></div></div><div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('#modalEditarSistema')">Cancelar</button><button class="btn btn-primary zs-btn" onclick="guardarEdicionSistema()"><i class="bi bi-save"></i> Guardar cambios</button></div></div></div></div>
 <div class="modal fade" id="modalObs" tabindex="-1"><div class="modal-dialog modal-md"><div class="modal-content"><div class="modal-header"><h6 class="modal-title"><i class="bi bi-eye"></i> Observaciones</h6><button class="btn-close" onclick="closeModal('#modalObs')"></button></div><div class="modal-body"><div id="obs-contenido" class="text-secondary"></div></div></div></div></div>
 <div class="modal fade" id="modalVerificacion" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header"><h6 class="modal-title"><i class="bi bi-check2-square"></i> Editar Verificación</h6><button class="btn-close" onclick="closeModal('#modalVerificacion')"></button></div><div class="modal-body"><input type="hidden" id="verif-rowkey"><div class="row g-3"><div class="col-12"><div class="blk"><div class="blk-header blk-blue">Compras y Ventas</div><div class="blk-body"><div class="row g-3"><div class="col-6"><div class="subttl">Compras</div><div class="row g-2"><div class="col-6"><div class="form-floating"><input id="v-c-fecha-ing" type="date" class="form-control" placeholder="Fecha ingreso"><label>Fecha ingreso inventario</label></div></div><div class="col-6"><div class="form-floating"><input id="v-c-hora-ing" type="time" class="form-control" placeholder="Hora ingreso"><label>Hora ingreso</label></div></div><div class="col-12"><div class="form-floating"><input id="v-c-num-acta" class="form-control" placeholder="Número de acta"><label>Número de acta</label></div></div><div class="col-6"><div class="form-floating"><input id="v-c-fecha-desc" type="date" class="form-control" placeholder="Fecha descarga inventario"><label>Fecha descarga inventario</label></div></div><div class="col-6"><div class="form-floating"><input id="v-c-hora-desc" type="time" class="form-control" placeholder="Hora descarga inventario"><label>Hora descarga inventario</label></div></div></div></div><div class="col-6"><div class="subttl">Ventas</div><div class="row g-2"><div class="col-6"><div class="form-floating"><input id="v-v-fecha-desc-ventas" type="date" class="form-control" placeholder="Fecha descarga ventas"><label>Fecha descarga ventas</label></div></div><div class="col-6"><div class="form-floating"><input id="v-v-hora-desc-ventas" type="time" class="form-control" placeholder="Hora descarga ventas"><label>Hora descarga ventas</label></div></div><div class="col-6"><div class="form-floating"><input id="v-v-fecha-desc-sis" type="date" class="form-control" placeholder="Fecha descarga sistema"><label>Fecha descarga sistema</label></div></div><div class="col-6"><div class="form-floating"><input id="v-v-hora-desc-sis" type="time" class="form-control" placeholder="Hora descarga sistema"><label>Hora descarga sistema</label></div></div></div></div></div></div></div><div class="col-12"><div class="blk"><div class="blk-header blk-amber">Resultado general</div><div class="blk-body"><div class="row g-2"><div class="col-md-4"><div class="form-floating"><input id="v-res-compras" type="number" class="form-control" placeholder="Compras Totales" oninput="recalcularVerificacion()"><label>Compras Totales</label></div></div><div class="col-md-4"><div class="form-floating"><input id="v-res-ventas" type="number" class="form-control" placeholder="Ventas Totales" oninput="recalcularVerificacion()"><label>Ventas Totales</label></div></div><div class="col-md-4"><div class="form-floating"><input id="v-res-exist" type="number" class="form-control" placeholder="Stock de Existencias" disabled><label>Stock de Existencias</label></div></div></div></div></div><div class="col-12"><div class="blk"><div class="blk-header blk-green">Resultado de verificación</div><div class="blk-body"><div class="row g-2"><div class="col-md-4"><div class="form-floating"><input id="v-stock-fis" type="number" class="form-control" placeholder="Stock Físico" disabled><label>Stock Físico</label></div></div><div class="col-md-4"><div class="form-floating"><input id="v-stock-sis" type="number" class="form-control" placeholder="Stock Sistema" disabled><label>Stock Sistema</label></div></div><div class="col-md-4 d-flex align-items-center"><div id="v-resultado" class="w-100 text-center fw-semibold"></div></div></div></div></div></div></div><div class="modal-footer"><button class="btn btn-outline-primary" onclick="pdfVerificacion()"><i class="bi bi-file-earmark-pdf"></i> Descargar reporte en PDF</button><span id="verif-fecha-guardado" class="badge text-bg-secondary ms-2">Sin guardar</span><button class="btn btn-secondary" onclick="closeModal('#modalVerificacion')">Cerrar</button><button class="btn btn-primary zs-btn" onclick="guardarVerificacion()"><i class="bi bi-save2"></i> Guardar</button></div></div></div></div>
@@ -2144,13 +2144,47 @@ function convertirFechaToMySQL(fechaStr) {
 }
 
 // Función para mapear nombre de registrado a ID
-function obtenerIdRegistradoPor(nombre) {
-  const mapeo = {
-    'Joseph': '1',
-    'Joselyn': '2',
-    'Manuel': '3'
-  };
-  return mapeo[nombre] || '1'; // Default a Joseph
+async function obtenerIdRegistradoPor(nombre) {
+  try {
+    // Si ya tenemos los colaboradores cargados, buscar en AppState
+    if (AppState.colaboradoresAuditoria && AppState.colaboradoresAuditoria.length > 0) {
+      const colaborador = AppState.colaboradoresAuditoria.find(col => col.NOMBRE === nombre);
+      if (colaborador) {
+        console.log(`ID encontrado para ${nombre}:`, colaborador.ID_PERSONA);
+        return colaborador.ID_PERSONA.toString();
+      }
+    }
+    
+    // Si no está en cache, cargar desde API
+    console.log(`Buscando ID para colaborador: ${nombre}`);
+    const response = await fetch('https://inventario-2946605267.us-central1.run.app?method=colaboradores_imventario&selector=COLABORADORES_COMBO_AUDITORIA', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Error HTTP: ${response.status}`);
+    }
+    
+    const colaboradores = await response.json();
+    
+    // Guardar en cache para futuras consultas
+    AppState.colaboradoresAuditoria = colaboradores;
+    
+    const colaborador = colaboradores.find(col => col.NOMBRE === nombre);
+    if (colaborador) {
+      console.log(`ID encontrado para ${nombre}:`, colaborador.ID_PERSONA);
+      return colaborador.ID_PERSONA.toString();
+    }
+    
+    console.warn(`No se encontró ID para colaborador: ${nombre}, usando ID por defecto: 1`);
+    return '1'; // Fallback
+  } catch (error) {
+    console.error('Error obteniendo ID del colaborador:', error);
+    return '1'; // Fallback
+  }
 }
 
 // Función para obtener ID del punto de operación
@@ -2687,6 +2721,9 @@ async function cargarColaboradoresAuditoria() {
     const colaboradores = await response.json();
     console.log('Colaboradores cargados para auditoría:', colaboradores);
     
+    // Guardar en cache para obtener IDs
+    AppState.colaboradoresAuditoria = colaboradores;
+    
     // Llenar selects de colaboradores en modales de auditoría
     const selects = ['cmp-registrado-por', 'cmp-error-de', 'es-registrado', 'es-error'];
     
@@ -2777,17 +2814,31 @@ async function registrarAuditoria(tipoError, codigo, motivo, registradoPor, erro
     const registradoPorId = await obtenerIdRegistradoPor(registradoPor);
     const errorDeId = await obtenerIdRegistradoPor(errorDe);
     
-    // Crear JSON para la auditoría
+    // Obtener ID_PUNTO_OPERACION
+    let idPuntoOperacion = '2'; // Default para Callao
+    
+    if (almacen === 'malvinas') {
+      // Para Malvinas, obtener el ID de la tienda seleccionada
+      const selectTienda = document.getElementById('cmp-tienda');
+      if (selectTienda && selectTienda.value) {
+        idPuntoOperacion = selectTienda.value;
+      } else {
+        console.warn('No se seleccionó tienda para Malvinas, usando ID por defecto: 2');
+        idPuntoOperacion = '2';
+      }
+    }
+    
+    // Crear JSON para la auditoría con nuevo formato
     const auditoriaData = {
       ID_INVENTARIO: inventarioId.toString(),
-      ID_ALMACEN: idAlmacen,
+      ID_PUNTO_OPERACION: idPuntoOperacion,
+      CANTIDAD: cantidad.toString(),
       TIPO_ERROR: tipoError,
       ID_PRODUCTO: idProducto.toString(),
       MOTIVO: motivo,
       REGISTRADO_POR_ID: registradoPorId.toString(),
       ERROR_ID: errorDeId.toString(),
-      OBSERVACIONES: observaciones || '',
-      CANTIDAD: cantidad
+      OBSERVACIONES: observaciones || ''
     };
     
     console.log('Datos de auditoría a enviar:', auditoriaData);
@@ -2850,12 +2901,13 @@ async function cargarListadoAcciones() {
       id: acc.ID,
       fecha: formatearFechaDesdeAPI(acc.FECHA_REGISTRO),
       registrado: acc.REGISTRADO_POR,
-      almacen: acc.ALMACEN,
+      almacen: acc.NOMBRE, // Ahora viene en NOMBRE en lugar de ALMACEN
       motivo: acc.MOTIVO,
-      producto: acc.NOMBRE,
+      producto: acc['P.NOMBRE'] || acc.NOMBRE, // Usar P.NOMBRE para el producto
       errorDe: acc.ERROR_DE || '',
       obs: acc.OBSERVACIONES || '',
-      tipoError: acc.TIPO_ERROR
+      tipoError: acc.TIPO_ERROR,
+      cantidad: acc.CANTIDAD || 0
     }));
     
     // Actualizar la tabla de acciones
@@ -3101,6 +3153,16 @@ async function editarCmp(codigo){
   } catch (error) {
     console.error('Error cargando colaboradores:', error);
     // Continuar con valores por defecto
+  }
+  
+  // Mostrar/ocultar combo de tienda según el almacén
+  const almacen = AppState.comparacion?.almacen;
+  const tiendaContainer = document.getElementById('cmp-tienda-container');
+  
+  if (almacen === 'malvinas') {
+    tiendaContainer?.classList.remove('d-none');
+  } else {
+    tiendaContainer?.classList.add('d-none');
   }
   
   $('cmp-codigo').value=r.codigo; 
