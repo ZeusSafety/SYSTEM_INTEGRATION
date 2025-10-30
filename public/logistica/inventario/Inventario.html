@@ -2734,24 +2734,15 @@ async function cargarColaboradoresAuditoria() {
     selects.forEach(selectId => {
       const select = document.getElementById(selectId);
       if (select) {
-        // Limpiar opciones existentes (excepto la primera)
-        while (select.children.length > 1) {
-          select.removeChild(select.lastChild);
-        }
-        
-        // Agregar colaboradores
+        // Limpiar TODAS las opciones previas
+        select.innerHTML = '';
+        // Agregar únicamente colaboradores desde la API
         colaboradores.forEach(col => {
           const option = document.createElement('option');
           option.value = col.NOMBRE;
           option.textContent = col.NOMBRE;
           select.appendChild(option);
         });
-        
-        // Agregar opción "Otro"
-        const otroOption = document.createElement('option');
-        otroOption.value = 'Otro';
-        otroOption.textContent = 'Otro';
-        select.appendChild(otroOption);
       }
     });
     
@@ -3156,7 +3147,6 @@ async function editarCmp(codigo){
     await cargarColaboradoresAuditoria();
   } catch (error) {
     console.error('Error cargando colaboradores:', error);
-    // Continuar con valores por defecto
   }
   
   // Mostrar/ocultar combo de tienda según el almacén
@@ -3269,10 +3259,11 @@ async function editarSistema(codigo){
   $('es-codigo').value = r.codigo; 
   $('es-cant').value = ''; 
   $('es-mov').value = 'COMPRA'; 
-  $('es-registrado').value = 'Joseph'; 
+  // Seleccionar primera opción disponible tras cargar API
+  try { const s=$('es-registrado'); if(s && s.options.length>0) s.selectedIndex=0; } catch{}
   $('es-registrado-otro').value=''; 
   $('es-registrado-otro').classList.add('d-none'); 
-  $('es-error').value = 'Joseph'; 
+  try { const s2=$('es-error'); if(s2 && s2.options.length>0) s2.selectedIndex=0; } catch{}
   $('es-error-otro').value=''; 
   $('es-error-otro').classList.add('d-none'); 
   $('es-obs').value = ''; 
