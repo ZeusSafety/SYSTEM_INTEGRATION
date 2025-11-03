@@ -1827,16 +1827,48 @@ function closeModal(sel){
   const m=q(sel); if(!m) return;
   try {
     if(!m.classList.contains('show')){ // ya cerrado
-      const bd=$('modal-backdrop');
-      if(bd){ bd.classList.remove('show'); setTimeout(()=>{bd.style.display='none';},150); }
+      // Limpiar todos los backdrops
+      limpiarTodosLosBackdrops();
       m.style.display='none';
       return;
     }
     m.classList.remove('show');
     setTimeout(()=>{ m.style.display='none'; }, 150);
-    const bd=$('modal-backdrop');
-    if(bd){ bd.classList.remove('show'); setTimeout(()=>{bd.style.display='none';},150); }
+    
+    // Limpiar todos los backdrops
+    limpiarTodosLosBackdrops();
+    
+    // Limpiar overlay de emergencia si existe
+    cerrarOverlayEmergenciaSistema();
+    
+    // Restaurar body
+    document.body.classList.remove('modal-open');
+    document.body.style.overflow = '';
+    document.body.style.paddingRight = '';
   }catch{}
+}
+
+// Función auxiliar para limpiar todos los backdrops
+function limpiarTodosLosBackdrops() {
+  // Eliminar todos los backdrops creados dinámicamente
+  const backdrops = document.querySelectorAll('.modal-backdrop');
+  backdrops.forEach(bd => {
+    bd.classList.remove('show');
+    setTimeout(() => {
+      bd.style.display = 'none';
+      // Si no es el backdrop estático, eliminarlo completamente
+      if (bd.id !== 'modal-backdrop') {
+        bd.remove();
+      }
+    }, 150);
+  });
+  
+  // También limpiar el backdrop estático
+  const bdEstatico = document.getElementById('modal-backdrop');
+  if (bdEstatico) {
+    bdEstatico.classList.remove('show');
+    setTimeout(() => { bdEstatico.style.display = 'none'; }, 150);
+  }
 }
 
 async function leerArchivoGenerico(file){
@@ -3118,7 +3150,7 @@ async function extraerConteosGuardados() {
 
   if (!AppState.sesionActual?.inventarioId) {
     alert('No hay inventario activo. Debe unirse a un inventario primero.');
-    closeModal('#modalSistemaExcel');
+    cerrarModalCompletamente();
     return;
   }
 
@@ -3148,13 +3180,13 @@ async function extraerConteosGuardados() {
     if (!Array.isArray(data)) {
       console.warn('API no devolvió un array:', data);
       toast('No hay datos guardados para este inventario', 'info');
-      closeModal('#modalSistemaExcel');
+      cerrarModalCompletamente();
       return;
     }
 
     if (data.length === 0) {
       toast('No hay conteos guardados para este inventario', 'info');
-      closeModal('#modalSistemaExcel');
+      cerrarModalCompletamente();
       return;
     }
 
@@ -3188,7 +3220,7 @@ async function extraerConteosGuardados() {
       console.warn('Error actualizando UI:', err);
     }
 
-    closeModal('#modalSistemaExcel');
+    cerrarModalCompletamente();
   } catch (error) {
     console.error('Error extrayendo conteos guardados:', error);
     alert('Error al extraer conteos guardados: ' + error.message);
@@ -3208,7 +3240,7 @@ async function cargarSistema(e, almacen) {
 
   if (!AppState.sesionActual?.inventarioId) {
     alert('No hay inventario activo. Debe unirse a un inventario primero.');
-    closeModal('#modalSistemaExcel');
+    cerrarModalCompletamente();
     return;
   }
 
@@ -3299,12 +3331,42 @@ async function cargarSistema(e, almacen) {
       console.warn('Error actualizando UI:', err);
     }
 
-    closeModal('#modalSistemaExcel');
+    // Cerrar modal y limpiar todo
+    cerrarModalCompletamente();
     e.target.value = ''; // Limpiar el input
   } catch (err) {
     alert('Error al leer archivo del sistema: ' + err.message);
-    closeModal('#modalSistemaExcel');
+    cerrarModalCompletamente();
   }
+}
+
+// Función para cerrar completamente el modal del sistema Excel
+function cerrarModalCompletamente() {
+  // Cerrar modal
+  const modalEl = document.getElementById('modalSistemaExcel');
+  if (modalEl) {
+    modalEl.classList.remove('show');
+    modalEl.style.display = 'none';
+    modalEl.style.position = '';
+    modalEl.style.top = '';
+    modalEl.style.left = '';
+    modalEl.style.width = '';
+    modalEl.style.height = '';
+    modalEl.style.zIndex = '';
+    modalEl.style.opacity = '';
+    modalEl.style.visibility = '';
+  }
+  
+  // Limpiar todos los backdrops
+  limpiarTodosLosBackdrops();
+  
+  // Cerrar overlay de emergencia si existe
+  cerrarOverlayEmergenciaSistema();
+  
+  // Restaurar body
+  document.body.classList.remove('modal-open');
+  document.body.style.overflow = '';
+  document.body.style.paddingRight = '';
 }
 async function abrirComparacion(almacen){ 
   console.log('Abriendo comparación para:', almacen);
