@@ -1086,7 +1086,7 @@
     <div class="modal-content">
       <div class="modal-header">
         <h6 class="modal-title" id="modalSistemaExcelLabel"><i class="bi bi-file-earmark-excel"></i> Sistema de Inventario - <span id="modal-sistema-almacen"></span></h6>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="closeModal('#modalSistemaExcel')"></button>
+        <button type="button" class="btn-close" aria-label="Close" onclick="cerrarModalCompletamente()"></button>
       </div>
       <div class="modal-body">
         <div class="d-grid gap-2">
@@ -1100,7 +1100,7 @@
         <input type="file" id="input-excel-sistema" accept=".json,.csv,.xlsx,.xls" class="d-none" onchange="cargarSistema(event)">
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="closeModal('#modalSistemaExcel')">Cancelar</button>
+        <button type="button" class="btn btn-secondary" onclick="cerrarModalCompletamente()">Cancelar</button>
       </div>
     </div>
   </div>
@@ -3247,7 +3247,7 @@ async function cargarSistema(e, almacen) {
   try {
     const file = e.target.files[0];
     if (!file) {
-      closeModal('#modalSistemaExcel');
+      cerrarModalCompletamente();
       return;
     }
 
@@ -3815,7 +3815,106 @@ function exportComparacionExcel(){ try{ const data = (AppState.comparacion?.fila
 function actualizarTotalesFisicosComparar(){ function sumFis(alm){ const map = buildMapaFisico(alm); let tot=0; map.forEach(v=>{ tot += Number(v.fis||0); }); return tot; } function ultimaFecha(alm){ const ses = (AppState.sesiones[alm]||[]).filter(s=>s && s.fin); if(ses.length===0) return ''; const u = ses[ses.length-1]; return (u.fin || u.inicio || '') + (u.tienda? ` · ${u.tienda}`: ''); } const totC = sumFis('callao'); const totM = sumFis('malvinas'); const elC = document.getElementById('cmp-tf-callao'); if(elC) elC.textContent = totC; const elM = document.getElementById('cmp-tf-malvinas'); if(elM) elM.textContent = totM; const fc = document.getElementById('cmp-tf-callao-fecha'); if(fc) fc.textContent = ultimaFecha('callao')||'No hay conteos registrados'; const fm = document.getElementById('cmp-tf-malvinas-fecha'); if(fm) fm.textContent = ultimaFecha('malvinas')||'No hay conteos registrados'; }
 
 // ===== Consolidado =====
+// Función para cargar stock del sistema desde API para el consolidado
+async function cargarStockSistemaConsolidado(almacen) {
+  if (!AppState.sesionActual?.inventarioId) {
+    console.warn('No hay inventario activo para cargar stock del sistema');
+    return new Map();
+  }
+  
+  const api = "https://inventario-2946605267.us-central1.run.app";
+  const method = "stock_sistema_excel";
+  const idTipoAlmacen = almacen === 'callao' ? '2' : '1'; // Callao = 2, Malvinas = 1
+  const id = `${AppState.sesionActual.inventarioId}-${idTipoAlmacen}`;
+  
+  try {
+    const response = await fetch(`${api}?method=${method}&id=${encodeURIComponent(id)}`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    
+    if (response.status !== 200) {
+      console.warn(`Error al cargar stock del sistema para ${almacen}:`, response.status);
+      return new Map();
+    }
+    
+    const data = await response.json();
+    if (!Array.isArray(data)) {
+      console.warn('API no devolvió un array para stock del sistema');
+      return new Map();
+    }
+    
+    const map = new Map();
+    data.forEach((item, index) => {
+      const codigo = item.CODIGO || '';
+      if (codigo) {
+        map.set(codigo, {
+          item: index + 1,
+          producto: item.PRODUCTO || '',
+          sis: Number(item.CANTIDAD) || 0
+        });
+      }
+    });
+    
+    return map;
+  } catch (error) {
+    console.error(`Error cargando stock del sistema para ${almacen}:`, error);
+    return new Map();
+  }
+}
+
+// Función para cargar stock físico desde API para el consolidado
+async function cargarStockFisicoConsolidado(almacen) {
+  if (!AppState.sesionActual?.inventarioId) {
+    console.warn('No hay inventario activo para cargar stock físico');
+    return new Map();
+  }
+  
+  const api = "https://inventario-2946605267.us-central1.run.app";
+  const method = "listar_conteo_punto_operacion";
+  // El ID debe ser: inventarioId-almacen (almacen como string: 'callao' o 'malvinas')
+  const id = `${AppState.sesionActual.inventarioId}-${almacen}`;
+  
+  try {
+    const response = await fetch(`${api}?method=${method}&id=${encodeURIComponent(id)}`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    
+    if (response.status !== 200) {
+      console.warn(`Error al cargar stock físico para ${almacen}:`, response.status);
+      return new Map();
+    }
+    
+    const data = await response.json();
+    if (!Array.isArray(data)) {
+      console.warn('API no devolvió un array para stock físico');
+      return new Map();
+    }
+    
+    const map = new Map();
+    data.forEach((item) => {
+      const codigo = item.CODIGO || '';
+      if (codigo) {
+        const prev = map.get(codigo) || { item: 0, producto: '', unidad_medida: '', fis: 0 };
+        prev.fis = Number(prev.fis || 0) + (Number(item.TOTAL) || 0);
+        if (!prev.producto && item.PRODUCTO) prev.producto = item.PRODUCTO;
+        if (!prev.item && item.ITEM) prev.item = item.ITEM;
+        if (!prev.unidad_medida && item.UNIDAD_MEDIDA) prev.unidad_medida = item.UNIDAD_MEDIDA;
+        map.set(codigo, prev);
+      }
+    });
+    
+    return map;
+  } catch (error) {
+    console.error(`Error cargando stock físico para ${almacen}:`, error);
+    return new Map();
+  }
+}
+
+// Función legacy mantenida para compatibilidad (pero no se usa en consolidado)
 function buildMapaFisico(almacen){ const { map } = buildMapaFisicoAcumulado(almacen); return map; }
+// Función legacy mantenida para compatibilidad (pero no se usa en consolidado)
 function buildMapaSistema(almacen){ const map=new Map(); (AppState.sistema[almacen]||[]).forEach(s=> map.set(s.codigo, { item:s.item, producto:s.producto, sis:Number(s.cantidad_sistema)||0 }) ); return map; }
 function padConsolidadoRows(idA,idB,idC){
   try{
@@ -3843,8 +3942,124 @@ function padConsolidadoRows(idA,idB,idC){
     setTimeout(()=> syncConsolidadoRowHeights(idA,idB,idC),0);
   }catch{}
 }
-function pintarCons(almacen,tblId,idSis,idFis,idDif,mostrarItem,listaCodigos){ const tb=$(tblId)?.querySelector('tbody'); if(!tb) return; tb.innerHTML=''; const mapS=buildMapaSistema(almacen); const mapF=buildMapaFisico(almacen); const codigos = Array.isArray(listaCodigos) && listaCodigos.length>0 ? listaCodigos : Array.from(new Set([...mapS.keys(),...mapF.keys()])).sort(); codigos.forEach((c,idx)=>{ const s = mapS.get(c) || {item:'',producto:'',sis:0}; const f = mapF.get(c) || {fis:0}; const dif = (f.fis||0) - (s.sis||0); const nombre = (s.producto||f.producto||''); const isCallaoTbl = (tblId==='cons-callao' || tblId==='shot-cons-callao' || tblId==='shot2-cons-callao' || tblId==='md-cons-callao'); const leftCols = isCallaoTbl ? `<td class="text-end">${idx+1}</td><td class="cons-col-producto" title="${nombre}">${nombre}</td>` : `<td class="cons-col-producto" title="${nombre}">${nombre}</td>`; const tr=document.createElement('tr'); const cls = dif===0 ? 'text-bg-success' : (dif>0 ? 'text-bg-warning' : 'text-bg-danger'); const difTxt = dif>0?`+${dif}`:`${dif}`; tr.innerHTML = `${leftCols}<td>${s.sis||0}</td><td>${f.fis||0}</td><td class="cons-col-dif"><span class="badge ${cls}">${difTxt}</span></td>`; tb.appendChild(tr); }); }
-function renderConsolidado(){ const mapSCallao = buildMapaSistema('callao'); const mapSMalvinas = buildMapaSistema('malvinas'); const mapFCallao = buildMapaFisico('callao'); const mapFMalvinas = buildMapaFisico('malvinas'); const allCodes = new Set([ ...mapSCallao.keys(), ...mapSMalvinas.keys(), ...mapFCallao.keys(), ...mapFMalvinas.keys() ]); const cmpOrder = (AppState.comparacion && Array.isArray(AppState.comparacion.filas)) ? AppState.comparacion.filas.map(f=>f.codigo) : []; const cmpSet = new Set(cmpOrder); const remaining = Array.from(allCodes).filter(c=> !cmpSet.has(c)).sort((a,b)=> a.toString().localeCompare(b.toString())); const listaCodigos = [...cmpOrder.filter(c=> allCodes.has(c)), ...remaining]; pintarCons('callao','cons-callao',null,null,null, true, listaCodigos); pintarCons('malvinas','cons-malvinas',null,null,null, false, listaCodigos); const tb = $('cons-general')?.querySelector('tbody'); if(tb){ tb.innerHTML=''; } listaCodigos.forEach(c=>{ const s = (mapSCallao.get(c)?.sis||0) + (mapSMalvinas.get(c)?.sis||0); const f = (mapFCallao.get(c)?.fis||0) + (mapFMalvinas.get(c)?.fis||0); const dif = f - s; const res = dif===0 ? 'CONFORME' : (dif>0 ? 'SOBRANTE' : 'FALTANTE'); const cls = dif===0 ? 'text-bg-success' : (dif>0 ? 'text-bg-warning' : 'text-bg-danger'); if(tb){ const tr=document.createElement('tr'); const difTxt = dif>0?`+${dif}`:`${dif}`; tr.innerHTML = `<td>${s}</td><td>${f}</td><td class="cons-col-dif"><span class="badge ${cls}">${difTxt}</span></td><td><span class="badge ${cls}">${res}</span></td>`; tb.appendChild(tr); } }); setTimeout(()=>{ padConsolidadoRows('cons-callao','cons-malvinas','cons-general'); },0); }
+// Función legacy mantenida para compatibilidad (usa mapas directamente o desde APIs según contexto)
+function pintarCons(almacen,tblId,idSis,idFis,idDif,mostrarItem,listaCodigos){ 
+  const tb=$(tblId)?.querySelector('tbody'); 
+  if(!tb) return; 
+  tb.innerHTML=''; 
+  // Para consolidado principal, usar datos de APIs (se llamará desde renderConsolidado con mapas)
+  // Para otros contextos (modal), intentar cargar desde APIs también
+  const mapS=buildMapaSistema(almacen); 
+  const mapF=buildMapaFisico(almacen); 
+  const codigos = Array.isArray(listaCodigos) && listaCodigos.length>0 ? listaCodigos : Array.from(new Set([...mapS.keys(),...mapF.keys()])).sort(); 
+  codigos.forEach((c,idx)=>{ 
+    const s = mapS.get(c) || {item:'',producto:'',sis:0}; 
+    const f = mapF.get(c) || {fis:0}; 
+    const dif = (f.fis||0) - (s.sis||0); 
+    const nombre = (s.producto||f.producto||''); 
+    const isCallaoTbl = (tblId==='cons-callao' || tblId==='shot-cons-callao' || tblId==='shot2-cons-callao' || tblId==='md-cons-callao'); 
+    const leftCols = isCallaoTbl ? `<td class="text-end">${idx+1}</td><td class="cons-col-producto" title="${nombre}">${nombre}</td>` : `<td class="cons-col-producto" title="${nombre}">${nombre}</td>`; 
+    const tr=document.createElement('tr'); 
+    const cls = dif===0 ? 'text-bg-success' : (dif>0 ? 'text-bg-warning' : 'text-bg-danger'); 
+    const difTxt = dif>0?`+${dif}`:`${dif}`; 
+    tr.innerHTML = `${leftCols}<td>${s.sis||0}</td><td>${f.fis||0}</td><td class="cons-col-dif"><span class="badge ${cls}">${difTxt}</span></td>`; 
+    tb.appendChild(tr); 
+  }); 
+}
+async function renderConsolidado(){ 
+  // Mostrar indicador de carga
+  const tbCallao = $('#cons-callao')?.querySelector('tbody');
+  const tbMalvinas = $('#cons-malvinas')?.querySelector('tbody');
+  const tbGeneral = $('#cons-general')?.querySelector('tbody');
+  if(tbCallao) tbCallao.innerHTML = '<tr><td colspan="5" class="text-center">Cargando...</td></tr>';
+  if(tbMalvinas) tbMalvinas.innerHTML = '<tr><td colspan="4" class="text-center">Cargando...</td></tr>';
+  if(tbGeneral) tbGeneral.innerHTML = '<tr><td colspan="4" class="text-center">Cargando...</td></tr>';
+  
+  try {
+    // Cargar datos desde APIs en paralelo
+    const [mapSCallao, mapSMalvinas, mapFCallao, mapFMalvinas] = await Promise.all([
+      cargarStockSistemaConsolidado('callao'),
+      cargarStockSistemaConsolidado('malvinas'),
+      cargarStockFisicoConsolidado('callao'),
+      cargarStockFisicoConsolidado('malvinas')
+    ]);
+    
+    const allCodes = new Set([ 
+      ...mapSCallao.keys(), 
+      ...mapSMalvinas.keys(), 
+      ...mapFCallao.keys(), 
+      ...mapFMalvinas.keys() 
+    ]);
+    const cmpOrder = (AppState.comparacion && Array.isArray(AppState.comparacion.filas)) ? AppState.comparacion.filas.map(f=>f.codigo) : [];
+    const cmpSet = new Set(cmpOrder);
+    const remaining = Array.from(allCodes).filter(c=> !cmpSet.has(c)).sort((a,b)=> a.toString().localeCompare(b.toString()));
+    const listaCodigos = [...cmpOrder.filter(c=> allCodes.has(c)), ...remaining];
+    
+    // Pintar con los mapas obtenidos de las APIs
+    pintarConsConMapas('callao','cons-callao', mapSCallao, mapFCallao, true, listaCodigos);
+    pintarConsConMapas('malvinas','cons-malvinas', mapSMalvinas, mapFMalvinas, false, listaCodigos);
+    
+    // Pintar tabla general con datos desde APIs
+    if(tbGeneral){ 
+      tbGeneral.innerHTML=''; 
+      let totalSistemaGeneral = 0;
+      let totalFisicoGeneral = 0;
+      
+      listaCodigos.forEach(c=>{ 
+        const s = (mapSCallao.get(c)?.sis||0) + (mapSMalvinas.get(c)?.sis||0); 
+        const f = (mapFCallao.get(c)?.fis||0) + (mapFMalvinas.get(c)?.fis||0); 
+        totalSistemaGeneral += s;
+        totalFisicoGeneral += f;
+        const dif = f - s; 
+        const res = dif===0 ? 'CONFORME' : (dif>0 ? 'SOBRANTE' : 'FALTANTE'); 
+        const cls = dif===0 ? 'text-bg-success' : (dif>0 ? 'text-bg-warning' : 'text-bg-danger'); 
+        const tr=document.createElement('tr'); 
+        const difTxt = dif>0?`+${dif}`:`${dif}`; 
+        tr.innerHTML = `<td>${s}</td><td>${f}</td><td class="cons-col-dif"><span class="badge ${cls}">${difTxt}</span></td><td><span class="badge ${cls}">${res}</span></td>`; 
+        tbGeneral.appendChild(tr); 
+      }); 
+      
+      // Agregar fila de totales generales al final
+      const difGeneral = totalFisicoGeneral - totalSistemaGeneral;
+      const resGeneral = difGeneral===0 ? 'CONFORME' : (difGeneral>0 ? 'SOBRANTE' : 'FALTANTE');
+      const clsGeneral = difGeneral===0 ? 'text-bg-success' : (difGeneral>0 ? 'text-bg-warning' : 'text-bg-danger');
+      const difTxtGeneral = difGeneral>0 ? `+${difGeneral}` : `${difGeneral}`;
+      const trTotal = document.createElement('tr');
+      trTotal.className = 'table-active fw-bold';
+      trTotal.innerHTML = `<td><strong>${totalSistemaGeneral}</strong></td><td><strong>${totalFisicoGeneral}</strong></td><td class="cons-col-dif"><span class="badge ${clsGeneral}">${difTxtGeneral}</span></td><td><span class="badge ${clsGeneral}">${resGeneral}</span></td>`;
+      tbGeneral.appendChild(trTotal);
+    }
+    
+    setTimeout(()=>{ padConsolidadoRows('cons-callao','cons-malvinas','cons-general'); },0);
+  } catch (error) {
+    console.error('Error renderizando consolidado:', error);
+    if(tbCallao) tbCallao.innerHTML = '<tr><td colspan="5" class="text-center text-danger">Error al cargar datos</td></tr>';
+    if(tbMalvinas) tbMalvinas.innerHTML = '<tr><td colspan="4" class="text-center text-danger">Error al cargar datos</td></tr>';
+    if(tbGeneral) tbGeneral.innerHTML = '<tr><td colspan="4" class="text-center text-danger">Error al cargar datos</td></tr>';
+    toast('Error al cargar datos del consolidado desde la API', 'error');
+  }
+}
+
+// Función auxiliar para pintar consolidado con mapas (usa los mapas directamente)
+function pintarConsConMapas(almacen, tblId, mapS, mapF, mostrarItem, listaCodigos){
+  const tb=$(tblId)?.querySelector('tbody'); 
+  if(!tb) return; 
+  tb.innerHTML=''; 
+  const codigos = Array.isArray(listaCodigos) && listaCodigos.length>0 ? listaCodigos : Array.from(new Set([...mapS.keys(),...mapF.keys()])).sort(); 
+  codigos.forEach((c,idx)=>{ 
+    const s = mapS.get(c) || {item:'',producto:'',sis:0}; 
+    const f = mapF.get(c) || {fis:0}; 
+    const dif = (f.fis||0) - (s.sis||0); 
+    const nombre = (s.producto||f.producto||''); 
+    const isCallaoTbl = (tblId==='cons-callao' || tblId==='shot-cons-callao' || tblId==='shot2-cons-callao' || tblId==='md-cons-callao'); 
+    const leftCols = isCallaoTbl ? `<td class="text-end">${idx+1}</td><td class="cons-col-producto" title="${nombre}">${nombre}</td>` : `<td class="cons-col-producto" title="${nombre}">${nombre}</td>`; 
+    const tr=document.createElement('tr'); 
+    const cls = dif===0 ? 'text-bg-success' : (dif>0 ? 'text-bg-warning' : 'text-bg-danger'); 
+    const difTxt = dif>0?`+${dif}`:`${dif}`; 
+    tr.innerHTML = `${leftCols}<td>${s.sis||0}</td><td>${f.fis||0}</td><td class="cons-col-dif"><span class="badge ${cls}">${difTxt}</span></td>`; 
+    tb.appendChild(tr); 
+  }); 
+}
 
 // ===== Registro =====
 function renderRegistro(){ const tbl=$('tbl-registro'); const tb=tbl?.querySelector('tbody'); if(!tb) return; tb.innerHTML=''; try{ const th=tbl.querySelector('thead'); if(th) th.classList.add('d-none'); }catch{} const desde = $('reg-desde')?.value ? new Date($('reg-desde').value+'T00:00:00') : null; const hasta = $('reg-hasta')?.value ? new Date($('reg-hasta').value+'T23:59:59') : null; const grupos = new Map(); [['callao'],['malvinas']].forEach(([almacen])=>{ (AppState.sesiones[almacen]||[]).forEach(s=>{ const finDate = s.fin ? new Date(s.fin.replace(/(\d{2})\/(\d{2})\/(\d{4})/, '$2/$1/$3')) : null; const inicioDate = s.inicio ? new Date(s.inicio.replace(/(\d{2})\/(\d{2})\/(\d{4})/, '$2/$1/$3')) : null; const comp = finDate || inicioDate; if(desde && comp && comp < desde) return; if(hasta && comp && comp > hasta) return; const tipoTienda = (almacen==='callao') ? s.tipo : (s.tienda||''); const g = grupos.get(s.numero) || { numero:s.numero, items:[] }; g.items.push({almacen, s, tipoTienda}); grupos.set(s.numero, g); }); }); const orden = Array.from(grupos.values()).sort((a,b)=>{ const na = parseInt(String(a.numero).split('-').pop()||'0',10); const nb = parseInt(String(b.numero).split('-').pop()||'0',10); return na-nb; }); let idx=1; orden.forEach(g=>{ const trH=document.createElement('tr'); trH.className='table-active'; trH.innerHTML = `<td>${idx++}</td><td colspan="8"><button class="btn btn-sm btn-outline-dark me-2" onclick="openRegistroCarpeta('${g.numero}')"><i class="bi bi-folder"></i></button><strong>${g.numero}</strong> <span class="text-secondary ms-2">${g.items.length} registro(s)</span></td>`; tb.appendChild(trH);
@@ -3857,53 +4072,94 @@ function renderRegistro(){ const tbl=$('tbl-registro'); const tb=tbl?.querySelec
 let regdetCtx = { almacen:null, sesionId:null, tipo:null };
 function openRegistroDetalle(almacen, sesionId, tipo){ const s=(AppState.sesiones[almacen]||[]).find(x=>x.id===sesionId); if(!s){ alert('Sesión no encontrada'); return; } regdetCtx = { almacen, sesionId, tipo }; let bodyHTML=''; const headerHTML = `<div id="regdet-tabs" class="d-flex align-items-center gap-2 flex-wrap mb-2"><div class="fw-semibold me-1">Consolidado</div><div class="btn-group btn-group-sm"><button class="btn btn-outline-secondary" title="Ver consolidado" onclick="openRegistroDetalle('${almacen}','${s.id}','consolidado')"><i class=\"bi bi-eye\"></i></button><button class="btn btn-outline-dark" title="PDF consolidado" onclick="regdetExportPDF('${almacen}','${s.id}','consolidado')"><i class=\"bi bi-file-earmark-pdf\"></i></button></div><span class="mx-1">·</span><div class="fw-semibold me-1">Proformas</div><div class="btn-group btn-group-sm"><button class="btn btn-outline-warning" title="Ver proformas" onclick="openRegistroDetalle('${almacen}','${s.id}','proformas')"><i class=\"bi bi-eye\"></i></button><button class="btn btn-outline-dark" title="PDF proformas" onclick="regdetExportPDF('${almacen}','${s.id}','proformas')"><i class=\"bi bi-file-earmark-pdf\"></i></button></div><span class="mx-1">·</span><div class="fw-semibold me-1">Verificaciones</div><div class="btn-group btn-group-sm"><button class="btn btn-outline-info" title="Ver verificaciones" onclick="openRegistroDetalle('${almacen}','${s.id}','verificaciones')"><i class=\"bi bi-eye\"></i></button><button class="btn btn-outline-dark" title="PDF verificaciones" onclick="regdetExportPDF('${almacen}','${s.id}','verificaciones')"><i class=\"bi bi-file-earmark-pdf\"></i></button></div><span class="mx-1">·</span><div class="fw-semibold me-1">Acciones</div><div class="btn-group btn-group-sm"><button class="btn btn-outline-secondary" title="Ver acciones" onclick="openRegistroDetalle('${almacen}','${s.id}','acciones')"><i class=\"bi bi-eye\"></i></button><button class="btn btn-outline-dark" title="PDF acciones" onclick="regdetExportPDF('${almacen}','${s.id}','acciones')"><i class=\"bi bi-file-earmark-pdf\"></i></button></div></div>`; function buildConteoHTML(){ const filas=[]; [['callao'],['malvinas']].forEach(([alm])=>{ (AppState.sesiones[alm]||[]).forEach(ss=>{ if(String(ss.numero)===String(s.numero)){ filas.push({ almacen: alm.toUpperCase(), numero: ss.numero, tipoTienda: alm==='callao' ? (ss.tipo||'') : (ss.tienda||''), registrado: ss.registrado, inicio: ss.inicio, fin: ss.fin||'-', responsable: ss.registrado, id: ss.id }); } }); }); if(filas.length===0) return ''; let out = '<div class="mt-3">'; out += '<div class="fw-semibold mb-1">Conteos por almacén/tienda</div>'; out += '<div class="table-responsive"><table class="table table-sm align-middle"><thead><tr><th>Almacén</th><th>N° Inventario</th><th>Tipo/Tienda</th><th>Registrado</th><th>Inicio</th><th>Fin</th><th>Responsable</th><th>Conteo</th></tr></thead><tbody>'; filas.forEach(row=>{ const btns = `<div class=\"btn-group btn-group-sm\"><button class=\"btn btn-outline-primary\" title=\"Ver conteo\" onclick=\"openRegistroDetalle('${row.almacen.toLowerCase()}','${row.id}','conteo_detalle')\"><i class=\"bi bi-eye\"></i></button><button class=\"btn btn-outline-dark\" title=\"PDF conteo\" onclick=\"regdetExportPDF('${row.almacen.toLowerCase()}','${row.id}','conteo')\"><i class=\"bi bi-file-earmark-pdf\"></i></button></div>`; out += `<tr><td>${row.almacen}</td><td>${row.numero}</td><td>${row.tipoTienda||'-'}</td><td>${row.registrado}</td><td>${row.inicio}</td><td>${row.fin}</td><td>${row.responsable}</td><td>${btns}</td></tr>`; }); out += '</tbody></table></div></div>'; return out; }
   if(tipo==='consolidado'){
-    // Construir el contenido visible de 3 columnas dentro del modal
-    const mapSCallao = buildMapaSistema('callao');
-    const mapSMalvinas = buildMapaSistema('malvinas');
-    const mapFCallao = buildMapaFisico('callao');
-    const mapFMalvinas = buildMapaFisico('malvinas');
-    const allCodes = new Set([ ...mapSCallao.keys(), ...mapSMalvinas.keys(), ...mapFCallao.keys(), ...mapFMalvinas.keys() ]);
-    const cmpOrder = (AppState.comparacion && Array.isArray(AppState.comparacion.filas)) ? AppState.comparacion.filas.map(f=>f.codigo) : [];
-    const cmpSet = new Set(cmpOrder);
-    const remaining = Array.from(allCodes).filter(c=> !cmpSet.has(c)).sort((a,b)=> a.toString().localeCompare(b.toString()));
-    const listaCodigos = [...cmpOrder.filter(c=> allCodes.has(c)), ...remaining];
+    // Cargar datos desde APIs (async)
     bodyHTML = `
       <div id="regdet-cons-wrap">
         <div class="row g-3" style="margin:0; padding:6px 2px 2px 2px">
           <div class="col-12 col-lg-4">
             <div class="cons-head cons-blue">Inventario Callao</div>
-            <div class="table-responsive"><table class="table consolidado-table" id="md-cons-callao"><thead><tr><th>Item</th><th class="cons-col-sis">Sistema</th><th class="cons-col-fis">Físico</th><th class="cons-col-dif">Diferencia</th></tr></thead><tbody></tbody></table></div>
+            <div class="table-responsive"><table class="table consolidado-table" id="md-cons-callao"><thead><tr><th>Item</th><th class="cons-col-sis">Sistema</th><th class="cons-col-fis">Físico</th><th class="cons-col-dif">Diferencia</th></tr></thead><tbody><tr><td colspan="4" class="text-center">Cargando...</td></tr></tbody></table></div>
           </div>
           <div class="col-12 col-lg-4">
             <div class="cons-head cons-yellow">Inventario Malvinas</div>
-            <div class="table-responsive"><table class="table consolidado-table" id="md-cons-malvinas"><thead><tr><th>Producto</th><th class="cons-col-sis">Sistema</th><th class="cons-col-fis">Físico</th><th class="cons-col-dif">Diferencia</th></tr></thead><tbody></tbody></table></div>
+            <div class="table-responsive"><table class="table consolidado-table" id="md-cons-malvinas"><thead><tr><th>Producto</th><th class="cons-col-sis">Sistema</th><th class="cons-col-fis">Físico</th><th class="cons-col-dif">Diferencia</th></tr></thead><tbody><tr><td colspan="4" class="text-center">Cargando...</td></tr></tbody></table></div>
           </div>
           <div class="col-12 col-lg-4">
             <div class="cons-head cons-green">Conteo general</div>
-            <div class="table-responsive"><table class="table consolidado-table" id="md-cons-general"><thead><tr><th>Total Sistema</th><th>Total Físico</th><th>Diferencia</th><th>Resultado</th></tr></thead><tbody></tbody></table></div>
+            <div class="table-responsive"><table class="table consolidado-table" id="md-cons-general"><thead><tr><th>Total Sistema</th><th>Total Físico</th><th>Diferencia</th><th>Resultado</th></tr></thead><tbody><tr><td colspan="4" class="text-center">Cargando...</td></tr></tbody></table></div>
           </div>
         </div>
       </div>`;
     document.getElementById('regdet-title').textContent = `Consolidado de Inventarios`;
     const head = document.getElementById('regdet-head'); if(head){ head.innerHTML = headerHTML; }
     document.getElementById('regdet-body').innerHTML = `${bodyHTML}`;
-    // Pintar tablas visibles
-    try{
-      pintarCons('callao','md-cons-callao',null,null,null,true, listaCodigos);
-      pintarCons('malvinas','md-cons-malvinas',null,null,null,false, listaCodigos);
-      const tbG = document.getElementById('md-cons-general')?.querySelector('tbody'); if(tbG){ tbG.innerHTML=''; }
-      listaCodigos.forEach(c=>{
-        const sTot=(mapSCallao.get(c)?.sis||0)+(mapSMalvinas.get(c)?.sis||0);
-        const fTot=(mapFCallao.get(c)?.fis||0)+(mapFMalvinas.get(c)?.fis||0);
-        const dif=fTot - sTot; const cls = dif===0 ? 'text-bg-success' : (dif>0 ? 'text-bg-warning' : 'text-bg-danger'); const difTxt = dif>0?`+${dif}`:`${dif}`;
-        if(tbG){ const tr=document.createElement('tr'); tr.innerHTML=`<td>${sTot}</td><td>${fTot}</td><td class="cons-col-dif"><span class="badge ${cls}">${difTxt}</span></td><td><span class="badge ${cls}">${dif===0?'CONFORME':(dif>0?'SOBRANTE':'FALTANTE')}</span></td>`; tbG.appendChild(tr); }
-      });
-      padConsolidadoRows('md-cons-callao','md-cons-malvinas','md-cons-general');
-      // Captura para exportación actual (PDF) sin bloquear UI
-      const live=document.getElementById('regdet-cons-wrap');
-      if(window.html2canvas && live){ html2canvas(live,{scale:2, backgroundColor:'#ffffff'}).then(cv=>{ regdetCtx.imgDataUrl = cv.toDataURL('image/png'); }).catch(()=>{ regdetCtx.imgDataUrl=null; }); }
-    }catch{}
     openModal('#modalRegDetalle');
+    
+    // Cargar y pintar datos desde APIs
+    (async function(){
+      try{
+        const [mapSCallao, mapSMalvinas, mapFCallao, mapFMalvinas] = await Promise.all([
+          cargarStockSistemaConsolidado('callao'),
+          cargarStockSistemaConsolidado('malvinas'),
+          cargarStockFisicoConsolidado('callao'),
+          cargarStockFisicoConsolidado('malvinas')
+        ]);
+        
+        const allCodes = new Set([ ...mapSCallao.keys(), ...mapSMalvinas.keys(), ...mapFCallao.keys(), ...mapFMalvinas.keys() ]);
+        const cmpOrder = (AppState.comparacion && Array.isArray(AppState.comparacion.filas)) ? AppState.comparacion.filas.map(f=>f.codigo) : [];
+        const cmpSet = new Set(cmpOrder);
+        const remaining = Array.from(allCodes).filter(c=> !cmpSet.has(c)).sort((a,b)=> a.toString().localeCompare(b.toString()));
+        const listaCodigos = [...cmpOrder.filter(c=> allCodes.has(c)), ...remaining];
+        
+        pintarConsConMapas('callao','md-cons-callao', mapSCallao, mapFCallao, true, listaCodigos);
+        pintarConsConMapas('malvinas','md-cons-malvinas', mapSMalvinas, mapFMalvinas, false, listaCodigos);
+        
+        const tbG = document.getElementById('md-cons-general')?.querySelector('tbody'); 
+        if(tbG){ 
+          tbG.innerHTML=''; 
+          let totalSistemaModal = 0;
+          let totalFisicoModal = 0;
+          
+          listaCodigos.forEach(c=>{
+            const sTot=(mapSCallao.get(c)?.sis||0)+(mapSMalvinas.get(c)?.sis||0);
+            const fTot=(mapFCallao.get(c)?.fis||0)+(mapFMalvinas.get(c)?.fis||0);
+            totalSistemaModal += sTot;
+            totalFisicoModal += fTot;
+            const dif=fTot - sTot; 
+            const cls = dif===0 ? 'text-bg-success' : (dif>0 ? 'text-bg-warning' : 'text-bg-danger'); 
+            const difTxt = dif>0?`+${dif}`:`${dif}`;
+            const tr=document.createElement('tr'); 
+            tr.innerHTML=`<td>${sTot}</td><td>${fTot}</td><td class="cons-col-dif"><span class="badge ${cls}">${difTxt}</span></td><td><span class="badge ${cls}">${dif===0?'CONFORME':(dif>0?'SOBRANTE':'FALTANTE')}</span></td>`; 
+            tbG.appendChild(tr); 
+          });
+          
+          // Agregar fila de totales generales en el modal
+          const difGeneralModal = totalFisicoModal - totalSistemaModal;
+          const resGeneralModal = difGeneralModal===0 ? 'CONFORME' : (difGeneralModal>0 ? 'SOBRANTE' : 'FALTANTE');
+          const clsGeneralModal = difGeneralModal===0 ? 'text-bg-success' : (difGeneralModal>0 ? 'text-bg-warning' : 'text-bg-danger');
+          const difTxtGeneralModal = difGeneralModal>0 ? `+${difGeneralModal}` : `${difGeneralModal}`;
+          const trTotalModal = document.createElement('tr');
+          trTotalModal.className = 'table-active fw-bold';
+          trTotalModal.innerHTML = `<td><strong>${totalSistemaModal}</strong></td><td><strong>${totalFisicoModal}</strong></td><td class="cons-col-dif"><span class="badge ${clsGeneralModal}">${difTxtGeneralModal}</span></td><td><span class="badge ${clsGeneralModal}">${resGeneralModal}</span></td>`;
+          tbG.appendChild(trTotalModal);
+        }
+        
+        padConsolidadoRows('md-cons-callao','md-cons-malvinas','md-cons-general');
+        
+        // Captura para exportación actual (PDF) sin bloquear UI
+        const live=document.getElementById('regdet-cons-wrap');
+        if(window.html2canvas && live){ html2canvas(live,{scale:2, backgroundColor:'#ffffff'}).then(cv=>{ regdetCtx.imgDataUrl = cv.toDataURL('image/png'); }).catch(()=>{ regdetCtx.imgDataUrl=null; }); }
+      }catch(err){
+        console.error('Error cargando consolidado en modal:', err);
+        const tbCallao = document.getElementById('md-cons-callao')?.querySelector('tbody');
+        const tbMalvinas = document.getElementById('md-cons-malvinas')?.querySelector('tbody');
+        const tbGeneral = document.getElementById('md-cons-general')?.querySelector('tbody');
+        if(tbCallao) tbCallao.innerHTML = '<tr><td colspan="4" class="text-center text-danger">Error al cargar</td></tr>';
+        if(tbMalvinas) tbMalvinas.innerHTML = '<tr><td colspan="4" class="text-center text-danger">Error al cargar</td></tr>';
+        if(tbGeneral) tbGeneral.innerHTML = '<tr><td colspan="4" class="text-center text-danger">Error al cargar</td></tr>';
+      }
+    })();
+    
     return; // evitar que caiga a otros bloques y dispare vistas/acciones adicionales
   } else if(tipo==='conteo'){
     // Mostrar solo el listado de conteos por almacén/tienda
@@ -3935,8 +4191,102 @@ function openRegistroCarpeta(numero){
   const debeMostrar = filas.some(r=> r.classList.contains('d-none'));
   filas.forEach(r=> r.classList.toggle('d-none', !debeMostrar));
 }
-function regdetExportPDF(almacen, sesionId, tipo){ const s=(AppState.sesiones[almacen]||[]).find(x=>x.id===sesionId); if(!s){ alert('Sesión no encontrada'); return; } const { jsPDF } = window.jspdf; const doc=new jsPDF({unit:'pt', format:'a4'}); doc.setFontSize(14); doc.text(`Consolidado de Inventarios`, 40, 40); doc.setFontSize(10); doc.text(`Registrado: ${s.registrado}   Inicio: ${s.inicio}   Fin: ${s.fin||''}`, 40, 56); let head=[], body=[]; if(tipo==='consolidado' || tipo==='conteo'){ head=[["Item","Producto","Código","UM","Cantidad","Almacén","Tienda"]]; body=(s.filas||[]).map(f=>[f.item, f.producto, f.codigo, f.unidad_medida||'', String(f.cantidad||0), almacen.toUpperCase(), (s.tienda||'')]); } else if(tipo==='verificaciones'){ head=[["Código","Producto","Compras","Ventas","Exist","Sis","Fis","Resultado"]]; body=(s.filas||[]).filter(f=> !!(AppState.verificacion?.[f.codigo])).map(f=>{ const v=AppState.verificacion[f.codigo]||{}; const r=v.resumen||{}; return [f.codigo, f.producto, String(r.compras_tot||0), String(r.ventas_tot||0), String(r.exist||0), String(r.stock_sis||0), String(r.stock_fis||0), String(r.resultado||'')]; }); if(body.length===0){ alert('No hay verificaciones guardadas para esta sesión.'); return; } } else if(tipo==='proformas'){ const list=(AppState.proformas||[]).filter(p=> String(p.invNumero||'')===String(s.numero)); head=[["#","Almacén","Fecha","Asesor","Registrado","N° Proforma","Estado"]]; body=list.map((p,i)=> [String(i+1), (p.almacen||'').toUpperCase(), p.fecha, p.asesor, p.registrado, p.num, p.estado]); } else if(tipo==='acciones'){ head=[["#","Fecha","Registrado","Motivo","Cantidad","Error de","Observaciones"]]; body=(AppState.acciones||[]).map((a,i)=> { const cant = (a.motivo && a.motivo.toUpperCase().includes('COMPRA')) || (a.motivo && a.motivo.toUpperCase().includes('VENTA')) ? (a.cantidad||'-') : '-'; return [String(i+1), a.fecha, a.registrado, a.motivo, String(cant), a.errorDe||'', a.obs||'']; }); }
-  if(tipo==='consolidado'){ try{ const mapSCallao = buildMapaSistema('callao'); const mapSMalvinas = buildMapaSistema('malvinas'); const mapFCallao = buildMapaFisico('callao'); const mapFMalvinas = buildMapaFisico('malvinas'); const allCodes = new Set([ ...mapSCallao.keys(), ...mapSMalvinas.keys(), ...mapFCallao.keys(), ...mapFMalvinas.keys() ]); const cmpOrder = (AppState.comparacion && Array.isArray(AppState.comparacion.filas)) ? AppState.comparacion.filas.map(f=>f.codigo) : []; const cmpSet=new Set(cmpOrder); const remaining=Array.from(allCodes).filter(c=>!cmpSet.has(c)).sort((a,b)=> a.toString().localeCompare(b.toString())); const listaCodigos=[...cmpOrder.filter(c=>allCodes.has(c)), ...remaining]; const off=document.createElement('div'); off.style.position='fixed'; off.style.left='-99999px'; off.style.top='0'; off.style.width='1200px'; off.style.background='#fff'; off.innerHTML = `<div class="row g-2" style="margin:0; padding:12px"><div class="col-4"><div class="fw-semibold mb-1">Inventario Callao</div><div class="table-responsive"><table class="table consolidado-table" id="shot2-cons-callao"><thead><tr><th>Item</th><th>Producto</th><th class="cons-col-sis">Sistema</th><th class="cons-col-fis">Físico</th><th class="cons-col-dif">Diferencia</th></tr></thead><tbody></tbody></table></div></div><div class="col-4"><div class="fw-semibold mb-1">Inventario Malvinas</div><div class="table-responsive"><table class="table consolidado-table" id="shot2-cons-malvinas"><thead><tr><th>Producto</th><th class="cons-col-sis">Sistema</th><th class="cons-col-fis">Físico</th><th class="cons-col-dif">Diferencia</th></tr></thead><tbody></tbody></table></div></div><div class="col-4"><div class="fw-semibold mb-1">Conteo general</div><div class="table-responsive"><table class="table consolidado-table" id="shot2-cons-general"><thead><tr><th>Total Sistema</th><th>Total Físico</th><th>Diferencia</th><th>Resultado</th></tr></thead><tbody></tbody></table></div></div></div>`; document.body.appendChild(off); pintarCons('callao','shot2-cons-callao',null,null,null,true, listaCodigos); pintarCons('malvinas','shot2-cons-malvinas',null,null,null,false, listaCodigos); const tbG = document.getElementById('shot2-cons-general')?.querySelector('tbody'); if(tbG){ tbG.innerHTML=''; } listaCodigos.forEach(c=>{ const sTot=(mapSCallao.get(c)?.sis||0)+(mapSMalvinas.get(c)?.sis||0); const fTot=(mapFCallao.get(c)?.fis||0)+(mapFMalvinas.get(c)?.fis||0); const dif=fTot - sTot; const cls = dif===0 ? 'text-bg-success' : (dif>0 ? 'text-bg-warning' : 'text-bg-danger'); const difTxt = dif>0?`+${dif}`:`${dif}`; if(tbG){ const tr=document.createElement('tr'); tr.innerHTML=`<td>${sTot}</td><td>${fTot}</td><td class=\"cons-col-dif\"><span class=\"badge ${cls}\">${difTxt}</span></td><td><span class=\"badge ${cls}\">${dif===0?'CONFORME':(dif>0?'SOBRANTE':'FALTANTE')}</span></td>`; tbG.appendChild(tr); } }); try{ syncConsolidadoRowHeights && syncConsolidadoRowHeights('shot2-cons-callao','shot2-cons-malvinas','shot2-cons-general'); }catch{} html2canvas(off, { scale:2, backgroundColor:'#ffffff' }).then(cv=>{ const pageW = doc.internal.pageSize.getWidth(); const pageH = doc.internal.pageSize.getHeight(); const marginL = 40, marginT = 72, marginB = 40; const availH = pageH - marginT - marginB; const scale = (pageW - marginL*2) / cv.width; const sliceH = Math.floor(availH / scale); let y = 0; let first=true; while(y < cv.height){ const h = Math.min(sliceH, cv.height - y); const c2 = document.createElement('canvas'); c2.width = cv.width; c2.height = h; const ctx2 = c2.getContext('2d'); ctx2.drawImage(cv, 0, y, cv.width, h, 0, 0, cv.width, h); const img = c2.toDataURL('image/png'); const imgW = (pageW - marginL*2); const imgH = h * scale; if(!first) doc.addPage(); doc.addImage(img, 'PNG', marginL, marginT, imgW, imgH); first=false; y += h; } doc.save(`${tipo}_${almacen}_${s.numero}.pdf`); document.body.removeChild(off); }).catch(()=>{ document.body.removeChild(off); }); return; }catch(e){ /* fallback */ } }
+async function regdetExportPDF(almacen, sesionId, tipo){ const s=(AppState.sesiones[almacen]||[]).find(x=>x.id===sesionId); if(!s){ alert('Sesión no encontrada'); return; } const { jsPDF } = window.jspdf; const doc=new jsPDF({unit:'pt', format:'a4'}); doc.setFontSize(14); doc.text(`Consolidado de Inventarios`, 40, 40); doc.setFontSize(10); doc.text(`Registrado: ${s.registrado}   Inicio: ${s.inicio}   Fin: ${s.fin||''}`, 40, 56); let head=[], body=[]; if(tipo==='consolidado' || tipo==='conteo'){ head=[["Item","Producto","Código","UM","Cantidad","Almacén","Tienda"]]; body=(s.filas||[]).map(f=>[f.item, f.producto, f.codigo, f.unidad_medida||'', String(f.cantidad||0), almacen.toUpperCase(), (s.tienda||'')]); } else if(tipo==='verificaciones'){ head=[["Código","Producto","Compras","Ventas","Exist","Sis","Fis","Resultado"]]; body=(s.filas||[]).filter(f=> !!(AppState.verificacion?.[f.codigo])).map(f=>{ const v=AppState.verificacion[f.codigo]||{}; const r=v.resumen||{}; return [f.codigo, f.producto, String(r.compras_tot||0), String(r.ventas_tot||0), String(r.exist||0), String(r.stock_sis||0), String(r.stock_fis||0), String(r.resultado||'')]; }); if(body.length===0){ alert('No hay verificaciones guardadas para esta sesión.'); return; } } else if(tipo==='proformas'){ const list=(AppState.proformas||[]).filter(p=> String(p.invNumero||'')===String(s.numero)); head=[["#","Almacén","Fecha","Asesor","Registrado","N° Proforma","Estado"]]; body=list.map((p,i)=> [String(i+1), (p.almacen||'').toUpperCase(), p.fecha, p.asesor, p.registrado, p.num, p.estado]); } else if(tipo==='acciones'){ head=[["#","Fecha","Registrado","Motivo","Cantidad","Error de","Observaciones"]]; body=(AppState.acciones||[]).map((a,i)=> { const cant = (a.motivo && a.motivo.toUpperCase().includes('COMPRA')) || (a.motivo && a.motivo.toUpperCase().includes('VENTA')) ? (a.cantidad||'-') : '-'; return [String(i+1), a.fecha, a.registrado, a.motivo, String(cant), a.errorDe||'', a.obs||'']; }); }
+  if(tipo==='consolidado'){ 
+    try{ 
+      // Cargar datos desde APIs
+      const [mapSCallao, mapSMalvinas, mapFCallao, mapFMalvinas] = await Promise.all([
+        cargarStockSistemaConsolidado('callao'),
+        cargarStockSistemaConsolidado('malvinas'),
+        cargarStockFisicoConsolidado('callao'),
+        cargarStockFisicoConsolidado('malvinas')
+      ]);
+      
+      const allCodes = new Set([ ...mapSCallao.keys(), ...mapSMalvinas.keys(), ...mapFCallao.keys(), ...mapFMalvinas.keys() ]); 
+      const cmpOrder = (AppState.comparacion && Array.isArray(AppState.comparacion.filas)) ? AppState.comparacion.filas.map(f=>f.codigo) : []; 
+      const cmpSet=new Set(cmpOrder); 
+      const remaining=Array.from(allCodes).filter(c=>!cmpSet.has(c)).sort((a,b)=> a.toString().localeCompare(b.toString())); 
+      const listaCodigos=[...cmpOrder.filter(c=>allCodes.has(c)), ...remaining]; 
+      
+      const off=document.createElement('div'); 
+      off.style.position='fixed'; 
+      off.style.left='-99999px'; 
+      off.style.top='0'; 
+      off.style.width='1200px'; 
+      off.style.background='#fff'; 
+      off.innerHTML = `<div class="row g-2" style="margin:0; padding:12px"><div class="col-4"><div class="fw-semibold mb-1">Inventario Callao</div><div class="table-responsive"><table class="table consolidado-table" id="shot2-cons-callao"><thead><tr><th>Item</th><th>Producto</th><th class="cons-col-sis">Sistema</th><th class="cons-col-fis">Físico</th><th class="cons-col-dif">Diferencia</th></tr></thead><tbody></tbody></table></div></div><div class="col-4"><div class="fw-semibold mb-1">Inventario Malvinas</div><div class="table-responsive"><table class="table consolidado-table" id="shot2-cons-malvinas"><thead><tr><th>Producto</th><th class="cons-col-sis">Sistema</th><th class="cons-col-fis">Físico</th><th class="cons-col-dif">Diferencia</th></tr></thead><tbody></tbody></table></div></div><div class="col-4"><div class="fw-semibold mb-1">Conteo general</div><div class="table-responsive"><table class="table consolidado-table" id="shot2-cons-general"><thead><tr><th>Total Sistema</th><th>Total Físico</th><th>Diferencia</th><th>Resultado</th></tr></thead><tbody></tbody></table></div></div></div>`; 
+      document.body.appendChild(off); 
+      
+      pintarConsConMapas('callao','shot2-cons-callao', mapSCallao, mapFCallao, true, listaCodigos); 
+      pintarConsConMapas('malvinas','shot2-cons-malvinas', mapSMalvinas, mapFMalvinas, false, listaCodigos); 
+      
+      const tbG = document.getElementById('shot2-cons-general')?.querySelector('tbody'); 
+      if(tbG){ 
+        tbG.innerHTML=''; 
+        let totalSistemaPDF = 0;
+        let totalFisicoPDF = 0;
+        
+        listaCodigos.forEach(c=>{ 
+          const sTot=(mapSCallao.get(c)?.sis||0)+(mapSMalvinas.get(c)?.sis||0); 
+          const fTot=(mapFCallao.get(c)?.fis||0)+(mapFMalvinas.get(c)?.fis||0); 
+          totalSistemaPDF += sTot;
+          totalFisicoPDF += fTot;
+          const dif=fTot - sTot; 
+          const cls = dif===0 ? 'text-bg-success' : (dif>0 ? 'text-bg-warning' : 'text-bg-danger'); 
+          const difTxt = dif>0?`+${dif}`:`${dif}`; 
+          const tr=document.createElement('tr'); 
+          tr.innerHTML=`<td>${sTot}</td><td>${fTot}</td><td class=\"cons-col-dif\"><span class=\"badge ${cls}\">${difTxt}</span></td><td><span class=\"badge ${cls}\">${dif===0?'CONFORME':(dif>0?'SOBRANTE':'FALTANTE')}</span></td>`; 
+          tbG.appendChild(tr); 
+        }); 
+        
+        // Agregar fila de totales generales en el PDF
+        const difGeneralPDF = totalFisicoPDF - totalSistemaPDF;
+        const resGeneralPDF = difGeneralPDF===0 ? 'CONFORME' : (difGeneralPDF>0 ? 'SOBRANTE' : 'FALTANTE');
+        const clsGeneralPDF = difGeneralPDF===0 ? 'text-bg-success' : (difGeneralPDF>0 ? 'text-bg-warning' : 'text-bg-danger');
+        const difTxtGeneralPDF = difGeneralPDF>0 ? `+${difGeneralPDF}` : `${difGeneralPDF}`;
+        const trTotalPDF = document.createElement('tr');
+        trTotalPDF.className = 'table-active fw-bold';
+        trTotalPDF.innerHTML = `<td><strong>${totalSistemaPDF}</strong></td><td><strong>${totalFisicoPDF}</strong></td><td class=\"cons-col-dif\"><span class=\"badge ${clsGeneralPDF}\">${difTxtGeneralPDF}</span></td><td><span class=\"badge ${clsGeneralPDF}\">${resGeneralPDF}</span></td>`;
+        tbG.appendChild(trTotalPDF);
+      } 
+      
+      try{ syncConsolidadoRowHeights && syncConsolidadoRowHeights('shot2-cons-callao','shot2-cons-malvinas','shot2-cons-general'); }catch{} 
+      
+      html2canvas(off, { scale:2, backgroundColor:'#ffffff' }).then(cv=>{ 
+        const pageW = doc.internal.pageSize.getWidth(); 
+        const pageH = doc.internal.pageSize.getHeight(); 
+        const marginL = 40, marginT = 72, marginB = 40; 
+        const availH = pageH - marginT - marginB; 
+        const scale = (pageW - marginL*2) / cv.width; 
+        const sliceH = Math.floor(availH / scale); 
+        let y = 0; 
+        let first=true; 
+        while(y < cv.height){ 
+          const h = Math.min(sliceH, cv.height - y); 
+          const c2 = document.createElement('canvas'); 
+          c2.width = cv.width; 
+          c2.height = h; 
+          const ctx2 = c2.getContext('2d'); 
+          ctx2.drawImage(cv, 0, y, cv.width, h, 0, 0, cv.width, h); 
+          const img = c2.toDataURL('image/png'); 
+          const imgW = (pageW - marginL*2); 
+          const imgH = h * scale; 
+          if(!first) doc.addPage(); 
+          doc.addImage(img, 'PNG', marginL, marginT, imgW, imgH); 
+          first=false; 
+          y += h; 
+        } 
+        doc.save(`${tipo}_${almacen}_${s.numero}.pdf`); 
+        document.body.removeChild(off); 
+      }).catch(()=>{ 
+        document.body.removeChild(off); 
+      }); 
+      return; 
+    }catch(e){ 
+      console.error('Error exportando consolidado:', e);
+      alert('Error al exportar consolidado: ' + e.message);
+    } 
+  }
   doc.autoTable({ startY: 72, head, body }); doc.save(`${tipo}_${almacen}_${s.numero}.pdf`); }
 function regdetExportPDFCurrent(){ if(!regdetCtx || !regdetCtx.almacen) return; if(regdetCtx.tipo==='consolidado'){ try{ const { jsPDF } = window.jspdf; const doc = new jsPDF({unit:'pt', format:'a4'}); doc.setFontSize(14); doc.text(`${regdetCtx.tipo.toUpperCase()} — ${regdetCtx.almacen.toUpperCase()}`, 40, 40); const img = regdetCtx.imgDataUrl; if(!img){ alert('Vista no lista para exportar. Vuelve a abrir el consolidado.'); return; } const imgTmp = new Image(); imgTmp.onload = function(){ const pageWidth = 595 - 80; const imgW = pageWidth; const imgH = imgTmp.height * (imgW / imgTmp.width); doc.addImage(img, 'PNG', 40, 56, imgW, imgH); doc.save(`consolidado_${regdetCtx.almacen}.pdf`); }; imgTmp.src = img; }catch(e){ alert('No se pudo generar el PDF del consolidado'); } return; } regdetExportPDF(regdetCtx.almacen, regdetCtx.sesionId, regdetCtx.tipo); }
 function regExportPDF(){ const { jsPDF } = window.jspdf; const doc=new jsPDF({unit:'pt', format:'a4'}); doc.setFontSize(14); doc.text('Registro de Inventarios', 40, 40); const rows=[]; (AppState.sesiones.callao||[]).forEach(s=> rows.push(['CALLAO', s.numero, s.tipo||'-', s.registrado, s.inicio, s.fin||'-'])); (AppState.sesiones.malvinas||[]).forEach(s=> rows.push(['MALVINAS', s.numero, s.tienda||'-', s.registrado, s.inicio, s.fin||'-'])); doc.autoTable({startY:60, head:[["Almacén","N° Inventario","Tipo/Tienda","Registrado","Inicio","Fin"]], body: rows}); doc.save('registro.pdf'); }
@@ -4074,6 +4424,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     $('filtro-list-callao')?.addEventListener('input', ()=>renderListado('callao'));
     $('filtro-list-malvinas')?.addEventListener('input', ()=>renderListado('malvinas'));
+    
+    // Event listener para el modal del sistema Excel - asegurar limpieza completa al cerrar
+    const modalSistemaExcel = document.getElementById('modalSistemaExcel');
+    if (modalSistemaExcel) {
+      // Si Bootstrap está disponible, escuchar eventos de Bootstrap
+      if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+        modalSistemaExcel.addEventListener('hidden.bs.modal', function () {
+          cerrarModalCompletamente();
+        });
+      }
+      
+      // También escuchar clics fuera del modal (backdrop)
+      modalSistemaExcel.addEventListener('click', function(e) {
+        if (e.target === modalSistemaExcel) {
+          cerrarModalCompletamente();
+        }
+      });
+    }
 
     // Cargar productos desde API al iniciar
     cargarProductosDesdeAPI();
