@@ -661,15 +661,13 @@
         <header class="view-header">
             <h1><i class="bi bi-arrow-left-right"></i>Comparación de Inventario</h1>
             <div class="header-actions">
-                <label class="btn btn-primary-soft mb-0">
+                <button class="btn btn-primary-soft mb-0" onclick="abrirModalSistemaExcel('callao')">
                     <i class="bi bi-upload"></i> Subir Sistema Callao
-                    <input type="file" accept=".json,.csv,.xlsx,.xls" class="d-none" onchange="cargarSistema(event,'callao')">
-                </label>
+                </button>
                 <button id="btn-alm-callao" class="btn btn-primary" onclick="cargarYComparar('callao')"><i class="bi bi-building"></i> Almacén Callao</button>
-                <label class="btn btn-primary-soft mb-0 ms-2">
+                <button class="btn btn-primary-soft mb-0 ms-2" onclick="abrirModalSistemaExcel('malvinas')">
                     <i class="bi bi-upload"></i> Subir Sistema Malvinas
-                    <input type="file" accept=".json,.csv,.xlsx,.xls" class="d-none" onchange="cargarSistema(event,'malvinas')">
-                </label>
+                </button>
                 <button id="btn-alm-malvinas" class="btn btn-primary" onclick="cargarYComparar('malvinas')"><i class="bi bi-shop"></i> Almacén Malvinas</button>
             </div>
         </header>
@@ -1083,6 +1081,30 @@
 <div class="modal fade" id="modalObs" tabindex="-1"><div class="modal-dialog modal-md"><div class="modal-content"><div class="modal-header"><h6 class="modal-title"><i class="bi bi-eye"></i> Observaciones</h6><button class="btn-close" onclick="closeModal('#modalObs')"></button></div><div class="modal-body"><div id="obs-contenido" class="text-secondary"></div></div></div></div></div>
 <div class="modal fade" id="modalVerificacion" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header"><h6 class="modal-title"><i class="bi bi-check2-square"></i> Editar Verificación</h6><button class="btn-close" onclick="closeModal('#modalVerificacion')"></button></div><div class="modal-body"><input type="hidden" id="verif-rowkey"><div class="row g-3"><div class="col-12"><div class="blk"><div class="blk-header blk-blue">Compras y Ventas</div><div class="blk-body"><div class="row g-3"><div class="col-6"><div class="subttl">Compras</div><div class="row g-2"><div class="col-6"><div class="form-floating"><input id="v-c-fecha-ing" type="date" class="form-control" placeholder="Fecha ingreso"><label>Fecha ingreso inventario</label></div></div><div class="col-6"><div class="form-floating"><input id="v-c-hora-ing" type="time" class="form-control" placeholder="Hora ingreso"><label>Hora ingreso</label></div></div><div class="col-12"><div class="form-floating"><input id="v-c-num-acta" class="form-control" placeholder="Número de acta"><label>Número de acta</label></div></div><div class="col-6"><div class="form-floating"><input id="v-c-fecha-desc" type="date" class="form-control" placeholder="Fecha descarga inventario"><label>Fecha descarga inventario</label></div></div><div class="col-6"><div class="form-floating"><input id="v-c-hora-desc" type="time" class="form-control" placeholder="Hora descarga inventario"><label>Hora descarga inventario</label></div></div></div></div><div class="col-6"><div class="subttl">Ventas</div><div class="row g-2"><div class="col-6"><div class="form-floating"><input id="v-v-fecha-desc-ventas" type="date" class="form-control" placeholder="Fecha descarga ventas"><label>Fecha descarga ventas</label></div></div><div class="col-6"><div class="form-floating"><input id="v-v-hora-desc-ventas" type="time" class="form-control" placeholder="Hora descarga ventas"><label>Hora descarga ventas</label></div></div><div class="col-6"><div class="form-floating"><input id="v-v-fecha-desc-sis" type="date" class="form-control" placeholder="Fecha descarga sistema"><label>Fecha descarga sistema</label></div></div><div class="col-6"><div class="form-floating"><input id="v-v-hora-desc-sis" type="time" class="form-control" placeholder="Hora descarga sistema"><label>Hora descarga sistema</label></div></div></div></div></div></div></div><div class="col-12"><div class="blk"><div class="blk-header blk-amber">Resultado general</div><div class="blk-body"><div class="row g-2"><div class="col-md-4"><div class="form-floating"><input id="v-res-compras" type="number" class="form-control" placeholder="Compras Totales" oninput="recalcularVerificacion()"><label>Compras Totales</label></div></div><div class="col-md-4"><div class="form-floating"><input id="v-res-ventas" type="number" class="form-control" placeholder="Ventas Totales" oninput="recalcularVerificacion()"><label>Ventas Totales</label></div></div><div class="col-md-4"><div class="form-floating"><input id="v-res-exist" type="number" class="form-control" placeholder="Stock de Existencias" disabled><label>Stock de Existencias</label></div></div></div></div></div><div class="col-12"><div class="blk"><div class="blk-header blk-green">Resultado de verificación</div><div class="blk-body"><div class="row g-2"><div class="col-md-4"><div class="form-floating"><input id="v-stock-fis" type="number" class="form-control" placeholder="Stock Físico" disabled><label>Stock Físico</label></div></div><div class="col-md-4"><div class="form-floating"><input id="v-stock-sis" type="number" class="form-control" placeholder="Stock Sistema" disabled><label>Stock Sistema</label></div></div><div class="col-md-4 d-flex align-items-center"><div id="v-resultado" class="w-100 text-center fw-semibold"></div></div></div></div></div></div></div><div class="modal-footer"><button class="btn btn-outline-primary" onclick="pdfVerificacion()"><i class="bi bi-file-earmark-pdf"></i> Descargar reporte en PDF</button><span id="verif-fecha-guardado" class="badge text-bg-secondary ms-2">Sin guardar</span><button class="btn btn-secondary" onclick="closeModal('#modalVerificacion')">Cerrar</button><button class="btn btn-primary zs-btn" onclick="guardarVerificacion()"><i class="bi bi-save2"></i> Guardar</button></div></div></div></div>
 <div class="modal fade" id="modalOtroNombre" tabindex="-1"><div class="modal-dialog modal-sm"><div class="modal-content"><div class="modal-header"><h6 class="modal-title"><i class="bi bi-person-plus"></i> Ingresar nombre</h6><button class="btn-close" onclick="closeModal('#modalOtroNombre')"></button></div><div class="modal-body"><div class="form-floating"><input id="otro-nombre-input" class="form-control" placeholder="Nombre"><label>Nombre</label></div><div class="mini-hint mt-2">Escribe el nombre y guarda.</div></div><div class="modal-footer"><button class="btn btn-secondary" onclick="cancelarOtroNombre()">Cancelar</button><button class="btn btn-primary zs-btn" onclick="guardarOtroNombre()"><i class="bi bi-check2"></i> Guardar</button></div></div></div></div>
+<div class="modal fade" id="modalSistemaExcel" tabindex="-1" aria-labelledby="modalSistemaExcelLabel" aria-hidden="true" role="dialog">
+  <div class="modal-dialog modal-md">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h6 class="modal-title" id="modalSistemaExcelLabel"><i class="bi bi-file-earmark-excel"></i> Sistema de Inventario - <span id="modal-sistema-almacen"></span></h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="closeModal('#modalSistemaExcel')"></button>
+      </div>
+      <div class="modal-body">
+        <div class="d-grid gap-2">
+          <button class="btn btn-primary" onclick="extraerConteosGuardados()">
+            <i class="bi bi-download"></i> Extraer Conteos Guardados
+          </button>
+          <button class="btn btn-success" onclick="abrirInputExcel()">
+            <i class="bi bi-upload"></i> Adjuntar Excel
+          </button>
+        </div>
+        <input type="file" id="input-excel-sistema" accept=".json,.csv,.xlsx,.xls" class="d-none" onchange="cargarSistema(event)">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="closeModal('#modalSistemaExcel')">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</div>
 <div id="modal-backdrop" class="modal-backdrop fade" style="display:none"></div>
 
 <script>
@@ -2947,7 +2969,343 @@ async function cargarYComparar(almacen) {
   }
 }
 
-function cargarSistema(e, almacen){ (async ()=>{ try{ const file=e.target.files[0]; const arr= await leerArchivoGenerico(file); AppState.sistema[almacen] = (arr||[]).map((r,i)=>{ const m={}; Object.keys(r).forEach(k=> m[normalizarClave(k)]=r[k]); const item = toNumberSafe(m.item ?? i+1) || (i+1); const producto = (m.producto ?? m.nombre ?? m.nombre_producto ?? m.descripcion ?? m.descripcion_producto ?? m.detalle ?? m.detalle_producto ?? m.desc) || ''; const codigo = (m.codigo ?? m.cod ?? m.code ?? m.sku ?? m.codigo_producto ?? m.codigo_interno ?? m.codigo_zeus ?? m.codigo_item ?? m.codigoitem ?? '').toString(); const cantidadSistema = toNumberSafe(m.cantidad_sistema ?? m.cantidad_sis ?? m.sistema ?? m.stock ?? m.cantidad ?? m.existencia ?? m.cantidadtotal ?? m.cantidad_total ?? m.qty ?? 0); return { item, producto, codigo, cantidad_sistema: cantidadSistema }; }).filter(x=> x.codigo); toast(`Archivo de sistema (${almacen}) cargado: ${AppState.sistema[almacen].length} filas.`,'success'); try{ const cnt = AppState.sistema[almacen].length; const targetBtn = almacen==='callao' ? document.getElementById('btn-alm-callao') : document.getElementById('btn-alm-malvinas'); if(targetBtn){ const ex = targetBtn.querySelector('.sys-count'); if(ex) ex.textContent = ` (${cnt})`; else { const s=document.createElement('span'); s.className='sys-count'; s.textContent=` (${cnt})`; targetBtn.appendChild(s); } targetBtn.classList.add('active-alm'); setTimeout(()=> targetBtn.classList.remove('active-alm'), 1200); } }catch{} }catch(err){ alert('Error al leer archivo del sistema: '+err.message); } })(); }
+// Variable global para almacenar el almacén seleccionado en el modal
+let almacenModalSistema = null;
+
+// Función para abrir el modal de sistema Excel
+function abrirModalSistemaExcel(almacen) {
+  console.log('abrirModalSistemaExcel llamado con almacen:', almacen);
+  almacenModalSistema = almacen;
+  const almacenNombre = almacen === 'callao' ? 'CALLAO' : 'MALVINAS';
+  
+  // Actualizar el nombre del almacén en el modal
+  const spanAlmacen = document.getElementById('modal-sistema-almacen');
+  if (spanAlmacen) {
+    spanAlmacen.textContent = almacenNombre;
+  }
+  
+  // Obtener el elemento modal
+  const modalEl = document.getElementById('modalSistemaExcel');
+  if (!modalEl) {
+    alert('Error: No se encontró el modal');
+    return;
+  }
+  
+  // Forzar mostrar el modal con todos los estilos necesarios
+  modalEl.style.display = 'block';
+  modalEl.style.position = 'fixed';
+  modalEl.style.top = '0';
+  modalEl.style.left = '0';
+  modalEl.style.width = '100%';
+  modalEl.style.height = '100%';
+  modalEl.style.zIndex = '1055';
+  modalEl.style.opacity = '1';
+  modalEl.style.visibility = 'visible';
+  modalEl.classList.add('show');
+  modalEl.setAttribute('aria-modal', 'true');
+  modalEl.setAttribute('aria-hidden', 'false');
+  
+  // Asegurar que el modal-dialog esté visible
+  const modalDialog = modalEl.querySelector('.modal-dialog');
+  if (modalDialog) {
+    modalDialog.style.position = 'relative';
+    modalDialog.style.zIndex = '1056';
+    modalDialog.style.margin = '1.75rem auto';
+    modalDialog.style.transform = 'none';
+    modalDialog.style.opacity = '1';
+  }
+  
+  // Asegurar que el modal-content esté visible
+  const modalContent = modalEl.querySelector('.modal-content');
+  if (modalContent) {
+    modalContent.style.position = 'relative';
+    modalContent.style.zIndex = '1057';
+    modalContent.style.opacity = '1';
+  }
+  
+  // Configurar body
+  document.body.classList.add('modal-open');
+  document.body.style.overflow = 'hidden';
+  document.body.style.paddingRight = '0px';
+  
+  // Crear o actualizar backdrop
+  let backdrop = document.querySelector('.modal-backdrop:not(#modal-backdrop)');
+  if (!backdrop) {
+    // Remover backdrop anterior si existe
+    const oldBackdrop = document.getElementById('modal-backdrop');
+    if (oldBackdrop) {
+      oldBackdrop.remove();
+    }
+    backdrop = document.createElement('div');
+    backdrop.className = 'modal-backdrop fade show';
+    backdrop.style.position = 'fixed';
+    backdrop.style.top = '0';
+    backdrop.style.left = '0';
+    backdrop.style.width = '100%';
+    backdrop.style.height = '100%';
+    backdrop.style.zIndex = '1050';
+    backdrop.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+    backdrop.style.opacity = '1';
+    document.body.appendChild(backdrop);
+  } else {
+    backdrop.style.display = 'block';
+    backdrop.classList.add('show');
+    backdrop.style.opacity = '1';
+  }
+  
+  console.log('Modal forzado a mostrarse');
+  
+  // Verificación: si el modal no queda visible (ancho/alto), usar overlay de emergencia
+  try {
+    const content = modalEl.querySelector('.modal-content');
+    const rect = content ? content.getBoundingClientRect() : { width: 0, height: 0 };
+    const visible = rect.width > 20 && rect.height > 20;
+    if (!visible) {
+      console.warn('Modal no visible; usando overlay de emergencia.');
+      abrirOverlayEmergenciaSistema(almacenNombre);
+    }
+  } catch (e) {
+    console.warn('No se pudo verificar visibilidad del modal. Usando overlay de emergencia.', e);
+    abrirOverlayEmergenciaSistema(almacenNombre);
+  }
+}
+
+// Función para abrir el input de Excel
+function abrirInputExcel() {
+  const input = document.getElementById('input-excel-sistema');
+  if (input) {
+    input.click();
+  }
+}
+
+// Overlay de emergencia si el modal no se muestra por conflicto de CSS
+function abrirOverlayEmergenciaSistema(almacenNombre){
+  if (document.getElementById('overlay-sistema-excel')) return;
+  const overlay = document.createElement('div');
+  overlay.id = 'overlay-sistema-excel';
+  overlay.style.position = 'fixed';
+  overlay.style.inset = '0';
+  overlay.style.zIndex = '200000';
+  overlay.style.background = 'rgba(0,0,0,.6)';
+  overlay.style.display = 'flex';
+  overlay.style.alignItems = 'center';
+  overlay.style.justifyContent = 'center';
+  overlay.innerHTML = '<div style="background:#fff; border-radius:16px; width:min(520px, 92vw); box-shadow:0 20px 60px rgba(0,0,0,.25); overflow:hidden;">'
+    + '<div style="display:flex; align-items:center; justify-content:space-between; padding:14px 16px; border-bottom:1px solid #e5e7eb;">'
+    +   '<div style="font-weight:800; letter-spacing:.3px; color:#0f172a;"><i class="bi bi-file-earmark-excel"></i> Sistema de Inventario - <span>'+almacenNombre+'</span></div>'
+    +   '<button type="button" aria-label="Close" style="border:none; background:transparent; font-size:20px;" onclick="cerrarOverlayEmergenciaSistema()">×</button>'
+    + '</div>'
+    + '<div style="padding:16px;">'
+    +   '<div class="d-grid gap-2">'
+    +     '<button class="btn btn-primary" onclick="cerrarOverlayEmergenciaSistema(); extraerConteosGuardados()"><i class="bi bi-download"></i> Extraer Conteos Guardados</button>'
+    +     '<button class="btn btn-success" onclick="cerrarOverlayEmergenciaSistema(); abrirInputExcel()"><i class="bi bi-upload"></i> Adjuntar Excel</button>'
+    +   '</div>'
+    + '</div>'
+    + '<div style="padding:12px 16px; border-top:1px solid #e5e7eb; text-align:right;">'
+    +   '<button class="btn btn-secondary" onclick="cerrarOverlayEmergenciaSistema()">Cancelar</button>'
+    + '</div>'
+  + '</div>';
+  document.body.appendChild(overlay);
+}
+function cerrarOverlayEmergenciaSistema(){ const el = document.getElementById('overlay-sistema-excel'); if (el) el.remove(); }
+
+// Función para extraer conteos guardados desde la API
+async function extraerConteosGuardados() {
+  if (!almacenModalSistema) {
+    alert('Error: No se ha seleccionado un almacén');
+    return;
+  }
+
+  if (!AppState.sesionActual?.inventarioId) {
+    alert('No hay inventario activo. Debe unirse a un inventario primero.');
+    closeModal('#modalSistemaExcel');
+    return;
+  }
+
+  try {
+    const api = "https://inventario-2946605267.us-central1.run.app";
+    const method = "stock_sistema_excel";
+    const idTipoAlmacen = almacenModalSistema === 'callao' ? '2' : '1'; // Callao = 2, Malvinas = 1
+    const id = `${AppState.sesionActual.inventarioId}-${idTipoAlmacen}`;
+    
+    console.log('Extrayendo conteos guardados desde API:', id);
+    
+    const response = await fetch(`${api}?method=${method}&id=${encodeURIComponent(id)}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    });
+
+    if (response.status !== 200) {
+      const errorText = await response.text();
+      throw new Error(`Error HTTP: ${response.status} - ${errorText}`);
+    }
+
+    const data = await response.json();
+    console.log('Datos extraídos desde API:', data);
+
+    if (!Array.isArray(data)) {
+      console.warn('API no devolvió un array:', data);
+      toast('No hay datos guardados para este inventario', 'info');
+      closeModal('#modalSistemaExcel');
+      return;
+    }
+
+    if (data.length === 0) {
+      toast('No hay conteos guardados para este inventario', 'info');
+      closeModal('#modalSistemaExcel');
+      return;
+    }
+
+    // Convertir datos de la API al formato esperado
+    AppState.sistema[almacenModalSistema] = data.map((item, index) => ({
+      item: index + 1,
+      producto: item.PRODUCTO || '',
+      codigo: item.CODIGO || '',
+      cantidad_sistema: Number(item.CANTIDAD) || 0
+    })).filter(x => x.codigo);
+
+    toast(`Conteos guardados cargados: ${AppState.sistema[almacenModalSistema].length} productos`, 'success');
+    
+    // Actualizar UI del botón
+    try {
+      const cnt = AppState.sistema[almacenModalSistema].length;
+      const targetBtn = almacenModalSistema === 'callao' ? document.getElementById('btn-alm-callao') : document.getElementById('btn-alm-malvinas');
+      if (targetBtn) {
+        const ex = targetBtn.querySelector('.sys-count');
+        if (ex) ex.textContent = ` (${cnt})`;
+        else {
+          const s = document.createElement('span');
+          s.className = 'sys-count';
+          s.textContent = ` (${cnt})`;
+          targetBtn.appendChild(s);
+        }
+        targetBtn.classList.add('active-alm');
+        setTimeout(() => targetBtn.classList.remove('active-alm'), 1200);
+      }
+    } catch (err) {
+      console.warn('Error actualizando UI:', err);
+    }
+
+    closeModal('#modalSistemaExcel');
+  } catch (error) {
+    console.error('Error extrayendo conteos guardados:', error);
+    alert('Error al extraer conteos guardados: ' + error.message);
+  }
+}
+
+// Función modificada para cargar sistema desde Excel y enviar a la API
+async function cargarSistema(e, almacen) {
+  if (!almacen) {
+    almacen = almacenModalSistema;
+  }
+  
+  if (!almacen) {
+    alert('Error: No se ha seleccionado un almacén');
+    return;
+  }
+
+  if (!AppState.sesionActual?.inventarioId) {
+    alert('No hay inventario activo. Debe unirse a un inventario primero.');
+    closeModal('#modalSistemaExcel');
+    return;
+  }
+
+  try {
+    const file = e.target.files[0];
+    if (!file) {
+      closeModal('#modalSistemaExcel');
+      return;
+    }
+
+    const arr = await leerArchivoGenerico(file);
+    
+    // Procesar datos del Excel
+    const datosProcesados = (arr || []).map((r, i) => {
+      const m = {};
+      Object.keys(r).forEach(k => m[normalizarClave(k)] = r[k]);
+      const item = toNumberSafe(m.item ?? i + 1) || (i + 1);
+      const producto = (m.producto ?? m.nombre ?? m.nombre_producto ?? m.descripcion ?? m.descripcion_producto ?? m.detalle ?? m.detalle_producto ?? m.desc) || '';
+      const codigo = (m.codigo ?? m.cod ?? m.code ?? m.sku ?? m.codigo_producto ?? m.codigo_interno ?? m.codigo_zeus ?? m.codigo_item ?? m.codigoitem ?? '').toString();
+      const cantidadSistema = toNumberSafe(m.cantidad_sistema ?? m.cantidad_sis ?? m.sistema ?? m.stock ?? m.cantidad ?? m.existencia ?? m.cantidadtotal ?? m.cantidad_total ?? m.qty ?? 0);
+      return { item, producto, codigo, cantidad_sistema: cantidadSistema };
+    }).filter(x => x.codigo);
+
+    // Guardar localmente
+    AppState.sistema[almacen] = datosProcesados;
+
+    // Enviar a la API
+    try {
+      const api = "https://inventario-2946605267.us-central1.run.app";
+      const method = "conteo_sistema_inventario_excel";
+      const idTipoAlmacen = almacen === 'callao' ? '2' : '1'; // Callao = 2, Malvinas = 1
+
+      const detalle = datosProcesados.map(item => ({
+        producto: item.producto || '',
+        cantidad: String(item.cantidad_sistema || 0),
+        codigo: item.codigo || ''
+      }));
+
+      const data = {
+        id_inventario: String(AppState.sesionActual.inventarioId),
+        id_tipo_almacen: idTipoAlmacen,
+        detalle: detalle
+      };
+
+      console.log('Enviando datos a la API:', data);
+
+      const response = await fetch(`${api}?method=${method}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+      });
+
+      if (response.status !== 200) {
+        const errorText = await response.text();
+        console.error('Error de la API:', errorText);
+        throw new Error(`Error al guardar en la API: ${response.status} - ${errorText}`);
+      }
+
+      const result = await response.json();
+      console.log('Datos guardados en la API:', result);
+      toast(`Archivo guardado en la base de datos: ${datosProcesados.length} productos`, 'success');
+    } catch (apiError) {
+      console.error('Error enviando a la API:', apiError);
+      toast('Archivo cargado localmente, pero hubo un error al guardar en la API: ' + apiError.message, 'warning');
+    }
+
+    toast(`Archivo de sistema (${almacen}) cargado: ${AppState.sistema[almacen].length} filas.`, 'success');
+    
+    // Actualizar UI del botón
+    try {
+      const cnt = AppState.sistema[almacen].length;
+      const targetBtn = almacen === 'callao' ? document.getElementById('btn-alm-callao') : document.getElementById('btn-alm-malvinas');
+      if (targetBtn) {
+        const ex = targetBtn.querySelector('.sys-count');
+        if (ex) ex.textContent = ` (${cnt})`;
+        else {
+          const s = document.createElement('span');
+          s.className = 'sys-count';
+          s.textContent = ` (${cnt})`;
+          targetBtn.appendChild(s);
+        }
+        targetBtn.classList.add('active-alm');
+        setTimeout(() => targetBtn.classList.remove('active-alm'), 1200);
+      }
+    } catch (err) {
+      console.warn('Error actualizando UI:', err);
+    }
+
+    closeModal('#modalSistemaExcel');
+    e.target.value = ''; // Limpiar el input
+  } catch (err) {
+    alert('Error al leer archivo del sistema: ' + err.message);
+    closeModal('#modalSistemaExcel');
+  }
+}
 async function abrirComparacion(almacen){ 
   console.log('Abriendo comparación para:', almacen);
   
@@ -2957,10 +3315,54 @@ async function abrirComparacion(almacen){
     return;
   }
   
-  // 2. Verificar si ya tenemos datos del sistema cargados (del Excel adjuntado)
+  // 2. Verificar si ya tenemos datos del sistema cargados (del Excel adjuntado o desde API)
   if (!AppState.sistema[almacen] || AppState.sistema[almacen].length === 0) {
-    alert('No hay datos del sistema cargados. Debe adjuntar un archivo Excel primero usando el botón "Subir Sistema".');
-    return;
+    // Intentar cargar desde la API si no hay datos locales
+    if (AppState.sesionActual?.inventarioId) {
+      console.log('No hay datos locales, intentando cargar desde la API...');
+      try {
+        const api = "https://inventario-2946605267.us-central1.run.app";
+        const method = "stock_sistema_excel";
+        const idTipoAlmacen = almacen === 'callao' ? '2' : '1'; // Callao = 2, Malvinas = 1
+        const id = `${AppState.sesionActual.inventarioId}-${idTipoAlmacen}`;
+        
+        const response = await fetch(`${api}?method=${method}&id=${encodeURIComponent(id)}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        });
+
+        if (response.status === 200) {
+          const data = await response.json();
+          if (Array.isArray(data) && data.length > 0) {
+            // Convertir datos de la API al formato esperado
+            AppState.sistema[almacen] = data.map((item, index) => ({
+              item: index + 1,
+              producto: item.PRODUCTO || '',
+              codigo: item.CODIGO || '',
+              cantidad_sistema: Number(item.CANTIDAD) || 0
+            })).filter(x => x.codigo);
+            
+            console.log('Datos cargados desde API:', AppState.sistema[almacen].length, 'productos');
+            toast(`Datos del sistema cargados desde la base de datos: ${AppState.sistema[almacen].length} productos`, 'success');
+          } else {
+            alert('No hay datos del sistema cargados. Debe adjuntar un archivo Excel primero usando el botón "Subir Sistema".');
+            return;
+          }
+        } else {
+          alert('No hay datos del sistema cargados. Debe adjuntar un archivo Excel primero usando el botón "Subir Sistema".');
+          return;
+        }
+      } catch (apiError) {
+        console.error('Error cargando desde API:', apiError);
+        alert('No hay datos del sistema cargados. Debe adjuntar un archivo Excel primero usando el botón "Subir Sistema".');
+        return;
+      }
+    } else {
+      alert('No hay datos del sistema cargados. Debe adjuntar un archivo Excel primero usando el botón "Subir Sistema".');
+      return;
+    }
   } else {
     console.log('Datos del sistema (Excel) ya cargados:', AppState.sistema[almacen].length, 'productos');
   }
