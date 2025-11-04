@@ -266,6 +266,109 @@
             padding: 0 15px;
         }
 
+        /* Estilos para búsqueda */
+        .search-container {
+            background: var(--blanco);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(30, 58, 138, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .search-input-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid var(--gris-claro);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--azul-claro);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .history-btn {
+            background: #8b5cf6;
+            color: var(--blanco);
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.8rem;
+            margin: 0 2px;
+        }
+
+        .history-btn:hover {
+            background: #7c3aed;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+        }
+
+        /* Estilos para modal de historial */
+        .modal-content.history-modal {
+            max-width: 1680px; /* Aumentado 40% desde 1200px */
+            width: 95%;
+            max-height: 108vh; /* Aumentado 20% desde 90vh */
+        }
+
+        .history-table-container {
+            max-height: 600px; /* Aumentado 20% desde 500px */
+            overflow-y: auto;
+            margin-top: 15px;
+        }
+
+        /* Estilos para modal de productos */
+        .modal-content.products-modal {
+            max-width: 900px;
+        }
+
+        .productos-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--blanco);
+            margin-top: 15px;
+        }
+
+        .productos-table th {
+            background: linear-gradient(135deg, var(--azul-principal) 0%, var(--azul-oscuro) 100%);
+            color: var(--blanco);
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .productos-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--gris-claro);
+        }
+
+        .productos-table tbody tr:hover {
+            background-color: var(--azul-muy-claro);
+        }
+
+        .productos-table tfoot {
+            background: var(--azul-muy-claro);
+            font-weight: bold;
+        }
+
+        .productos-table tfoot td {
+            padding: 12px;
+        }
+
         .loading {
             text-align: center;
             padding: 40px;
@@ -477,6 +580,14 @@
                 Conectando a API...
             </span>
         </div>
+
+        <!-- Búsqueda -->
+        <div class="search-container">
+            <div class="search-input-group">
+                <i class="fas fa-search" style="color: var(--gris-medio);"></i>
+                <input type="text" id="searchInput" class="search-input" placeholder="Buscar por nombre del cliente..." onkeyup="filterClientes()">
+            </div>
+        </div>
         
         <div class="table-container">
             <table class="table" id="mainTable">
@@ -556,11 +667,106 @@
         </div>
     </div>
 
+    <!-- Modal para Historial de Ventas -->
+    <div id="historialModal" class="modal">
+        <div class="modal-content history-modal">
+            <div class="modal-header">
+                <h3 class="modal-title">
+                    <i class="fas fa-history"></i>
+                    Historial de Ventas
+                </h3>
+                <span class="close" onclick="closeHistorialModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div id="historialLoading" class="loading">
+                    <i class="fas fa-spinner"></i>
+                    <p>Cargando historial de ventas...</p>
+                </div>
+                <div id="historialContent" style="display: none;">
+                    <div class="history-table-container">
+                        <table class="table" id="historialTable">
+                            <thead>
+                                <tr>
+                                    <th>ID VENTA</th>
+                                    <th>CLIENTE</th>
+                                    <th>FECHA</th>
+                                    <th>CLASIFICACIÓN</th>
+                                    <th>ASESOR</th>
+                                    <th>N° COMPROBANTE</th>
+                                    <th>REGIÓN</th>
+                                    <th>DISTRITO</th>
+                                    <th>LUGAR</th>
+                                    <th>SALIDA DE PEDIDO</th>
+                                    <th>OBSERVACIONES</th>
+                                    <th>CANCELADO</th>
+                                    <th>ESTADO</th>
+                                    <th>ACCIONES</th>
+                                </tr>
+                            </thead>
+                            <tbody id="historialTableBody">
+                                <!-- Se llenará dinámicamente -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div id="historialNoData" class="no-data" style="display: none;">
+                    <i class="fas fa-inbox"></i>
+                    <p>No hay historial de ventas disponible</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Productos de Venta -->
+    <div id="productosModal" class="modal">
+        <div class="modal-content products-modal">
+            <div class="modal-header">
+                <h3 class="modal-title">
+                    <i class="fas fa-box"></i>
+                    Productos de la Venta
+                </h3>
+                <span class="close" onclick="closeProductosModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div id="productosLoading" class="loading">
+                    <i class="fas fa-spinner"></i>
+                    <p>Cargando productos...</p>
+                </div>
+                <div id="productosContent" style="display: none;">
+                    <div style="overflow-x: auto;">
+                        <table class="productos-table" id="productosTable">
+                            <thead>
+                                <tr>
+                                    <th>Código</th>
+                                    <th>Producto</th>
+                                    <th>Cantidad</th>
+                                    <th>Precio</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody id="productosTableBody">
+                                <!-- Se llenará dinámicamente -->
+                            </tbody>
+                            <tfoot id="productosTableFoot">
+                                <!-- Se llenará dinámicamente -->
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+                <div id="productosNoData" class="no-data" style="display: none;">
+                    <i class="fas fa-inbox"></i>
+                    <p>No hay productos registrados para esta venta</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Variables globales para paginación
         let currentPage = 1;
         const itemsPerPage = 10;
         let allClientesData = [];
+        let filteredClientesData = [];
 
         // Función para parsear JSON
         function parseJSON(jsonString) {
@@ -691,6 +897,7 @@
             
             // Guardar todos los datos
             allClientesData = data;
+            filteredClientesData = data;
             currentPage = 1;
             
             if (!data || data.length === 0) {
@@ -717,8 +924,8 @@
             const tbody = document.getElementById('mainTableBody');
             const startIndex = (currentPage - 1) * itemsPerPage;
             const endIndex = startIndex + itemsPerPage;
-            const pageData = allClientesData.slice(startIndex, endIndex);
-            const totalPages = Math.ceil(allClientesData.length / itemsPerPage);
+            const pageData = filteredClientesData.slice(startIndex, endIndex);
+            const totalPages = Math.ceil(filteredClientesData.length / itemsPerPage);
 
             // Actualizar información de paginación
             document.getElementById('pageInfo').textContent = `Página ${currentPage} de ${totalPages}`;
@@ -749,6 +956,10 @@
                                 <i class="fas fa-trash"></i>
                                 Eliminar
                             </button>
+                            <button class="history-btn" onclick="viewHistorial(${item.ID_CLIENTE || 0})">
+                                <i class="fas fa-history"></i>
+                                Historial
+                            </button>
                         </td>
                     </tr>
                 `;
@@ -757,7 +968,7 @@
 
         // Función para cambiar de página
         function changePage(direction) {
-            const totalPages = Math.ceil(allClientesData.length / itemsPerPage);
+            const totalPages = Math.ceil(filteredClientesData.length / itemsPerPage);
             const newPage = currentPage + direction;
             
             if (newPage >= 1 && newPage <= totalPages) {
@@ -766,9 +977,42 @@
             }
         }
 
+        // Función para filtrar clientes por nombre
+        function filterClientes() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+            
+            if (searchTerm === '') {
+                filteredClientesData = allClientesData;
+            } else {
+                filteredClientesData = allClientesData.filter(cliente => {
+                    const nombreCliente = (cliente.CLIENTE || '').toLowerCase();
+                    return nombreCliente.includes(searchTerm);
+                });
+            }
+            
+            currentPage = 1;
+            
+            if (filteredClientesData.length === 0) {
+                const tbody = document.getElementById('mainTableBody');
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="no-data">
+                            <i class="fas fa-search"></i>
+                            <p>No se encontraron clientes que coincidan con "${searchTerm}"</p>
+                        </td>
+                    </tr>
+                `;
+                document.getElementById('pagination').style.display = 'none';
+            } else {
+                document.getElementById('pagination').style.display = 'flex';
+                updateTable();
+            }
+        }
+
         // Función para ver los datos JSON en el modal
         function viewJsonData(index) {
-            const data = allClientesData[index];
+            // El índice viene de la tabla filtrada, así que usamos filteredClientesData
+            const data = filteredClientesData[index];
             if (!data) {
                 alert('Error: No se encontraron datos del cliente');
                 return;
@@ -827,7 +1071,7 @@
 
         // Función para editar cliente
         function editCliente(index) {
-            const data = allClientesData[index];
+            const data = filteredClientesData[index];
             if (!data) {
                 alert('Error: No se encontraron datos del cliente');
                 return;
@@ -841,7 +1085,7 @@
 
         // Función para eliminar cliente
         function deleteCliente(index) {
-            const data = allClientesData[index];
+            const data = filteredClientesData[index];
             if (!data) {
                 alert('Error: No se encontraron datos del cliente');
                 return;
@@ -860,16 +1104,248 @@
             }
         }
 
+        // Función para ver historial de ventas
+        async function viewHistorial(idCliente) {
+            if (!idCliente || idCliente === 0) {
+                alert('Error: ID de cliente inválido');
+                return;
+            }
+
+            // Mostrar modal y loading
+            document.getElementById('historialModal').classList.add('show');
+            document.getElementById('historialLoading').style.display = 'block';
+            document.getElementById('historialContent').style.display = 'none';
+            document.getElementById('historialNoData').style.display = 'none';
+
+            try {
+                console.log('Cargando historial para cliente ID:', idCliente);
+                
+                // Llamada a la API
+                const api = "https://crudventas-2946605267.us-central1.run.app";
+                const area = "busqueda_cliente_comprobante";
+                const metodo = "CLIENTE";
+                const id = idCliente.toString();
+                
+                const url = `${api}?area=${area}&id=${id}&metodo=${metodo}`;
+                console.log('URL de la API historial:', url);
+                
+                const response = await fetch(url);
+                console.log('Status de respuesta historial:', response.status);
+                
+                if (response.status === 200) {
+                    const data = await response.json();
+                    console.log('Datos de historial cargados:', data);
+                    
+                    displayHistorial(data);
+                } else {
+                    console.error('Error en la respuesta del historial:', response.status);
+                    document.getElementById('historialLoading').style.display = 'none';
+                    document.getElementById('historialNoData').style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error cargando historial:', error);
+                document.getElementById('historialLoading').style.display = 'none';
+                document.getElementById('historialNoData').style.display = 'block';
+            }
+        }
+
+        // Función para mostrar historial en la tabla
+        function displayHistorial(data) {
+            const tbody = document.getElementById('historialTableBody');
+            
+            // Verificar si data es un array
+            let historialData = [];
+            if (Array.isArray(data)) {
+                historialData = data;
+            } else if (data && typeof data === 'object') {
+                historialData = [data];
+            }
+            
+            document.getElementById('historialLoading').style.display = 'none';
+            
+            if (!historialData || historialData.length === 0) {
+                document.getElementById('historialNoData').style.display = 'block';
+                return;
+            }
+
+            document.getElementById('historialContent').style.display = 'block';
+            
+            tbody.innerHTML = historialData.map(item => `
+                <tr>
+                    <td>${item.ID_VENTA || '-'}</td>
+                    <td>${item.CLIENTE || '-'}</td>
+                    <td>${formatDate(item.FECHA) || '-'}</td>
+                    <td>${item.CLASIFICACION || '-'}</td>
+                    <td>${item.ASESOR || '-'}</td>
+                    <td>${item.N_COMPROBANTE || '-'}</td>
+                    <td>${item.REGION || '-'}</td>
+                    <td>${item.DISTRITO || '-'}</td>
+                    <td>${item.LUGAR || '-'}</td>
+                    <td>${item.SALIDA_DE_PEDIDO || '-'}</td>
+                    <td>${item.OBSERVACIONES || '-'}</td>
+                    <td>
+                        <span style="padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; background: ${item.CANCELADO === 'SI' ? '#fee2e2' : '#dcfce7'}; color: ${item.CANCELADO === 'SI' ? '#991b1b' : '#166534'};">
+                            ${item.CANCELADO || '-'}
+                        </span>
+                    </td>
+                    <td>
+                        <span style="padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; background: #dbeafe; color: #1e40af;">
+                            ${item.ESTADO || '-'}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="view-btn" onclick="verProductosVenta(${item.ID_VENTA || 0})" title="Ver productos">
+                            <i class="fas fa-eye"></i>
+                            Ver Detalles
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Función para formatear fechas
+        function formatDate(dateString) {
+            if (!dateString) return '-';
+            
+            try {
+                // Si la fecha viene en formato YYYY-MM-DD
+                if (dateString.includes('-') && dateString.length === 10) {
+                    const partes = dateString.split('-');
+                    if (partes.length === 3) {
+                        return `${partes[2]}/${partes[1]}/${partes[0]}`;
+                    }
+                }
+                
+                // Fallback para otros formatos
+                const date = new Date(dateString + 'T00:00:00');
+                return date.toLocaleDateString('es-ES', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit'
+                });
+            } catch (error) {
+                return dateString;
+            }
+        }
+
+        // Función para cerrar el modal de historial
+        function closeHistorialModal() {
+            document.getElementById('historialModal').classList.remove('show');
+        }
+
+        // Función para ver productos de una venta
+        async function verProductosVenta(idVenta) {
+            if (!idVenta || idVenta === 0) {
+                alert('Error: ID de venta inválido');
+                return;
+            }
+
+            // Mostrar modal y loading
+            document.getElementById('productosModal').classList.add('show');
+            document.getElementById('productosLoading').style.display = 'block';
+            document.getElementById('productosContent').style.display = 'none';
+            document.getElementById('productosNoData').style.display = 'none';
+
+            try {
+                console.log('Cargando productos para venta ID:', idVenta);
+                
+                // Llamada a la API
+                const api = "https://crudventas-2946605267.us-central1.run.app";
+                const area = "detalle_productos";
+                
+                const url = `${api}?area=${area}&id=${idVenta}`;
+                console.log('URL de la API productos:', url);
+                
+                const response = await fetch(url);
+                console.log('Status de respuesta productos:', response.status);
+                
+                if (response.status === 200) {
+                    const data = await response.json();
+                    console.log('Productos cargados:', data);
+                    
+                    mostrarProductosVenta(data);
+                } else {
+                    console.error('Error en la respuesta de productos:', response.status);
+                    document.getElementById('productosLoading').style.display = 'none';
+                    document.getElementById('productosNoData').style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error cargando productos:', error);
+                document.getElementById('productosLoading').style.display = 'none';
+                document.getElementById('productosNoData').style.display = 'block';
+            }
+        }
+
+        // Función para mostrar productos en la tabla
+        function mostrarProductosVenta(data) {
+            const tbody = document.getElementById('productosTableBody');
+            const tfoot = document.getElementById('productosTableFoot');
+            
+            // Verificar si data es un array
+            let productosData = [];
+            if (Array.isArray(data)) {
+                productosData = data;
+            } else if (data && typeof data === 'object') {
+                productosData = [data];
+            }
+            
+            document.getElementById('productosLoading').style.display = 'none';
+            
+            if (!productosData || productosData.length === 0) {
+                document.getElementById('productosNoData').style.display = 'block';
+                return;
+            }
+
+            document.getElementById('productosContent').style.display = 'block';
+            
+            // Calcular el total general
+            const totalGeneral = productosData.reduce((sum, prod) => {
+                const total = parseFloat(prod.TOTAL) || 0;
+                return sum + total;
+            }, 0);
+            
+            tbody.innerHTML = productosData.map(prod => `
+                <tr>
+                    <td>${prod.CODIGO || '-'}</td>
+                    <td>${prod.PRODUCTO || '-'}</td>
+                    <td>${prod.CANTIDAD || 0}</td>
+                    <td>S/ ${parseFloat(prod.PRECIO_VENTA || 0).toFixed(2)}</td>
+                    <td>S/ ${parseFloat(prod.TOTAL || 0).toFixed(2)}</td>
+                </tr>
+            `).join('');
+            
+            tfoot.innerHTML = `
+                <tr>
+                    <td colspan="4" style="text-align: right; padding: 12px;">TOTAL GENERAL:</td>
+                    <td style="padding: 12px;">S/ ${totalGeneral.toFixed(2)}</td>
+                </tr>
+            `;
+        }
+
+        // Función para cerrar el modal de productos
+        function closeProductosModal() {
+            document.getElementById('productosModal').classList.remove('show');
+        }
+
         // Función para cerrar el modal
         function closeJsonModal() {
             document.getElementById('jsonModal').classList.remove('show');
         }
 
-        // Cerrar modal al hacer clic fuera de él
+        // Cerrar modales al hacer clic fuera de ellos
         window.onclick = function(event) {
-            const modal = document.getElementById('jsonModal');
-            if (event.target === modal) {
+            const jsonModal = document.getElementById('jsonModal');
+            const historialModal = document.getElementById('historialModal');
+            const productosModal = document.getElementById('productosModal');
+            
+            if (event.target === jsonModal) {
                 closeJsonModal();
+            }
+            if (event.target === historialModal) {
+                closeHistorialModal();
+            }
+            if (event.target === productosModal) {
+                closeProductosModal();
             }
         }
 
