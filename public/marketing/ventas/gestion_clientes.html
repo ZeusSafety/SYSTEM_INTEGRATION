@@ -802,8 +802,8 @@
                 // Iterar sobre cada campo del objeto
                 Object.keys(item).forEach(key => {
                     const value = item[key];
-                    // Solo mostrar si el valor no es null y no está vacío
-                    if (value !== null && value !== undefined && value !== '') {
+                    // Ocultar campos ID y solo mostrar si el valor no es null y no está vacío
+                    if (key.toUpperCase() !== 'ID' && value !== null && value !== undefined && value !== '') {
                         const displayKey = fieldNames[key] || key;
                         html += `
                             <tr>
@@ -1021,20 +1021,17 @@
             // Mostrar el modal
             document.getElementById('jsonModal').classList.add('show');
 
-            // Nombres de campos para mostrar
+            // Nombres de campos para mostrar (los campos ID se ocultan automáticamente)
             const documentFieldNames = {
-                'ID': 'ID',
                 'NUMERO': 'Número',
                 'DOCUMENTO': 'Documento'
             };
 
             const addressFieldNames = {
-                'ID': 'ID',
                 'DIRECCION': 'Dirección'
             };
 
             const phoneFieldNames = {
-                'ID': 'ID',
                 'TELEFONO': 'Teléfono'
             };
 
