@@ -6,6 +6,8 @@
     <title>Gestión de Clientes - ZEUS SAFETY</title>
     <link rel="icon" type="image/png" href="/Logo de Zeus.png">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Chart.js para gráficos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
         :root {
             --azul-principal: #1e3a8a;
@@ -18,6 +20,8 @@
             --gris-oscuro: #334155;
             --verde-exito: #10b981;
             --rojo-error: #ef4444;
+            --amarillo-alerta: #f59e0b;
+            --morado: #8b5cf6;
         }
 
         * {
@@ -536,6 +540,123 @@
             }
         }
 
+        /* Estilos para sección de gráfico */
+        .chart-container {
+            background: var(--blanco);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(30, 58, 138, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+
+        /* Estilos para métricas y comisiones */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .metric-card {
+            background: var(--blanco);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(30, 58, 138, 0.1);
+            padding: 20px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 25px rgba(30, 58, 138, 0.15);
+        }
+
+        .metric-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        .metric-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: var(--blanco);
+        }
+
+        .metric-icon.blue {
+            background: linear-gradient(135deg, var(--azul-claro) 0%, var(--azul-oscuro) 100%);
+        }
+
+        .metric-icon.green {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
+        .metric-icon.yellow {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        }
+
+        .metric-icon.purple {
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+        }
+
+        .metric-label {
+            font-size: 0.9rem;
+            color: var(--gris-medio);
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+
+        .metric-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--azul-principal);
+            margin-bottom: 10px;
+        }
+
+        .metric-subtitle {
+            font-size: 0.85rem;
+            color: var(--gris-medio);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--gris-claro);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--azul-claro) 0%, var(--verde-exito) 100%);
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+
+        .progress-fill.low {
+            background: linear-gradient(90deg, var(--rojo-error) 0%, var(--amarillo-alerta) 100%);
+        }
+
+        .progress-fill.medium {
+            background: linear-gradient(90deg, var(--amarillo-alerta) 0%, var(--azul-claro) 100%);
+        }
+
+        .progress-fill.high {
+            background: linear-gradient(90deg, var(--azul-claro) 0%, var(--verde-exito) 100%);
+        }
+
         @media (max-width: 768px) {
             .header-content {
                 flex-direction: column;
@@ -550,6 +671,18 @@
             .table th,
             .table td {
                 min-width: 120px;
+            }
+
+            .chart-wrapper {
+                height: 250px;
+            }
+
+            .metric-value {
+                font-size: 1.5rem;
+            }
+
+            .metrics-grid {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -571,6 +704,58 @@
 
     <!-- Main Content -->
     <div class="container">
+        <!-- Sección 1: Gráfico de Líneas -->
+        <div class="section-title">
+            <i class="fas fa-chart-line"></i>
+            Ventas por Mes
+            <span class="api-status loading" id="chartApiStatus">
+                <i class="fas fa-spinner"></i>
+                Cargando...
+            </span>
+        </div>
+        
+        <div class="chart-container">
+            <div class="chart-wrapper">
+                <canvas id="ventasChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Sección 2: Métricas y Comisiones -->
+        <div class="section-title">
+            <i class="fas fa-chart-pie"></i>
+            Métricas y Comisiones
+        </div>
+        
+        <div class="metrics-grid">
+            <!-- Tarjeta 1: Ventas Totales -->
+            <div class="metric-card">
+                <div class="metric-header">
+                    <div>
+                        <div class="metric-label">Ventas Totales</div>
+                        <div class="metric-value" id="ventasTotales">S/ 0.00</div>
+                        <div class="metric-subtitle">Año actual</div>
+                    </div>
+                    <div class="metric-icon blue">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tarjeta 2: Meta del Mes -->
+            <div class="metric-card">
+                <div class="metric-header">
+                    <div style="width: 100%;">
+                        <div class="metric-label">Meta Mensual</div>
+                        <div class="metric-value" id="metaMensual">S/ 12,000</div>
+                        <div class="metric-subtitle" id="progresoMeta">Progreso: 0%</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressBar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Tabla Principal -->
         <div class="section-title">
             <i class="fas fa-users"></i>
@@ -1346,9 +1531,213 @@
             }
         }
 
+        // Variables globales para gráfico y métricas
+        let ventasChart = null;
+        const API_BASE_METRICS = "https://asesoresventas-2946605267.us-central1.run.app";
+        const META_MENSUAL = 12000; // Meta mensual en soles
+        const USUARIO_DEFECTO = "ZEUS"; // Usuario por defecto
+
+        // Función para formatear moneda
+        function formatCurrency(amount) {
+            if (!amount && amount !== 0) return 'S/ 0.00';
+            return `S/ ${parseFloat(amount).toLocaleString('es-PE', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            })}`;
+        }
+
+        // Función para cargar datos del gráfico de ventas por mes
+        async function cargarGraficoVentas() {
+            const chartApiStatus = document.getElementById('chartApiStatus');
+            
+            try {
+                console.log('Cargando datos de ventas por mes...');
+                chartApiStatus.className = 'api-status loading';
+                chartApiStatus.innerHTML = '<i class="fas fa-spinner"></i> Cargando...';
+                
+                const method = 'total_por_mes';
+                const variable = USUARIO_DEFECTO;
+                
+                const response = await fetch(`${API_BASE_METRICS}?method=${method}&variable=${variable}`);
+                console.log('Status de respuesta gráfico:', response.status);
+                
+                if (response.status === 200) {
+                    const data = await response.json();
+                    console.log('Datos del gráfico cargados:', data);
+                    
+                    chartApiStatus.className = 'api-status success';
+                    chartApiStatus.innerHTML = '<i class="fas fa-check"></i> Cargado';
+                    
+                    mostrarGraficoVentas(data);
+                    calcularMetricas(data);
+                } else {
+                    console.error('Error en la respuesta del gráfico:', response.status);
+                    chartApiStatus.className = 'api-status error';
+                    chartApiStatus.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error';
+                    mostrarGraficoVacio();
+                }
+            } catch (error) {
+                console.error('Error cargando datos del gráfico:', error);
+                chartApiStatus.className = 'api-status error';
+                chartApiStatus.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error';
+                mostrarGraficoVacio();
+            }
+        }
+
+        // Función para mostrar gráfico de ventas
+        function mostrarGraficoVentas(data) {
+            if (!data || data.length === 0) {
+                mostrarGraficoVacio();
+                return;
+            }
+
+            // Ordenar datos por mes
+            data.sort((a, b) => a['MONTH(V.FECHA)'] - b['MONTH(V.FECHA)']);
+
+            // Nombres de los meses
+            const nombresMeses = [
+                'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+            ];
+
+            // Preparar datos para el gráfico
+            const labels = data.map(item => nombresMeses[item['MONTH(V.FECHA)'] - 1]);
+            const valores = data.map(item => item.TOTAL || 0);
+
+            const ctx = document.getElementById('ventasChart').getContext('2d');
+            
+            // Destruir gráfico anterior si existe
+            if (ventasChart) {
+                ventasChart.destroy();
+            }
+
+            ventasChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Ventas (S/)',
+                        data: valores,
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 5,
+                        pointBackgroundColor: '#3b82f6',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2,
+                        pointHoverRadius: 7
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                font: {
+                                    size: 12,
+                                    weight: 'bold'
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `Ventas: ${formatCurrency(context.parsed.y)}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return 'S/ ' + value.toLocaleString('es-PE');
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Función para mostrar gráfico vacío
+        function mostrarGraficoVacio() {
+            const ctx = document.getElementById('ventasChart').getContext('2d');
+            
+            if (ventasChart) {
+                ventasChart.destroy();
+            }
+
+            ventasChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
+                    datasets: [{
+                        label: 'Ventas (S/)',
+                        data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        borderColor: '#d1d5db',
+                        backgroundColor: 'rgba(209, 213, 219, 0.1)',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // Función para calcular métricas
+        function calcularMetricas(data) {
+            // Calcular ventas totales del año
+            const ventasTotales = data.reduce((sum, item) => sum + (item.TOTAL || 0), 0);
+            document.getElementById('ventasTotales').textContent = formatCurrency(ventasTotales);
+
+            // Calcular progreso de meta mensual (usar último mes)
+            if (data.length > 0) {
+                const ultimoMes = data[data.length - 1];
+                const ventasMesActual = ultimoMes.TOTAL || 0;
+                const progreso = Math.min((ventasMesActual / META_MENSUAL) * 100, 100);
+                
+                document.getElementById('progresoMeta').textContent = `Progreso: ${progreso.toFixed(1)}%`;
+                
+                const progressBar = document.getElementById('progressBar');
+                progressBar.style.width = `${progreso}%`;
+                
+                // Cambiar color según progreso
+                if (progreso < 50) {
+                    progressBar.className = 'progress-fill low';
+                } else if (progreso < 80) {
+                    progressBar.className = 'progress-fill medium';
+                } else {
+                    progressBar.className = 'progress-fill high';
+                }
+            }
+        }
+
         // Cargar datos al iniciar la página
         document.addEventListener('DOMContentLoaded', function() {
             loadClientes();
+            cargarGraficoVentas();
         });
     </script>
 </body>
