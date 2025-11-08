@@ -25,7 +25,7 @@
 
         body {
             font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, rgba(15, 139, 141, 0.35), rgba(215, 38, 61, 0.65)),
+            background: linear-gradient(135deg, rgba(29, 53, 87, 0.92), rgba(200, 30, 82, 0.85)),
                 url('https://images.unsplash.com/photo-1512218168353-4bba6ac5b0c1?auto=format&fit=crop&w=1600&q=80')
                 center/cover fixed;
             min-height: 100vh;
@@ -50,13 +50,17 @@
 
         body::before {
             background-image: url('https://cdn.pixabay.com/photo/2016/10/13/17/05/snow-1737356_960_720.png');
+            background-size: 600px;
             animation: nevando 20s linear infinite;
         }
 
         body::after {
-            background-image: url('https://cdn.pixabay.com/photo/2016/11/19/21/44/snow-1841901_960_720.png');
+            background-image: url('https://cdn.pixabay.com/photo/2016/11/19/21/44/snow-1841901_960_720.png'),
+                radial-gradient(circle, rgba(252, 227, 138, 0.18) 0, rgba(252, 227, 138, 0) 70%);
+            background-size: 450px, 800px;
             animation: nevando 35s linear infinite;
             opacity: 0.4;
+            mix-blend-mode: screen;
         }
 
         @keyframes nevando {
@@ -191,14 +195,16 @@
         .stat-card h3 {
             font-size: 1rem;
             letter-spacing: 1px;
-            color: rgba(255, 255, 255, 0.75);
+            color: rgba(255, 255, 255, 0.92);
             text-transform: uppercase;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.45);
         }
 
         .stat-card p {
             font-size: clamp(1.6rem, 2.3vw, 2rem);
-            font-weight: 700;
+            font-weight: 800;
             color: var(--navidad-dorado);
+            text-shadow: 0 4px 16px rgba(0, 0, 0, 0.55);
         }
 
         .legend {
@@ -256,12 +262,13 @@
         .category-badge {
             padding: 10px 18px;
             border-radius: 999px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(20, 24, 49, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.25);
             font-size: 0.9rem;
             display: inline-flex;
             align-items: center;
             gap: 8px;
+            color: rgba(255, 255, 255, 0.85);
         }
 
         .leaderboard {
@@ -297,6 +304,7 @@
         .player-card:hover {
             transform: translateY(-8px) scale(1.01);
             border-color: rgba(252, 227, 138, 0.45);
+            box-shadow: 0 22px 55px rgba(252, 227, 138, 0.35);
         }
 
         .player-card:hover::after {
@@ -351,6 +359,7 @@
             background: linear-gradient(90deg, var(--navidad-dorado), #ffd166);
             border-radius: 999px;
             transition: width 1s ease;
+            animation: auroraPulse 6s ease-in-out infinite;
         }
 
         .progress-label {
@@ -359,6 +368,37 @@
             justify-content: space-between;
             font-size: 0.85rem;
             color: rgba(255, 255, 255, 0.75);
+        }
+
+        .progress-label strong {
+            color: var(--navidad-dorado);
+            text-shadow: 0 3px 12px rgba(0, 0, 0, 0.45);
+        }
+
+        .progress-fill.low {
+            background: linear-gradient(90deg, #8ddad5, #4dd599);
+        }
+
+        .progress-fill.medium {
+            background: linear-gradient(90deg, #ffee93, #ffd166);
+        }
+
+        .progress-fill.max {
+            background: linear-gradient(90deg, #fcb045, #fd1d1d, #833ab4);
+        }
+
+        .progress-fill.legendary {
+            background: linear-gradient(90deg, #00f260, #0575e6);
+            box-shadow: 0 0 20px rgba(5, 117, 230, 0.45);
+        }
+
+        @keyframes auroraPulse {
+            0%, 100% {
+                filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.32));
+            }
+            50% {
+                filter: drop-shadow(0 0 14px rgba(255, 255, 255, 0.58));
+            }
         }
 
         .snow-divider {
@@ -476,7 +516,7 @@
             <div class="banner-text">
                 <h1>Copa Élite de Ventas Navideñas</h1>
                 <p>
-                    Celebremos el espíritu navideño premiando a nuestras asesoras y asesores que rompen récords.
+                    Celebremos el espíritu navideño premiando a nuestros clientes mas fieles que rompen récords.
                     Cada venta suma magia, cada cliente feliz enciende una luz en nuestro árbol de logros.
                 </p>
             </div>
@@ -603,7 +643,7 @@
                             <i class="fas ${config.icon}" style="color: ${config.accent};"></i>
                             <h2>${config.title}</h2>
                         </div>
-                        <span class="category-badge" style="border-color: ${config.accent}; color: ${config.accent};">
+                        <span class="category-badge" style="border-color: ${config.accent}; box-shadow: 0 0 12px rgba(252, 227, 138, 0.15);">
                             ${categoria} · ${jugadores.length} ${jugadores.length === 1 ? "campeón" : "campeones"}
                         </span>
                     </div>
@@ -614,6 +654,11 @@
 
                 jugadores.forEach((jugador, index) => {
                     const porcentaje = calcularProgreso(jugador.TOTAL, categoria);
+                    const progresoClass =
+                        porcentaje >= 130 ? "legendary" :
+                        porcentaje >= 100 ? "max" :
+                        porcentaje >= 60 ? "medium" :
+                        "low";
                     const card = document.createElement("article");
                     card.className = "player-card";
                     card.style.background = config.gradient;
@@ -630,7 +675,7 @@
                                 <span>${porcentaje.toFixed(0)}% de su meta</span>
                             </div>
                             <div class="progress-bar">
-                                <div class="progress-fill" style="width: ${Math.min(porcentaje, 100)}%;"></div>
+                                <div class="progress-fill ${progresoClass}" style="width: ${Math.min(porcentaje, 120)}%;"></div>
                             </div>
                         </div>
                     `;
