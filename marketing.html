@@ -1,57 +1,230 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ventas - ZEUS SAFETY</title>
     <!-- Favicon -->
-  <link rel="icon" type="image/png" href="https://cibertecedgar.github.io/marcalogo/logozeus.png">
+    <link rel="icon" type="image/png" href="https://cibertecedgar.github.io/marcalogo/logozeus.png">
     <link rel="stylesheet" href="css/ventas.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
+
+<style>
+    :root {
+        --primary-color: #3498db;
+        --secondary-color: #2980b9;
+        --accent-color: #e74c3c;
+        --light-color: #f8f9fa;
+        --dark-color: #343a40;
+        --success-color: #2ecc71;
+        --error-color: #e74c3c;
+        --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        --transition: all 0.3s ease;
+    }
+
+
+    .toggle-icon {
+        transition: var(--transition);
+    }
+
+    /* Estilos del modal */
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+        animation: fadeIn 0.3s ease;
+    }
+
+    .modal-content {
+        background-color: white;
+        border-radius: 10px;
+        width: 90%;
+        max-width: 500px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        overflow: hidden;
+        animation: slideUp 0.4s ease;
+    }
+
+    .modal-header {
+        background: linear-gradient(135deg, var(--azul-primario), var(--azul-secundario));
+        color: white;
+        padding: 20px;
+        display: flex;
+        align-items: center;
+    }
+
+    .modal-header i {
+        font-size: 1.5rem;
+        margin-right: 10px;
+    }
+
+    .modal-header h2 {
+        font-size: 1.5rem;
+        font-weight: 600;
+    }
+
+    .modal-body {
+        padding: 30px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+        color: var(--dark-color);
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 12px 15px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 1rem;
+        transition: var(--transition);
+    }
+
+    .form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        outline: none;
+    }
+
+    .modal-footer {
+        padding: 20px 30px;
+        background-color: #f8f9fa;
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+    }
+
+    .btn-secondary {
+        background-color: #6c757d;
+    }
+
+    .btn-secondary:hover {
+        background-color: #5a6268;
+    }
+
+    .btn-success {
+        background-color: var(--success-color);
+    }
+
+    .btn-success:hover {
+        background-color: #27ae60;
+    }
+
+    .error-message {
+        color: var(--error-color);
+        font-size: 0.9rem;
+        margin-top: 5px;
+        display: none;
+    }
+
+    .success-message {
+        color: var(--success-color);
+        font-size: 0.9rem;
+        margin-top: 5px;
+        display: none;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+
+    @keyframes slideUp {
+        from {
+            transform: translateY(50px);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    /* Estilos para cuando la sección está expandida */
+    .section-expanded .section-content {
+        display: block;
+    }
+
+    .section-expanded .toggle-icon {
+        transform: rotate(180deg);
+    }
+</style>
+
 <body>
-    <a href="menu.html" class="btn-back">Volver al Menú</a>
+
 
     <div class="container">
         <div class="header">
             <h1><i class="fas fa-chart-line"></i> Marketing</h1>
             <p>Gestión de Ventas y Regularización</p>
+            <br>
+            <a href="menu.html" class="btn-back">Volver al Menú</a>
         </div>
-            <!-- Sección Listados -->
-            <div class="primary-section" id="listados-section">
-                <div class="section-header" onclick="toggleSection('listados')">
-                    <i class="fas fa-clipboard-list"></i>
-                    <h2>Listados</h2>
-                    <i class="fas fa-chevron-down toggle-icon"></i>
-                </div>
-                <div class="section-content" id="listados-content">
-                    <div class="menu-grid">
-                        <div class="menu-card">
-                        <div class="menu-card">
-                            <i class="fas fa-ship icon"></i>
-                            <h3>Listado de Importaciones</h3>
-                            <p>Ver y gestionar listado de importaciones</p>
-                            <a href="public/marketing/importaciones.html" class="btn">
-                                <i class="fas fa-eye"></i> Ver Importaciones
-                            </a>
-                        </div>
-                        <div class="menu-card">
-                            <i class="fas fa-ship icon"></i>
-                            <h3>Listado de Ventas</h3>
-                            <p>Ver Ventas de Marketing</p>
-                            <a href="public/marketing/ventas/listado_ventas.html" class="btn">
-                                <i class="fas fa-eye"></i> Listado de Ventas
-                            </a>
-                        </div>
-                        <div class="menu-card">
-                            <i class="fas fa-ship icon"></i>
-                            <h3>Listado de Clientes</h3>
-                            <p>Ver y gestionar clientes de Marketing</p>
-                            <a href="public/marketing/ventas/gestion_clientes.html" class="btn">
-                                <i class="fas fa-eye"></i> Gestion de Clientes - Marketing
-                            </a>
-                        </div>
+        <!-- Sección Listados -->
+        <div class="primary-section" id="listados-section">
+            <div class="section-header" onclick="toggleSection('listados')">
+                <i class="fas fa-clipboard-list"></i>
+                <h2>Listados</h2>
+                <i class="fas fa-chevron-down toggle-icon"></i>
+            </div>
+            <div class="section-content" id="listados-content">
+
+                <div class="menu-card">
+                    <div class="menu-card">
+                        <i class="fas fa-ship icon"></i>
+                        <h3>Listado de Importaciones</h3>
+                        <p>Ver y gestionar listado de importaciones</p>
+                        <a href="public/marketing/importaciones.html" class="btn">
+                            <i class="fas fa-eye"></i> Ver Importaciones
+                        </a>
                     </div>
+                    
+                     <!-- 
+                    <br>
+                            PARA MOSTRAR DESPUES
+                     
+                    <div class="menu-card">
+                        <i class="fas fa-ship icon"></i>
+                        <h3>Listado de Ventas</h3>
+                        <p>Ver Ventas de Marketing</p>
+                        <a href="public/marketing/ventas/listado_ventas.html" class="btn">
+                            <i class="fas fa-eye"></i> Listado de Ventas
+                        </a>
+                    </div>
+                    <br>
+                    <div class="menu-card">
+                        <i class="fas fa-ship icon"></i>
+                        <h3>Listado de Clientes</h3>
+                        <p>Ver y gestionar clientes de Marketing</p>
+                        <a href="public/marketing/ventas/gestion_clientes.html" class="btn">
+                            <i class="fas fa-eye"></i> Gestion de Clientes - Marketing
+                        </a>
+                    </div>
+                        -->
+
                 </div>
             </div>
         </div>
@@ -69,13 +242,37 @@
                         <i class="fas fa-ship icon"></i>
                         <h3>Listado de Solicitudes/Incidencias</h3>
                         <p>Ver y gestionar Solicitudes/Incidencias</p>
-                        <a href="public/marketing/soli_inci_general_marketing.html" class="btn">
+                        <a href="#" class="btn" onclick="openPasswordModal(event)">
                             <i class="fas fa-eye"></i> Ver Solicitudes/Incidencias
                         </a>
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- Modal para contraseña -->
+        <div class="modal" id="passwordModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <i class="fas fa-lock"></i>
+                    <h2>Acceso Restringido</h2>
+                </div>
+                <div class="modal-body">
+                    <p>Para acceder al panel ADMIN - Marketing, por favor ingrese la contraseña nuevamente:</p>
+                    <div class="form-group">
+                        <label for="password">Contraseña:</label>
+                        <input type="password" id="password" class="form-control" placeholder="Ingrese la contraseña">
+                        <div class="error-message" id="passwordError">Contraseña incorrecta. Inténtelo de nuevo.</div>
+                        <div class="success-message" id="passwordSuccess">¡Contraseña correcta! Accediendo...</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+                    <button class="btn btn-success" onclick="checkPassword()">Acceder</button>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <script src="js/config.js"></script>
@@ -84,10 +281,10 @@
             const section = document.getElementById(sectionName + '-section');
             const content = document.getElementById(sectionName + '-content');
             const toggleIcon = section.querySelector('.toggle-icon');
-            
+
             // Toggle la clase active
             section.classList.toggle('active');
-            
+
             // Toggle la visibilidad del contenido
             if (content.style.maxHeight) {
                 content.style.maxHeight = null;
@@ -99,9 +296,73 @@
         }
 
         // Todas las secciones cerradas por defecto
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             // No abrir ninguna sección automáticamente
         });
+
+        // Función para abrir el modal (MODIFICADA para prevenir navegación)
+        function openPasswordModal(event) {
+            // Previene la acción por defecto del enlace (navegar a #)
+            if (event) {
+                event.preventDefault();
+            }
+            document.getElementById('passwordModal').style.display = 'flex';
+            document.getElementById('password').focus();
+        }
+
+        // Función para cerrar el modal (se mantiene igual)
+        function closeModal() {
+            document.getElementById('passwordModal').style.display = 'none';
+            document.getElementById('password').value = '';
+            hideMessages();
+        }
+
+        // Función para verificar la contraseña (MODIFICADA para REDIRECCIÓN)
+        function checkPassword() {
+            const password = document.getElementById('password').value;
+            const correctPassword = "zeusmar100";
+            const errorMessage = document.getElementById('passwordError');
+            const successMessage = document.getElementById('passwordSuccess');
+            const targetUrl = "public/marketing/soli_inci_general_marketing.html"; // URL de destino
+
+            hideMessages();
+
+            if (password === correctPassword) {
+                successMessage.style.display = 'block';
+
+                // Redirigir después de un breve retraso para que el usuario vea el mensaje de éxito
+                setTimeout(() => {
+                    // ¡REDIRECCIÓN A LA PÁGINA!
+                    window.location.href = targetUrl;
+                }, 1000);
+            } else {
+                errorMessage.style.display = 'block';
+                document.getElementById('password').value = '';
+                document.getElementById('password').focus();
+            }
+        }
+        // Función para ocultar mensajes de error y éxito
+        function hideMessages() {
+            document.getElementById('passwordError').style.display = 'none';
+            document.getElementById('passwordSuccess').style.display = 'none';
+        }
+
+        // Permitir enviar la contraseña con la tecla Enter
+        document.getElementById('password').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                checkPassword();
+            }
+        });
+
+        // Cerrar el modal si se hace clic fuera de él
+        window.addEventListener('click', function (event) {
+            const modal = document.getElementById('passwordModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        });
+
     </script>
 </body>
+
 </html>
