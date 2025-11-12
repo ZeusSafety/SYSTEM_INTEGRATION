@@ -11,16 +11,18 @@
   <style>
     :root {
       --azul-oscuro: #17375d;
-      --azul: #2f75b5;
+      --azul: #1e4d7a;
       --gris: #f5f5f5;
       --rojo: #c00000;
       --link: #007bff;
+      --azul-claro: #e8f0f8;
     }
 
     body {
-      font-family: Arial, sans-serif;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       margin: 0;
-      background: var(--gris);
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      min-height: 100vh;
     }
 
     header {
@@ -38,7 +40,8 @@
     }
 
     .container {
-      max-width: 1200px;
+      width: 90%;
+      max-width: none;
       margin: 0 auto;
       padding: 1rem;
     }
@@ -48,47 +51,53 @@
       display: inline-flex;
       align-items: center;
       gap: .5rem;
-      margin: .75rem 0 0 1rem;
-      padding: .5rem .95rem;
+      padding: .6rem 1.2rem;
       color: #fff;
       text-decoration: none;
-      background: linear-gradient(135deg, var(--azul-oscuro) 0%, var(--azul) 100%);
-      border: 1px solid rgba(23, 55, 93, .35);
-      border-radius: 999px;
-      box-shadow: 0 6px 16px rgba(23, 55, 93, .25);
-      transition: all .2s ease;
+      background: rgba(255, 255, 255, .15);
+      border: 1px solid rgba(255, 255, 255, .3);
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, .15);
+      transition: all .3s ease;
+      font-weight: 500;
+      font-size: .9rem;
     }
     .btn-back::before {
       content: '\2190'; /* flecha izquierda */
-      font-size: 1rem;
+      font-size: 1.1rem;
       line-height: 1;
     }
     .btn-back:hover {
-      filter: brightness(.95);
-      transform: translateY(-1px);
-      box-shadow: 0 10px 22px rgba(23, 55, 93, .28);
+      background: rgba(255, 255, 255, .25);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, .2);
     }
     .btn-back:active {
       transform: translateY(0);
-      filter: brightness(.92);
     }
     .btn-back:focus {
       outline: none;
-      box-shadow: 0 0 0 3px rgba(47, 117, 181, .25), 0 6px 16px rgba(23, 55, 93, .25);
+      box-shadow: 0 0 0 3px rgba(255, 255, 255, .3), 0 4px 12px rgba(0, 0, 0, .2);
     }
 
     .card {
       background: #fff;
-      border-radius: 8px;
-      box-shadow: 0 6px 18px rgba(18, 38, 63, .08);
-      margin-bottom: 1.25rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(23, 55, 93, .12);
+      margin-bottom: 1.5rem;
       overflow: hidden;
+      border: 1px solid rgba(23, 55, 93, .08);
+      transition: box-shadow .3s ease;
+    }
+
+    .card:hover {
+      box-shadow: 0 6px 28px rgba(23, 55, 93, .18);
     }
 
     .card-header {
-      background: var(--azul);
+      background: linear-gradient(135deg, var(--azul-oscuro) 0%, var(--azul) 100%);
       color: #fff;
-      padding: .75rem 1rem;
+      padding: 1rem 1.25rem;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -601,6 +610,9 @@
 
   .header-spacer {
     width: 150px; /* Mismo ancho que el logo para mantener centrado el título */
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
   }
 
   .header-title h1 {
@@ -767,6 +779,107 @@
       display: none;
     }
   }
+
+  /* Paginación */
+  .pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: .5rem;
+    margin: 1.5rem 0;
+    padding: 1rem;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(23, 55, 93, .08);
+  }
+
+  .pagination button {
+    padding: .5rem .9rem;
+    border: 1px solid #ddd;
+    background: #fff;
+    color: var(--azul-oscuro);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all .2s ease;
+    font-weight: 500;
+  }
+
+  .pagination button:hover:not(:disabled) {
+    background: var(--azul-claro);
+    border-color: var(--azul);
+    transform: translateY(-1px);
+  }
+
+  .pagination button:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+  }
+
+  .pagination button.active {
+    background: linear-gradient(135deg, var(--azul-oscuro) 0%, var(--azul) 100%);
+    color: #fff;
+    border-color: var(--azul-oscuro);
+  }
+
+  .pagination-info {
+    margin: 0 1rem;
+    color: #666;
+    font-size: .9rem;
+  }
+
+  /* Tabla de resumen */
+  .resumen-table {
+    margin-top: 1.5rem;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(23, 55, 93, .12);
+    overflow: hidden;
+    border: 1px solid rgba(23, 55, 93, .08);
+  }
+
+  .resumen-table-header {
+    background: linear-gradient(135deg, var(--azul-oscuro) 0%, var(--azul) 100%);
+    color: #fff;
+    padding: 1rem 1.25rem;
+    font-weight: 600;
+    font-size: 1.1rem;
+  }
+
+  .resumen-table-body {
+    padding: 1rem;
+  }
+
+  .resumen-table table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .resumen-table th {
+    background: var(--azul-claro);
+    color: var(--azul-oscuro);
+    padding: .75rem;
+    text-align: left;
+    font-weight: 600;
+    border-bottom: 2px solid var(--azul);
+  }
+
+  .resumen-table td {
+    padding: .75rem;
+    border-bottom: 1px solid #e0e0e0;
+  }
+
+  .resumen-table tr:last-child td {
+    border-bottom: none;
+  }
+
+  .resumen-table tr:hover {
+    background: var(--azul-claro);
+  }
+
+  /* Ocultar filas no visibles en paginación */
+  .table-row-hidden {
+    display: none;
+  }
   </style>
 </head>
 
@@ -781,10 +894,10 @@
     <div class="header-title">
       <h1>Área de Logística: Registro de incidencia de proformas y actas</h1>
     </div>
-    <div class="header-spacer"></div>
+    <div class="header-spacer">
+      <a href="../../logistica.html" class="btn-back">Volver al Menú</a>
+    </div>
   </div>
-
-  <a href="../../logistica.html" class="btn-back">Volver al Menú</a>
 
   <div class="container">
     <!-- Registrar nueva incidencia -->
@@ -980,6 +1093,27 @@
             <tbody></tbody>
           </table>
         </div>
+        <!-- Paginación -->
+        <div class="pagination" id="pagination"></div>
+      </div>
+    </div>
+
+    <!-- Tabla de Resumen -->
+    <div class="resumen-table">
+      <div class="resumen-table-header">
+        Resumen de Incidencias
+      </div>
+      <div class="resumen-table-body">
+        <table id="tablaResumen">
+          <thead>
+            <tr>
+              <th>Estado</th>
+              <th>Cantidad</th>
+              <th>Porcentaje</th>
+            </tr>
+          </thead>
+          <tbody id="resumenBody"></tbody>
+        </table>
       </div>
     </div>
   </div>
@@ -1119,6 +1253,8 @@
     // ===== Configuración API =====
     const API_BASE_URL = 'https://incidenciaslogisticaproformas-2946605267.us-central1.run.app';
     let allRecords = [];
+    let currentPage = 1;
+    const rowsPerPage = 12;
 
     // ===== Funciones de utilidad =====
     const badgeClass = (v) => { v = (v || '').toUpperCase(); return v === 'PENDIENTE' ? 'badge-pendiente' : v === 'EN REVISIÓN' || v === 'EN REVISION' || v === 'EN PROCESO' ? 'badge-enrevision' : v === 'NOTIFICADO' ? 'badge-notificado' : v === 'COMPLETADO' ? 'badge-completado' : v === 'OBSERVADO' ? 'badge-observado' : ''; };
@@ -1417,12 +1553,18 @@
       const filtered = filterRecords();
       console.log('Registros filtrados:', filtered);
 
+      // Calcular paginación
+      const totalPages = Math.ceil(filtered.length / rowsPerPage);
+      const startIndex = (currentPage - 1) * rowsPerPage;
+      const endIndex = startIndex + rowsPerPage;
+      const paginatedRecords = filtered.slice(startIndex, endIndex);
+
       // Debug: mostrar estructura del primer registro
       if (filtered.length > 0) {
         console.log('Estructura del primer registro:', Object.keys(filtered[0]));
         console.log('Primer registro completo:', filtered[0]);
       }
-      filtered.forEach(rec => {
+      paginatedRecords.forEach(rec => {
         const tr = document.createElement('tr');
         const id = rec.ID || rec.id || rec.Id;
         console.log('Procesando registro con ID:', id, 'Registro:', rec);
@@ -1513,11 +1655,111 @@
       };
 
       adjustTableViewport();
+      renderPagination(filtered.length);
+      updateResumenTable(filtered);
     }
 
     function adjustTableViewport() {
       const wrapper = document.getElementById('tableViewport'); const table = document.getElementById('tablaIncidencias'); if (!wrapper || !table) return;
       const thH = table.tHead ? table.tHead.getBoundingClientRect().height : 40; const firstRow = table.tBodies[0]?.rows[0]; const rowH = firstRow ? firstRow.getBoundingClientRect().height : 40; const maxH = Math.round(thH + rowH * 10 + 2); wrapper.style.maxHeight = maxH + 'px'; wrapper.style.overflow = 'auto';
+    }
+
+    function renderPagination(totalRecords) {
+      const paginationDiv = document.getElementById('pagination');
+      if (!paginationDiv) return;
+
+      const totalPages = Math.ceil(totalRecords / rowsPerPage);
+      if (totalPages <= 1) {
+        paginationDiv.innerHTML = `<div class="pagination-info">Mostrando ${totalRecords} registro(s)</div>`;
+        return;
+      }
+
+      let html = '';
+      
+      // Botón Anterior
+      html += `<button onclick="goToPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>‹ Anterior</button>`;
+      
+      // Números de página
+      const maxVisiblePages = 5;
+      let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+      let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+      
+      if (startPage > 1) {
+        html += `<button onclick="goToPage(1)">1</button>`;
+        if (startPage > 2) html += `<span>...</span>`;
+      }
+      
+      for (let i = startPage; i <= endPage; i++) {
+        html += `<button onclick="goToPage(${i})" class="${i === currentPage ? 'active' : ''}">${i}</button>`;
+      }
+      
+      if (endPage < totalPages) {
+        if (endPage < totalPages - 1) html += `<span>...</span>`;
+        html += `<button onclick="goToPage(${totalPages})">${totalPages}</button>`;
+      }
+      
+      // Botón Siguiente
+      html += `<button onclick="goToPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>Siguiente ›</button>`;
+      
+      // Información
+      const startIndex = (currentPage - 1) * rowsPerPage + 1;
+      const endIndex = Math.min(currentPage * rowsPerPage, totalRecords);
+      html += `<div class="pagination-info">Mostrando ${startIndex}-${endIndex} de ${totalRecords} registro(s)</div>`;
+      
+      paginationDiv.innerHTML = html;
+    }
+
+    function goToPage(page) {
+      const filtered = filterRecords();
+      const totalPages = Math.ceil(filtered.length / rowsPerPage);
+      if (page < 1 || page > totalPages) return;
+      currentPage = page;
+      renderList();
+    }
+    
+    // Hacer goToPage accesible globalmente para los botones de paginación
+    window.goToPage = goToPage;
+
+    function updateResumenTable(records) {
+      const resumenBody = document.getElementById('resumenBody');
+      if (!resumenBody) return;
+
+      // Contar por estado
+      const estados = {};
+      records.forEach(rec => {
+        const estado = (rec.ESTADO_INCIDENCIA || 'PENDIENTE').toUpperCase();
+        estados[estado] = (estados[estado] || 0) + 1;
+      });
+
+      const total = records.length;
+      resumenBody.innerHTML = '';
+
+      // Ordenar estados por cantidad (mayor a menor)
+      const estadosOrdenados = Object.entries(estados).sort((a, b) => b[1] - a[1]);
+
+      estadosOrdenados.forEach(([estado, cantidad]) => {
+        const porcentaje = total > 0 ? ((cantidad / total) * 100).toFixed(1) : 0;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><span class="badge ${badgeClass(estado)}">${estado}</span></td>
+          <td><strong>${cantidad}</strong></td>
+          <td>${porcentaje}%</td>
+        `;
+        resumenBody.appendChild(tr);
+      });
+
+      // Agregar fila de total
+      if (total > 0) {
+        const trTotal = document.createElement('tr');
+        trTotal.style.fontWeight = 'bold';
+        trTotal.style.backgroundColor = 'var(--azul-claro)';
+        trTotal.innerHTML = `
+          <td>TOTAL</td>
+          <td>${total}</td>
+          <td>100%</td>
+        `;
+        resumenBody.appendChild(trTotal);
+      }
     }
 
     async function showDetailById(id) { 
@@ -2163,8 +2405,8 @@
     })();
 
     // ===== Filtros/listado =====
-    document.getElementById('applyFilter').onclick = () => renderList();
-    document.getElementById('clearFilters').onclick = () => { document.getElementById('filterEstado').value = 'TODOS'; document.getElementById('filterStart').value = ''; document.getElementById('filterEnd').value = ''; renderList(); };
+    document.getElementById('applyFilter').onclick = () => { currentPage = 1; renderList(); };
+    document.getElementById('clearFilters').onclick = () => { currentPage = 1; document.getElementById('filterEstado').value = 'TODOS'; document.getElementById('filterStart').value = ''; document.getElementById('filterEnd').value = ''; renderList(); };
     document.getElementById('exportCSV').onclick = exportFilteredCSV;
     document.getElementById('generateReport').onclick = generateReport;
 
