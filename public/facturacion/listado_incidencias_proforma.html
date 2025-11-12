@@ -7,24 +7,67 @@
   <title>Área de Facturación: Listado de incidencia de comprobantes y actas</title>
  <!-- Favicon -->
     <link rel="icon" type="image/png" href="https://cibertecedgar.github.io/marcalogo/logozeus.png">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
   <style>
     :root{
-      --azul:#0056D2;           /* azul vivo (coherente con logística/administración) */
+      --azul-oscuro:#17375d;
+      --azul:#1e4d7a;
       --negro:#000000;           /* encabezado de tabla */
       --gris:#FFFFFF;            /* fondo general blanco */
       --rojo:#FF3B30;            /* eliminar / alerta */
       --verde:#00B140;           /* guardar/ok */
-      --link:#0056D2;            /* enlaces dentro de celdas */
+      --link:#1e4d7a;            /* enlaces dentro de celdas */
       --amarillo:#ffc107; --naranja:#ff9800; --celeste:#17a2b8; --verde-suave:#4caf50;
+      --azul-claro-bg:#e8f0f8;
     }
-    body{ font-family:Arial, sans-serif; margin:0; background:var(--gris); color:#000; }
-    header.titulo-principal{ background:var(--azul); color:#fff; padding:10px 15px; border-radius:5px 5px 0 0; }
-    .header-content { display: flex; align-items: center; justify-content: center; position: relative; }
-    .header-logo { height: 50px; position: absolute; left: 0; }
+    body{ 
+      font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+      margin:0; 
+      background:linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      color:#000;
+      min-height:100vh;
+      padding:10px;
+    }
+    header.titulo-principal{ 
+      background:linear-gradient(135deg, var(--azul-oscuro) 0%, var(--azul) 100%); 
+      color:#fff; 
+      padding:1rem 1.25rem; 
+      border-radius:12px 12px 0 0; 
+    }
+    .header-content { 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      position: relative; 
+    }
+    .header-logo { 
+      height: 50px; 
+      position: absolute; 
+      left: 0; 
+    }
 
-    .container{ max-width:1400px; margin:0 auto; padding:1rem; }
-    .card{ background:#fff; border-radius:8px; box-shadow:0 6px 18px rgba(18,38,63,.08); margin-bottom:1.25rem; overflow:hidden; }
-    .card-header{ background:var(--azul); color:#fff; padding:.75rem 1rem; display:flex; align-items:center; justify-content:space-between; }
+    .container{ 
+      width:90%;
+      max-width:none;
+      margin:0 auto; 
+      padding:1rem; 
+    }
+    .card{ 
+      background:#fff; 
+      border-radius:12px; 
+      box-shadow:0 4px 20px rgba(23,55,93,.12); 
+      margin-bottom:1.25rem; 
+      overflow:hidden;
+      border:1px solid rgba(23,55,93,.08);
+    }
+    .card-header{ 
+      background:linear-gradient(135deg, var(--azul-oscuro) 0%, var(--azul) 100%); 
+      color:#fff; 
+      padding:.75rem 1rem; 
+      display:flex; 
+      align-items:center; 
+      justify-content:space-between; 
+    }
     .card-header h2{ margin:0; font-size:1.05rem; }
     .card-body{ padding:1rem; }
 
@@ -34,8 +77,8 @@
     .filter-actions{ margin-left:auto; display:flex; gap:.5rem; align-items:center; }
 
     .btn{ padding:.45rem .8rem; border:none; border-radius:6px; cursor:pointer; font-size:.85rem; }
-    .btn-azul{ background:var(--azul); color:#fff; }
-    .btn-azul:hover{ filter:brightness(.92); }
+    .btn-azul{ background:linear-gradient(135deg, var(--azul-oscuro) 0%, var(--azul) 100%); color:#fff; }
+    .btn-azul:hover{ filter:brightness(.95); box-shadow:0 4px 12px rgba(23,55,93,.25); }
     .btn-ghost{ background:transparent; border:1px solid #ddd; }
     .btn-ok{ background:var(--verde); color:#fff; }
     .btn-danger{ background:var(--rojo); color:#fff; }
@@ -44,7 +87,15 @@
 
     .table-responsive{ overflow:auto; }
     table{ width:100%; border-collapse:collapse; }
-    thead th{ background:var(--negro); color:#fff; text-align:center; padding:8px; position:sticky; top:0; z-index:1; }
+    thead th{ 
+      background:linear-gradient(135deg, var(--azul-oscuro) 0%, var(--azul) 100%); 
+      color:#fff; 
+      text-align:center; 
+      padding:12px 10px; 
+      position:sticky; 
+      top:0; 
+      z-index:1; 
+    }
     th, td{ padding:.55rem; border:1px solid #e7e7e7; font-size:.85rem; vertical-align:top; }
 
     td a{ color:var(--link); text-decoration:none; cursor:pointer; } /* sin subrayado (👁️ / PDF) */
@@ -80,23 +131,146 @@
     #tablaFact th:nth-child(22), #tablaFact td:nth-child(22){ text-align:center; }
 
     /* Modales */
-    .modal{ position:fixed; inset:0; background:rgba(0,0,0,.5); display:none; justify-content:center; align-items:flex-start; padding-top:5%; z-index:1000; }
-    .modal-content{ background:#fff; padding:1rem; border-radius:8px; width:92%; max-width:640px; max-height:80vh; overflow-y:auto; box-shadow:0 12px 32px rgba(0,0,0,.25); }
+    .modal{ 
+      position:fixed; 
+      inset:0; 
+      background:rgba(0,0,0,.5); 
+      display:none; 
+      justify-content:center; 
+      align-items:flex-start; 
+      padding-top:5%; 
+      z-index:1000; 
+    }
+    .modal-content{ 
+      background:#fff; 
+      padding:1.25rem; 
+      border-radius:12px; 
+      width:92%; 
+      max-width:640px; 
+      max-height:80vh; 
+      overflow-y:auto; 
+      box-shadow:0 12px 32px rgba(23,55,93,.25);
+      border:1px solid rgba(23,55,93,.08);
+    }
     .modal-close{ background:transparent; border:none; font-size:1.5rem; float:right; cursor:pointer; }
     .form-group{ display:flex; flex-direction:column; margin-bottom:.75rem; }
     .form-group label{ font-weight:bold; margin-bottom:.25rem; }
     .form-group input, .form-group select, .form-group textarea{ padding:.5rem; border:1px solid #ccc; border-radius:6px; font-size:.9rem; }
     .muted{ color:#6b7280; font-size:.85rem; }
     .prelike{ white-space:pre-wrap; background:#f9fafb; border:1px solid #e5e7eb; border-radius:6px; padding:.5rem; }
+
+    /* Header Container */
+    .header-container {
+      background: linear-gradient(135deg, var(--azul-oscuro) 0%, var(--azul) 100%);
+      box-shadow: 0 2px 20px rgba(23, 55, 93, .1);
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+      width: 100vw;
+      margin-left: calc(-50vw + 50%);
+      margin-right: calc(-50vw + 50%);
+      margin-top: -10px;
+    }
+
+    .header-logo-container {
+      display: flex;
+      align-items: center;
+    }
+
+    .header-logo-container img {
+      max-width: 150px;
+      object-fit: contain;
+      transition: transform 0.3s ease;
+    }
+
+    .header-logo-container img:hover {
+      transform: scale(1.05);
+    }
+
+    .header-title {
+      flex: 1;
+      text-align: center;
+      margin: 0 20px;
+    }
+
+    .header-title h1 {
+      color: white;
+      font-weight: 700;
+      font-size: 1.75rem;
+      margin: 0;
+      text-shadow: 0 2px 4px rgba(20, 33, 61, 0.1);
+    }
+
+    .header-spacer {
+      width: 150px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+    }
+
+    .btn-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, .15);
+      color: white;
+      text-decoration: none;
+      padding: .6rem 1.2rem;
+      border-radius: 8px;
+      font-weight: 500;
+      font-size: .9rem;
+      transition: all 0.3s ease;
+      border: 1px solid rgba(255, 255, 255, .3);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, .15);
+    }
+
+    .btn-back:hover {
+      background: rgba(255, 255, 255, .25);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, .2);
+    }
+
+    @media (max-width: 768px) {
+      .header-container {
+        flex-direction: column;
+        gap: 15px;
+        padding: 1rem;
+      }
+
+      .header-title h1 {
+        font-size: 1.5rem;
+      }
+
+      .header-logo-container img {
+        max-width: 120px;
+      }
+
+      .header-spacer {
+        display: none;
+      }
+    }
   </style>
 </head>
 <body>
-  <header class="titulo-principal">
-    <div class="header-content">
-      <img src="../../Logo de Zeus.png" alt="Logo Zeus" class="header-logo">
+  <!-- Header con Logo y Título -->
+  <div class="header-container">
+    <div class="header-logo-container">
+      <img src="https://cibertecedgar.github.io/marcalogo/logozeus.png" alt="Logo Zeus">
+    </div>
+    <div class="header-title">
       <h1>Área de Facturación: Listado de incidencia de comprobantes y actas</h1>
     </div>
-  </header>
+    <div class="header-spacer">
+      <a href="../../facturacion.html" class="btn-back">
+        <i class="fas fa-arrow-left"></i>
+        Volver al Menú
+      </a>
+    </div>
+  </div>
 
   <div class="container">
     <div class="card">
