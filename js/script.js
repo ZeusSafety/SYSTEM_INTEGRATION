@@ -133,7 +133,7 @@ function loadMenu() {
         "LOGISTICA": "logistica",
         "GERENCIA": "gerencia",
         "ADMINISTRACION": "administracion",
-        "RECURSOS_HUMANOS": "recursos_humanos",
+        "RECURSOS HUMANOS": "recursos_humanos",
         "FACTURACION": "facturacion"
     };
 
