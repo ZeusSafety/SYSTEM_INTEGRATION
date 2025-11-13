@@ -343,10 +343,10 @@
             <textarea class="form-control rounded-md" id="respuestaModal" rows="2"></textarea>
           </div>
           <div class="mb-3">
-            <label for="informeRespuestaModal" class="form-label">Informe (PDF)</label>
+            <label for="informeRespuestaModal" class="form-label">Informe (Archivos PDF, rar, zip)</label>
 
             <!-- Input de carga -->
-            <input type="file" id="informeRespuestaModal" class="form-control" accept="application/pdf">
+            <input type="file" id="informeRespuestaModal" class="form-control" accept=".pdf,.rar,.zip">
 
             <!-- Link para visualizar el archivo -->
             <div id="verArchivoContainer" class="mt-2" style="display:none;">
@@ -397,9 +397,10 @@
                   <textarea class="form-control rounded-md" id="respuestaReprogramacionModal" rows="2"></textarea>
                 </div>
                 <div class="mb-3">
-                  <label for="informeReprogramacionModal" class="form-label">Informe Reprogramación (PDF)</label>
+                  <label for="informeReprogramacionModal" class="form-label">Informe Reprogramación (Archivos PDF, rar,
+                    zip)</label>
                   <input type="file" class="form-control rounded-md" id="informeReprogramacionModal"
-                    accept="application/pdf">
+                    accept=".pdf,.rar,.zip">
                   <div id="archivoExistente1" class="mt-2" style="display: none;">
                     <a href="#" id="verArchivoReprog1" class="btn btn-sm btn-outline-primary" target="_blank">
                       <i class="fas fa-file-pdf"></i> Ver archivo
@@ -437,9 +438,10 @@
                   <textarea class="form-control rounded-md" id="respuestaReprogramacion2Modal" rows="2"></textarea>
                 </div>
                 <div class="mb-3">
-                  <label for="informeReprogramacion2Modal" class="form-label">Informe Reprogramación (PDF)</label>
+                  <label for="informeReprogramacion2Modal" class="form-label">Informe Reprogramación (Archivos PDF, rar,
+                    zip)</label>
                   <input type="file" class="form-control rounded-md" id="informeReprogramacion2Modal"
-                    accept="application/pdf">
+                    accept=".pdf,.rar,.zip">
                   <div id="archivoExistente2" class="mt-2" style="display: none;">
                     <a href="#" id="verArchivoReprog2" class="btn btn-sm btn-outline-primary" target="_blank">
                       <i class="fas fa-file-pdf"></i> Ver archivo
@@ -471,9 +473,10 @@
                   <textarea class="form-control rounded-md" id="respuestaReprogramacion3Modal" rows="2"></textarea>
                 </div>
                 <div class="mb-3">
-                  <label for="informeReprogramacion3Modal" class="form-label">Informe Reprogramación (PDF)</label>
+                  <label for="informeReprogramacion3Modal" class="form-label">Informe Reprogramación (Archivos PDF, rar,
+                    zip)</label>
                   <input type="file" class="form-control rounded-md" id="informeReprogramacion3Modal"
-                    accept="application/pdf">
+                    accept=".pdf,.rar,.zip">
                   <div id="archivoExistente3" class="mt-2" style="display: none;">
                     <a href="#" id="verArchivoReprog3" class="btn btn-sm btn-outline-primary" target="_blank">
                       <i class="fas fa-file-pdf"></i> Ver archivo
@@ -571,7 +574,8 @@
           <div class="mb-3">
             <h6 class="fw-bold text-primary">🔎 Filtros</h6>
             <ul class="small text-muted">
-              <li>Filtra las solicitudes por <strong>Área</strong>, <strong>Colaborador</strong>, <strong>Estado</strong> y <strong>Incidencia</strong>.
+              <li>Filtra las solicitudes por <strong>Área</strong>, <strong>Colaborador</strong>,
+                <strong>Estado</strong> y <strong>Incidencia</strong>.
               </li>
               <li>El filtro de <strong>Colaborador</strong> funciona en tiempo real mientras escribes.</li>
               <li>Se permite hacer <strong>Filtros Combinados</strong> funciona en tiempo real.</li>
@@ -587,7 +591,8 @@
               </li>
               <li>Puedes adjuntar un archivo PDF y luego visualizarlo con el botón <strong>Ver archivo</strong>.</li>
             </ul>
-            <strong>🚨 IMPORTANTE: SOLO TIENEN MÁXIMO 48 HORAS PARA RESPONDER O ATENDER UNA SOLICITUD/INCIDENCIA</strong>.
+            <strong>🚨 IMPORTANTE: SOLO TIENEN MÁXIMO 48 HORAS PARA RESPONDER O ATENDER UNA
+              SOLICITUD/INCIDENCIA</strong>.
           </div>
 
           <div class="mb-3">
@@ -612,6 +617,25 @@
               </li>
               <li>Al lado aparecerá un botón para abrir el detalle de todas las reprogramaciones registradas.</li>
             </ul>
+
+            <ul>
+              <li>📎 <b>Informe:</b> Puedes adjuntar un archivo como soporte <b>PDF, .rar, .zip,
+                  etc</li>
+              <h2></h2>
+              <ul>
+                📌Selecciona la opción marcada de rojo para que el sistema muestre todos tus archivos
+                <h2></h2>
+                <img src="https://cibertecedgar.github.io/img-archivo/image-archivo.png" alt="" width="80%"
+                  height="10%">
+              </ul>
+              <h2></h2>
+
+              <h6>💬 Sugerencia</h6>
+              - Si en caso subiras varios pdf usar la siguiente pagina para <b>concatenar PDFs</b> link: <a
+                href="https://www.ilovepdf.com/es/unir_pdf" target="_blank">https://www.ilovepdf.com/es/unir_pdf</a><br>
+              </p>
+            </ul>
+
           </div>
         </div>
         <div class="modal-footer bg-light rounded-bottom-4">
@@ -1082,13 +1106,13 @@
       toggleOtrosField(); // Ocultar el campo OTROS
     }
 
-     // Mostrar respuesta: el backend entrega RESPUESTA_R (alias), usar respaldo RESPUESTA
+    // Mostrar respuesta: el backend entrega RESPUESTA_R (alias), usar respaldo RESPUESTA
     const respuestaActual = row.RESPUESTA_R || row.RESPUESTA || "";
     document.getElementById("respuestaModal").value = respuestaActual;
-    
+
     // Obtener la URL del informe de la respuesta principal
-    const informeRespuestaUrl = row.INFORME_RESPUESTA || ""; 
-    
+    const informeRespuestaUrl = row.INFORME_RESPUESTA || "";
+
     const informeInput = document.getElementById("informeRespuestaModal");
     const verArchivoContainer = document.getElementById("verArchivoContainer");
     const verArchivoBtn = document.getElementById("verArchivoBtn");
@@ -1096,7 +1120,7 @@
 
     // LÍNEAS AGREGADAS PARA CORREGIR EL ERROR DEL INFORME:
     // 1. Guardar la respuesta actual para detectar cambios en 'guardarCambios'
-    document.getElementById("origRespRespuestaHidden").value = respuestaActual; 
+    document.getElementById("origRespRespuestaHidden").value = respuestaActual;
     // 2. Guardar la URL del informe para la lógica de 'mantener_informe'
     document.getElementById("origInformeRespuestaHidden").value = informeRespuestaUrl;
     // -----------------------------------------------------------
@@ -1105,9 +1129,9 @@
     informeInput.value = "";
 
     // Si ya existe un archivo, muestra el botón "Ver archivo"
-    if (informeRespuestaUrl) { 
-        verArchivoContainer.style.display = "block";
-        verArchivoBtn.href = informeRespuestaUrl; // enlace guardado
+    if (informeRespuestaUrl) {
+      verArchivoContainer.style.display = "block";
+      verArchivoBtn.href = informeRespuestaUrl; // enlace guardado
     } else {
       verArchivoContainer.style.display = "none";
       verArchivoBtn.href = "#";
@@ -1306,13 +1330,13 @@
     new bootstrap.Modal(document.getElementById("modalEdicion")).show();
   }
 
-   /**
- * Envía un formulario con soporte para barra de progreso de subida.
- * @param {string} url La URL de destino (e.g., '...run.app' o '...run.app?accion=reprogramar').
- * @param {FormData} formData Los datos del formulario a enviar.
- * @param {string} method El método HTTP ('PUT' o 'POST').
- * @returns {Promise<Response>}
- */
+  /**
+* Envía un formulario con soporte para barra de progreso de subida.
+* @param {string} url La URL de destino (e.g., '...run.app' o '...run.app?accion=reprogramar').
+* @param {FormData} formData Los datos del formulario a enviar.
+* @param {string} method El método HTTP ('PUT' o 'POST').
+* @returns {Promise<Response>}
+*/
   function enviarFormularioConProgreso(url, formData, method = 'PUT') {
     const progressBar = document.getElementById('progressBar');
     const progressContainer = document.getElementById('progressContainer');
