@@ -377,7 +377,7 @@ async function loadAndFilterSubvistas(username) {
         }
     });
 
-    // Limpiar submenús vacíos
+    // Limpiar submenús vacíos en menu.html
     document.querySelectorAll('.sub-submenu, .submenu').forEach(submenu => {
         const itemsVisibles = submenu.querySelectorAll('a, .menu-card, .sub-submenu-item, .submenu-item');
         const itemsVisiblesArray = Array.from(itemsVisibles);
@@ -395,7 +395,88 @@ async function loadAndFilterSubvistas(username) {
             
             if (todosOcultos) {
                 submenu.style.display = 'none';
+                // Si el submenu está vacío, ocultar también el submenu-group padre
+                const submenuGroup = submenu.closest('.submenu-group');
+                if (submenuGroup) {
+                    submenuGroup.style.display = 'none';
+                }
             }
+        }
+    });
+
+    // Limpiar secciones vacías en logistica.html y otros archivos con primary-section
+    document.querySelectorAll('.primary-section').forEach(section => {
+        const sectionContent = section.querySelector('.section-content');
+        if (!sectionContent) return;
+
+        // Buscar todos los elementos con contenido (menu-card, enlaces, etc.)
+        const itemsConContenido = sectionContent.querySelectorAll('.menu-card, a.btn, .menu-grid > *');
+        
+        // Si no hay items con contenido, no ocultar (puede ser una sección sin restricciones)
+        if (itemsConContenido.length === 0) return;
+
+        let hayVisibles = false;
+
+        itemsConContenido.forEach(item => {
+            const style = window.getComputedStyle(item);
+            // Verificar si el elemento está visible
+            if (style.display !== 'none') {
+                // Verificar también que no esté dentro de un padre oculto usando offsetParent
+                // offsetParent es null si el elemento está oculto
+                if (item.offsetParent !== null) {
+                    hayVisibles = true;
+                }
+            }
+        });
+
+        // Si no hay elementos visibles y había items con contenido, ocultar toda la sección
+        if (!hayVisibles) {
+            section.style.display = 'none';
+            const sectionName = section.querySelector('h2')?.textContent || section.querySelector('.section-header h2')?.textContent || section.id;
+            console.log(`✓ Sección ocultada por falta de subvistas visibles: ${sectionName}`);
+        }
+    });
+
+    // Limpiar grupos de submenú vacíos en menu.html
+    document.querySelectorAll('.submenu-group').forEach(group => {
+        const subSubmenu = group.querySelector('.sub-submenu');
+        if (!subSubmenu) return;
+
+        // Verificar si el sub-submenu está oculto o vacío
+        const subSubmenuStyle = window.getComputedStyle(subSubmenu);
+        
+        // Si el sub-submenu está explícitamente oculto, ocultar el grupo
+        if (subSubmenuStyle.display === 'none') {
+            group.style.display = 'none';
+            console.log(`✓ Grupo de submenú ocultado (sub-submenu oculto)`);
+            return;
+        }
+
+        // Verificar si hay items visibles en el sub-submenu
+        const itemsEnSubmenu = subSubmenu.querySelectorAll('a, .sub-submenu-item');
+        let hayItemsVisibles = false;
+
+        if (itemsEnSubmenu.length === 0) {
+            // Si no hay items, verificar si el submenu está realmente vacío
+            const todosLosItems = subSubmenu.children;
+            hayItemsVisibles = Array.from(todosLosItems).some(item => {
+                const itemStyle = window.getComputedStyle(item);
+                return itemStyle.display !== 'none' && item.offsetParent !== null;
+            });
+        } else {
+            itemsEnSubmenu.forEach(item => {
+                const itemStyle = window.getComputedStyle(item);
+                if (itemStyle.display !== 'none' && item.offsetParent !== null) {
+                    hayItemsVisibles = true;
+                }
+            });
+        }
+
+        // Si no hay items visibles y había items originalmente, ocultar el grupo completo
+        if (!hayItemsVisibles && itemsEnSubmenu.length > 0) {
+            group.style.display = 'none';
+            const groupName = group.querySelector('.submenu-header span')?.textContent || 'Grupo de submenú';
+            console.log(`✓ Grupo de submenú ocultado por falta de subvistas visibles: ${groupName}`);
         }
     });
 }
