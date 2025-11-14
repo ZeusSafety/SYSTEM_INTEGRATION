@@ -131,6 +131,7 @@
     </div>
 
     <script src="js/config.js"></script>
+    <script src="js/script.js"></script>
     <script>
         function toggleSection(sectionName) {
             const section = document.getElementById(sectionName + '-section');
@@ -150,9 +151,15 @@
             }
         }
 
-        // Abrir la primera sección por defecto
+        // Abrir la primera sección por defecto y cargar permisos de subvistas
         document.addEventListener('DOMContentLoaded', function () {
             toggleSection('incidencias');
+            
+            // Cargar y filtrar subvistas según permisos del usuario
+            const username = localStorage.getItem("loggedUser");
+            if (username && typeof loadAndFilterSubvistas === 'function') {
+                loadAndFilterSubvistas(username);
+            }
         });
     </script>
 </body>

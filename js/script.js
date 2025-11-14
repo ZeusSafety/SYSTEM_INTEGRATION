@@ -90,8 +90,13 @@ async function loginUser(username, password) {
 
 // CERRAR SESION
 function logoutUser() {
+    const username = localStorage.getItem("loggedUser");
     localStorage.removeItem("loggedUser");
     localStorage.removeItem("userRoles");
+    // Limpiar cache de subvistas al cerrar sesión
+    if (username) {
+        localStorage.removeItem(`subvistas_${username}`);
+    }
     window.location.href = "index.html";
 }
 
@@ -158,6 +163,239 @@ function loadMenu() {
     usernameElements.forEach(element => {
         if (element) {
             element.textContent = username;
+        }
+    });
+
+    // Cargar y filtrar subvistas después de cargar el menú
+    loadAndFilterSubvistas(username);
+}
+
+// FUNCIÓN PARA OBTENER SUBVISTAS PERMITIDAS DEL USUARIO
+async function getSubvistasPermitidas(username) {
+    // Intentar obtener desde localStorage primero
+    const cachedKey = `subvistas_${username}`;
+    const cached = localStorage.getItem(cachedKey);
+    
+    // Si existe en cache y tiene menos de 5 minutos, usarlo
+    if (cached) {
+        try {
+            const cachedData = JSON.parse(cached);
+            const ahora = Date.now();
+            const tiempoCache = 5 * 60 * 1000; // 5 minutos
+            
+            if (cachedData.timestamp && (ahora - cachedData.timestamp) < tiempoCache) {
+                console.log("Subvistas obtenidas del cache");
+                return cachedData.nombres || [];
+            }
+        } catch (e) {
+            console.warn("Error al leer cache de subvistas:", e);
+        }
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}?metodo=subvistas&user=${encodeURIComponent(username)}`);
+        
+        if (response.status === 200) {
+            const data = await response.text();
+            console.log("Respuesta de subvistas:", data);
+            
+            try {
+                const subvistas = JSON.parse(data);
+                // Extraer solo los nombres de las subvistas permitidas
+                const nombresSubvistas = subvistas.map(subvista => subvista.NOMBRE);
+                console.log("Subvistas permitidas:", nombresSubvistas);
+                
+                // Guardar en cache
+                localStorage.setItem(cachedKey, JSON.stringify({
+                    nombres: nombresSubvistas,
+                    timestamp: Date.now()
+                }));
+                
+                return nombresSubvistas;
+            } catch (e) {
+                console.error("Error al parsear JSON de subvistas:", e);
+                return [];
+            }
+        } else {
+            console.error("Error en la respuesta de subvistas:", response.status);
+            return [];
+        }
+    } catch (error) {
+        console.error("Error al conectar con la API de subvistas:", error);
+        return [];
+    }
+}
+
+// FUNCIÓN PARA FILTRAR SUBVISTAS EN EL HTML BASÁNDOSE EN COMENTARIOS
+async function loadAndFilterSubvistas(username) {
+    const subvistasPermitidas = await getSubvistasPermitidas(username);
+    
+    // Si no hay subvistas permitidas retornadas por la API, significa que:
+    // 1. El usuario tiene todas las subvistas permitidas (sin restricciones)
+    // 2. Hubo un error al obtenerlas
+    // En ambos casos, no ocultamos nada
+    if (subvistasPermitidas.length === 0) {
+        console.log("No se encontraron restricciones de subvistas. Mostrando todas las subvistas.");
+        return;
+    }
+
+    // Buscar todos los comentarios HTML que contengan "SUB VISTA: NOMBRE:"
+    const walker = document.createTreeWalker(
+        document.body,
+        NodeFilter.SHOW_COMMENT,
+        null,
+        false
+    );
+
+    const subvistasOcultar = [];
+    let node;
+
+    while (node = walker.nextNode()) {
+        const commentText = node.textContent.trim();
+        if (commentText.includes("SUB VISTA: NOMBRE:")) {
+            // Extraer el nombre de la subvista del comentario
+            const match = commentText.match(/SUB VISTA: NOMBRE:\s*(.+)/);
+            if (match && match[1]) {
+                const nombreSubvista = match[1].trim();
+                
+                // Si la subvista NO está en la lista de permitidas, la ocultamos
+                if (!subvistasPermitidas.includes(nombreSubvista)) {
+                    subvistasOcultar.push({
+                        nombre: nombreSubvista,
+                        node: node
+                    });
+                }
+            }
+        }
+    }
+
+    // Ocultar los enlaces correspondientes a las subvistas no permitidas
+    subvistasOcultar.forEach(({ nombre, node }) => {
+        let encontrado = false;
+        
+        // Buscar el siguiente elemento hermano después del comentario
+        let siguiente = node.nextSibling;
+        let intentos = 0;
+        const maxIntentos = 5; // Limitar búsqueda a los siguientes 5 elementos
+        
+        // Buscar en hermanos siguientes
+        while (siguiente && intentos < maxIntentos && !encontrado) {
+            intentos++;
+            
+            if (siguiente.nodeType === Node.ELEMENT_NODE) {
+                // Caso 1: Es directamente un enlace <a>
+                if (siguiente.tagName === 'A') {
+                    const contenedor = siguiente.closest('.sub-submenu-item, .submenu-item, .menu-card');
+                    if (contenedor) {
+                        contenedor.style.display = 'none';
+                    } else {
+                        siguiente.style.display = 'none';
+                    }
+                    encontrado = true;
+                    console.log(`✓ Subvista ocultada: ${nombre}`);
+                    break;
+                }
+                // Caso 2: Es un contenedor que tiene un enlace dentro (menu-card, div, etc.)
+                else if (siguiente.querySelector) {
+                    const enlace = siguiente.querySelector('a');
+                    if (enlace) {
+                        // Si el elemento contiene una clase específica de contenedor, ocultarlo
+                        if (siguiente.classList.contains('menu-card') ||
+                            siguiente.classList.contains('sub-submenu-item') ||
+                            siguiente.classList.contains('submenu-item')) {
+                            siguiente.style.display = 'none';
+                            encontrado = true;
+                            console.log(`✓ Subvista ocultada (contenedor): ${nombre}`);
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            siguiente = siguiente.nextSibling;
+        }
+        
+        // Método adicional: Si el comentario está dentro de un contenedor (menu-card, etc.)
+        // buscar el enlace dentro del mismo contenedor padre
+        if (!encontrado && node.parentNode) {
+            const padre = node.parentNode;
+            // Si el padre es un contenedor de tipo menu-card o similar
+            if (padre.classList && (
+                padre.classList.contains('menu-card') ||
+                padre.classList.contains('sub-submenu-item') ||
+                padre.classList.contains('submenu-item')
+            )) {
+                const enlace = padre.querySelector('a');
+                if (enlace) {
+                    padre.style.display = 'none';
+                    encontrado = true;
+                    console.log(`✓ Subvista ocultada (contenedor padre): ${nombre}`);
+                }
+            }
+        }
+        
+        // Si no se encontró en hermanos, buscar en el padre
+        if (!encontrado && node.parentNode) {
+            const padre = node.parentNode;
+            
+            // Buscar todos los enlaces en el padre y encontrar el primero después del comentario
+            const enlaces = Array.from(padre.querySelectorAll('a'));
+            const comentarioIndex = Array.from(padre.childNodes).indexOf(node);
+            
+            for (const enlace of enlaces) {
+                // Obtener el índice del elemento padre del enlace
+                let enlaceParent = enlace.parentElement;
+                let enlaceIndex = -1;
+                
+                // Buscar en qué posición está el padre del enlace
+                for (let i = 0; i < padre.childNodes.length; i++) {
+                    const child = padre.childNodes[i];
+                    if (child === enlaceParent || 
+                        (child.nodeType === Node.ELEMENT_NODE && child.contains && child.contains(enlace))) {
+                        enlaceIndex = i;
+                        break;
+                    }
+                }
+                
+                // Si el enlace está después del comentario (dentro de 1-3 posiciones)
+                if (enlaceIndex > comentarioIndex && enlaceIndex <= comentarioIndex + 3) {
+                    const contenedor = enlace.closest('.sub-submenu-item, .submenu-item, .menu-card');
+                    if (contenedor) {
+                        contenedor.style.display = 'none';
+                    } else {
+                        enlace.style.display = 'none';
+                    }
+                    encontrado = true;
+                    console.log(`✓ Subvista ocultada (búsqueda en padre): ${nombre}`);
+                    break;
+                }
+            }
+        }
+        
+        if (!encontrado) {
+            console.warn(`⚠ No se pudo ocultar la subvista: ${nombre}. Verificar estructura HTML.`);
+        }
+    });
+
+    // Limpiar submenús vacíos
+    document.querySelectorAll('.sub-submenu, .submenu').forEach(submenu => {
+        const itemsVisibles = submenu.querySelectorAll('a, .menu-card, .sub-submenu-item, .submenu-item');
+        const itemsVisiblesArray = Array.from(itemsVisibles);
+        const hayVisibles = itemsVisiblesArray.some(item => {
+            const style = window.getComputedStyle(item);
+            return style.display !== 'none' && item.closest('[style*="display: none"]') === null;
+        });
+        
+        if (!hayVisibles && submenu.children.length > 0) {
+            // Verificar si todos los hijos están ocultos
+            const todosOcultos = Array.from(submenu.children).every(child => {
+                const style = window.getComputedStyle(child);
+                return style.display === 'none';
+            });
+            
+            if (todosOcultos) {
+                submenu.style.display = 'none';
+            }
         }
     });
 }
