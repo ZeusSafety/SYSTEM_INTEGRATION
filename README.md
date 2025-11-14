@@ -52,35 +52,11 @@ APPS_SCRIPT_BASE_URL: 'TU_NUEVA_URL_AQUI',
 ### 🔍 Verificar Configuración
 
 Abre la consola del navegador (F12) para ver:
+
 - ✅ Estado de la configuración
 - 📡 URL base actual
 - 📄 Páginas disponibles
 - ⚠️ Advertencias si la URL necesita actualización
-
-## 🎨 Características de Diseño
-
-- **Gradientes Modernos**: Fondos con degradados púrpura-azul
-- **Efectos Glassmorphism**: Transparencias y blur
-- **Animaciones Suaves**: Hover effects y transiciones
-- **Iconos FontAwesome**: Iconografía consistente
-- **Responsive Design**: Adaptable a todos los dispositivos
-
-## 🚀 Cómo Usar
-
-1. **Abrir index.html** en tu navegador
-2. **Navegar** por las diferentes secciones
-3. **Hacer clic** en las tarjetas para acceder a las funcionalidades
-4. **Usar el botón "Volver al Menú"** para regresar
-
-## 🔄 Actualización de URLs
-
-### Método Automático (Recomendado)
-- Solo cambia la URL en `js/config.js`
-- Todos los enlaces se actualizan automáticamente
-
-### Método Manual (No recomendado)
-- Cambiar cada URL individualmente en los archivos HTML
-- Más propenso a errores
 
 ## 📱 Compatibilidad
 
@@ -100,6 +76,7 @@ Abre la consola del navegador (F12) para ver:
 ## 📞 Soporte
 
 Si tienes problemas con la configuración:
+
 1. Verifica la consola del navegador
 2. Asegúrate de que la URL de Apps Script sea correcta
 3. Confirma que el archivo `js/config.js` esté cargado
