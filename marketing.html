@@ -5,7 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ventas - ZEUS SAFETY</title>
-    <!-- Favicon -->
     <link rel="icon" type="image/png" href="https://cibertecedgar.github.io/marcalogo/logozeus.png">
     <link rel="stylesheet" href="css/ventas.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -171,6 +170,69 @@
     .section-expanded .toggle-icon {
         transform: rotate(180deg);
     }
+
+    /* Estilos adicionales que podrías necesitar para el menú, si no están en ventas.css */
+    /* Aquí se asume que las clases .primary-section, .section-header, .section-content, .menu-card, .btn, etc., están definidas en ventas.css */
+    .primary-section.active .section-content {
+        max-height: fit-content !important;
+        /* Asegura que el contenido se vea cuando se active */
+    }
+
+    .menu-card {
+        background-color: var(--light-color);
+        border-radius: 8px;
+        box-shadow: var(--shadow);
+        padding: 20px;
+        text-align: center;
+        transition: var(--transition);
+        margin-bottom: 20px;
+        /* Separación entre tarjetas */
+    }
+
+    .menu-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+    }
+
+    .menu-card .icon {
+        font-size: 3rem;
+        color: #264faf;
+        margin-bottom: 15px;
+    }
+
+    .menu-card h3 {
+        margin-top: 0;
+        color: var(--dark-color);
+        font-weight: 600;
+    }
+
+    .menu-card p {
+        color: #6c757d;
+        font-size: 0.9rem;
+        margin-bottom: 15px;
+    }
+
+    .menu-card .btn {
+        display: inline-block;
+        background-color: var(--primary-color);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 5px;
+        text-decoration: none;
+        font-weight: 500;
+        transition: background-color 0.3s;
+    }
+
+    .menu-card .btn:hover {
+        background-color: var(--secondary-color);
+    }
+
+    .menu-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 20px;
+        padding-top: 10px;
+    }
 </style>
 
 <body>
@@ -183,7 +245,6 @@
             <br>
             <a href="menu.html" class="btn-back">Volver al Menú</a>
         </div>
-        <!-- Sección Listados -->
         <div class="primary-section" id="listados-section">
             <div class="section-header" onclick="toggleSection('listados')">
                 <i class="fas fa-clipboard-list"></i>
@@ -193,43 +254,81 @@
             <div class="section-content" id="listados-content">
 
                 <div class="menu-card">
-                    <div class="menu-card">
-                        <i class="fas fa-ship icon"></i>
-                        <h3>Listado de Importaciones</h3>
-                        <p>Ver y gestionar listado de importaciones</p>
-                        <a href="public/marketing/importaciones.html" class="btn">
-                            <i class="fas fa-eye"></i> Ver Importaciones
-                        </a>
-                    </div>
-                    
-                     <!-- 
-                    <br>
-                            PARA MOSTRAR DESPUES
-                     
-                    <div class="menu-card">
-                        <i class="fas fa-ship icon"></i>
-                        <h3>Listado de Ventas</h3>
-                        <p>Ver Ventas de Marketing</p>
-                        <a href="public/marketing/ventas/listado_ventas.html" class="btn">
-                            <i class="fas fa-eye"></i> Listado de Ventas
-                        </a>
-                    </div>
-                    <br>
-                    <div class="menu-card">
-                        <i class="fas fa-ship icon"></i>
-                        <h3>Listado de Clientes</h3>
-                        <p>Ver y gestionar clientes de Marketing</p>
-                        <a href="public/marketing/ventas/gestion_clientes.html" class="btn">
-                            <i class="fas fa-eye"></i> Gestion de Clientes - Marketing
-                        </a>
-                    </div>
-                        -->
+                    <i class="fas fa-ship icon"></i>
+                    <h3>Listado de Importaciones</h3>
+                    <p>Ver y gestionar listado de importaciones</p>
+                    <a href="public/marketing/importaciones.html" class="btn">
+                        <i class="fas fa-eye"></i> Ver Importaciones
+                    </a>
+                </div>
 
+            </div>
+        </div>
+        <br>
+
+        <div class="primary-section" id="ventas-marketing-section">
+            <div class="section-header" onclick="toggleSection('ventas-marketing')">
+                <i class="fas fa-handshake"></i>
+                <h2>Ventas Marketing</h2>
+                <i class="fas fa-chevron-down toggle-icon"></i>
+            </div>
+            <div class="section-content" id="ventas-marketing-content">
+                <div class="menu-grid">
+                    <div class="menu-card">
+                        <i class="fas fa-users icon"></i>
+                        <h3>Gestión de Clientes</h3>
+                        <p>Administrar información de clientes.</p>
+                        <a href="#" class="btn"
+                            onclick="openPasswordModal(event, 'public/marketing/ventas/gestion_clientes.html')">
+                            <i class="fas fa-lock"></i> Acceder
+                        </a>
+                    </div>
+
+                    <div class="menu-card">
+                        <i class="fas fa-shopping-cart icon"></i>
+                        <h3>Listado de Ventas</h3>
+                        <p>Ver y revisar ventas de Marketing.</p>
+                        <a href="#" class="btn"
+                            onclick="openPasswordModal(event, 'public/marketing/ventas/listado_ventas.html')">
+                            <i class="fas fa-lock"></i> Acceder
+                        </a>
+                    </div>
+
+                    <div class="menu-card">
+                        <i class="fas fa-clock-rotate-left icon"></i>
+                        <h3>Recencia de Clientes</h3>
+                        <p>Análisis de actividad reciente de clientes.</p>
+                        <a href="#" class="btn"
+                            onclick="openPasswordModal(event, 'public/marketing/ventas/recencia_clientes.html')">
+                            <i class="fas fa-lock"></i> Acceder
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
         <br>
-        <!-- Sección Solicitudes/Incidencias -->
+
+        <div class="primary-section" id="descuento-cajas-section">
+            <div class="section-header" onclick="toggleSection('descuento-cajas')">
+                <i class="fas fa-box-open"></i>
+                <h2>Gestión de Descuento por Cajas</h2>
+                <i class="fas fa-chevron-down toggle-icon"></i>
+            </div>
+            <div class="section-content" id="descuento-cajas-content">
+                <div class="menu-grid">
+                    <div class="menu-card">
+                        <i class="fas fa-tags icon"></i>
+                        <h3>Stock y Precios por Mayor</h3>
+                        <p>Ver y gestionar el stock con descuento por cajas.</p>
+                        <a href="public/marketing/stock_malvinas_por_mayor_cajas.html" class="btn">
+                            <i class="fas fa-eye"></i> Ver Stock
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <br>
+
         <div class="primary-section" id="soli-section">
             <div class="section-header" onclick="toggleSection('soli')">
                 <i class="fas fa-clipboard-list"></i>
@@ -242,15 +341,15 @@
                         <i class="fas fa-ship icon"></i>
                         <h3>Listado de Solicitudes/Incidencias</h3>
                         <p>Ver y gestionar Solicitudes/Incidencias</p>
-                        <a href="#" class="btn" onclick="openPasswordModal(event)">
-                            <i class="fas fa-eye"></i> Ver Solicitudes/Incidencias
+                        <a href="#" class="btn"
+                            onclick="openPasswordModal(event, 'public/marketing/soli_inci_general_marketing.html')">
+                            <i class="fas fa-lock"></i> Acceder
                         </a>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Modal para contraseña -->
         <div class="modal" id="passwordModal">
             <div class="modal-content">
                 <div class="modal-header">
@@ -258,10 +357,11 @@
                     <h2>Acceso Restringido</h2>
                 </div>
                 <div class="modal-body">
-                    <p>Para acceder al panel ADMIN - Marketing, por favor ingrese la contraseña nuevamente:</p>
+                    <p>Para acceder al panel de Marketing, por favor ingrese la contraseña:</p>
                     <div class="form-group">
                         <label for="password">Contraseña:</label>
                         <input type="password" id="password" class="form-control" placeholder="Ingrese la contraseña">
+                        <input type="hidden" id="targetUrl">
                         <div class="error-message" id="passwordError">Contraseña incorrecta. Inténtelo de nuevo.</div>
                         <div class="success-message" id="passwordSuccess">¡Contraseña correcta! Accediendo...</div>
                     </div>
@@ -285,55 +385,73 @@
             // Toggle la clase active
             section.classList.toggle('active');
 
-            // Toggle la visibilidad del contenido
-            if (content.style.maxHeight) {
+            // Toggle la visibilidad del contenido usando max-height
+            // Primero, asegurémonos de que el contenido no esté en display: none en el CSS inicial.
+            if (content.style.maxHeight && content.style.maxHeight !== '0px') {
                 content.style.maxHeight = null;
                 toggleIcon.style.transform = 'rotate(0deg)';
             } else {
+                // Se utiliza scrollHeight para calcular la altura necesaria dinámicamente
                 content.style.maxHeight = content.scrollHeight + "px";
                 toggleIcon.style.transform = 'rotate(180deg)';
             }
         }
 
-        // Todas las secciones cerradas por defecto
+        // Mantener todas las secciones cerradas por defecto
         document.addEventListener('DOMContentLoaded', function () {
             // No abrir ninguna sección automáticamente
+            // Opcional: Cerrar explícitamente si el CSS inicial no lo hace bien
+            const sections = ['listados', 'ventas-marketing', 'descuento-cajas', 'soli'];
+            sections.forEach(sectionName => {
+                const content = document.getElementById(sectionName + '-content');
+                if (content) {
+                    content.style.maxHeight = null;
+                }
+            });
         });
 
-        // Función para abrir el modal (MODIFICADA para prevenir navegación)
-        function openPasswordModal(event) {
-            // Previene la acción por defecto del enlace (navegar a #)
+        // Función para abrir el modal (MODIFICADA para capturar la URL de destino)
+        function openPasswordModal(event, targetUrl) {
             if (event) {
                 event.preventDefault();
             }
+            // Guarda la URL de destino en el campo oculto del modal
+            document.getElementById('targetUrl').value = targetUrl;
             document.getElementById('passwordModal').style.display = 'flex';
             document.getElementById('password').focus();
+            hideMessages(); // Asegura que los mensajes estén ocultos al abrir
         }
 
-        // Función para cerrar el modal (se mantiene igual)
+        // Función para cerrar el modal
         function closeModal() {
             document.getElementById('passwordModal').style.display = 'none';
             document.getElementById('password').value = '';
+            document.getElementById('targetUrl').value = ''; // Limpia la URL de destino
             hideMessages();
         }
 
-        // Función para verificar la contraseña (MODIFICADA para REDIRECCIÓN)
+        // Función para verificar la contraseña (MODIFICADA para usar la URL guardada)
         function checkPassword() {
             const password = document.getElementById('password').value;
+            const targetUrl = document.getElementById('targetUrl').value; // Obtiene la URL de destino
             const correctPassword = "zeusmar100";
             const errorMessage = document.getElementById('passwordError');
             const successMessage = document.getElementById('passwordSuccess');
-            const targetUrl = "public/marketing/soli_inci_general_marketing.html"; // URL de destino
 
             hideMessages();
 
             if (password === correctPassword) {
                 successMessage.style.display = 'block';
 
-                // Redirigir después de un breve retraso para que el usuario vea el mensaje de éxito
+                // Redirigir después de un breve retraso
                 setTimeout(() => {
                     // ¡REDIRECCIÓN A LA PÁGINA!
-                    window.location.href = targetUrl;
+                    if (targetUrl) {
+                        window.location.href = targetUrl;
+                    } else {
+                        // En caso de que targetUrl esté vacío por alguna razón, cerrar el modal.
+                        closeModal();
+                    }
                 }, 1000);
             } else {
                 errorMessage.style.display = 'block';
@@ -341,6 +459,7 @@
                 document.getElementById('password').focus();
             }
         }
+
         // Función para ocultar mensajes de error y éxito
         function hideMessages() {
             document.getElementById('passwordError').style.display = 'none';
@@ -350,6 +469,7 @@
         // Permitir enviar la contraseña con la tecla Enter
         document.getElementById('password').addEventListener('keypress', function (e) {
             if (e.key === 'Enter') {
+                e.preventDefault(); // Previene la acción por defecto del Enter en un formulario (si lo hubiese)
                 checkPassword();
             }
         });
