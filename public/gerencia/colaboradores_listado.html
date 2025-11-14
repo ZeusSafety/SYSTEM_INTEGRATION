@@ -517,6 +517,59 @@
             color: var(--rojo-error);
         }
 
+        /* Estilos para botones de acción en sub vistas */
+        .btn-delete {
+            background: var(--rojo-error);
+            color: var(--blanco);
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.8rem;
+        }
+
+        .btn-delete:hover {
+            background: #dc2626;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-add {
+            background: var(--verde-exito);
+            color: var(--blanco);
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.8rem;
+        }
+
+        .btn-add:hover {
+            background: #059669;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .url-link {
+            color: var(--azul-claro);
+            text-decoration: none;
+            word-break: break-all;
+            max-width: 300px;
+            display: inline-block;
+        }
+
+        .url-link:hover {
+            text-decoration: underline;
+        }
+
         @keyframes fadeIn {
             from { opacity: 0; }
             to { opacity: 1; }
@@ -533,61 +586,6 @@
             }
         }
 
-        /* Sección: Permisos por Sub Vistas */
-        .subviews-container {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            padding: 10px 0;
-        }
-
-        .subviews-block {
-            background: var(--blanco);
-            border: 1px solid var(--gris-claro);
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 1px 6px rgba(30, 58, 138, 0.06);
-            min-width: 320px;
-        }
-
-        .subviews-header {
-            background: linear-gradient(135deg, var(--azul-principal) 0%, var(--azul-oscuro) 100%);
-            color: var(--blanco);
-            padding: 12px 14px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .subviews-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .subviews-table th {
-            background: var(--azul-claro);
-            color: var(--blanco);
-            padding: 12px 14px;
-            text-align: left;
-            font-weight: 600;
-            font-size: 0.85rem;
-        }
-
-        .subviews-table td {
-            padding: 12px 14px;
-            border-bottom: 1px solid var(--gris-claro);
-            vertical-align: middle;
-            word-wrap: break-word;
-            max-width: 200px;
-        }
-
-        .subviews-empty {
-            text-align: center;
-            padding: 20px;
-            color: var(--gris-medio);
-            font-size: 0.9rem;
-        }
 
         /* Estilos para paginación */
         .pagination-container {
@@ -671,14 +669,6 @@
                 justify-content: center;
             }
 
-            .subviews-container {
-                grid-template-columns: 1fr;
-                gap: 15px;
-            }
-            
-            .subviews-block {
-                min-width: auto;
-            }
 
             .pagination-container {
                 flex-direction: column;
@@ -909,17 +899,68 @@
                         </span>
                     </div>
 
-                    <div class="table-container" style="margin: 0;">
-                        <div id="subviewsContainer" class="subviews-container">
-                            <!-- Los bloques de sub vistas se cargarán dinámicamente -->
+                    <!-- Tabla de Sub Vistas Permitidas -->
+                    <div style="margin-bottom: 30px;">
+                        <h4 style="color: var(--azul-principal); margin-bottom: 15px; font-size: 1rem;">
+                            <i class="fas fa-check-circle"></i> Sub Vistas Permitidas
+                        </h4>
+                        <div class="table-container" style="margin: 0;">
+                            <table class="permissions-table" id="permittedSubvistasTable">
+                                <thead>
+                                    <tr>
+                                        <th>NOMBRE</th>
+                                        <th>URL</th>
+                                        <th>ACCIÓN</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="permittedSubvistasTableBody">
+                                    <tr>
+                                        <td colspan="3" class="loading">
+                                            <i class="fas fa-spinner"></i>
+                                            <p>Cargando sub vistas permitidas...</p>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
 
-                    <div class="btn-group" style="margin-top: 20px;">
-                        <button type="button" class="btn btn-success" onclick="saveSubvistas()">
-                            <i class="fas fa-save"></i>
-                            Guardar Sub Vistas
-                        </button>
+                    <!-- Buscador y Filtro para Agregar Sub Vistas -->
+                    <div style="margin-bottom: 30px;">
+                        <h4 style="color: var(--azul-principal); margin-bottom: 15px; font-size: 1rem;">
+                            <i class="fas fa-plus-circle"></i> Agregar Nueva Sub Vista
+                        </h4>
+                        <div style="display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap;">
+                            <div class="form-group" style="flex: 1; min-width: 200px;">
+                                <label for="filterArea" class="form-label">Filtrar por Área</label>
+                                <select id="filterArea" class="form-input" onchange="filterAvailableSubvistas()">
+                                    <option value="">Todas las Áreas</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="flex: 2; min-width: 250px;">
+                                <label for="searchSubvista" class="form-label">Buscar Sub Vista</label>
+                                <input type="text" id="searchSubvista" class="form-input" placeholder="Buscar por nombre..." onkeyup="filterAvailableSubvistas()">
+                            </div>
+                        </div>
+                        <div class="table-container" style="margin: 0; max-height: 400px; overflow-y: auto;">
+                            <table class="permissions-table" id="availableSubvistasTable">
+                                <thead>
+                                    <tr>
+                                        <th>NOMBRE</th>
+                                        <th>ÁREA</th>
+                                        <th>ACCIÓN</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="availableSubvistasTableBody">
+                                    <tr>
+                                        <td colspan="3" class="loading">
+                                            <i class="fas fa-spinner"></i>
+                                            <p>Cargando sub vistas disponibles...</p>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1106,61 +1147,13 @@
             ]
         };
 
-        // Datos de prueba para permisos por sub vistas (funciones dentro de módulos)
-        const mockSubvistasData = {
-            GERENCIA: [
-                { ESTADO: "1", NOMBRE: "panel_control_gerencia", AREA: "GERENCIA" },
-                { ESTADO: "0", NOMBRE: "reportes_estrategicos", AREA: "GERENCIA" },
-                { ESTADO: "1", NOMBRE: "gestion_objetivos", AREA: "GERENCIA" },
-                { ESTADO: "0", NOMBRE: "analitica_financiera", AREA: "GERENCIA" }
-            ],
-            ADMINISTRACION: [
-                { ESTADO: "1", NOMBRE: "registro_proveedores", AREA: "ADMINISTRACION" },
-                { ESTADO: "1", NOMBRE: "listado_proveedores", AREA: "ADMINISTRACION" },
-                { ESTADO: "0", NOMBRE: "gestion_contratos", AREA: "ADMINISTRACION" },
-                { ESTADO: "0", NOMBRE: "aprobaciones_internas", AREA: "ADMINISTRACION" }
-            ],
-            IMPORTACION: [
-                { ESTADO: "1", NOMBRE: "registro_incidencias_proformas", AREA: "LOGISTICA" },
-                { ESTADO: "1", NOMBRE: "registro_incidencias_importacion", AREA: "LOGISTICA" },
-                { ESTADO: "1", NOMBRE: "listado_incidencias_importacion", AREA: "LOGISTICA" },
-                { ESTADO: "1", NOMBRE: "listado_importaciones", AREA: "LOGISTICA" }
-            ],
-            LOGISTICA: [
-                { ESTADO: "1", NOMBRE: "seguimiento_despachos", AREA: "LOGISTICA" },
-                { ESTADO: "0", NOMBRE: "gestion_bodegas", AREA: "LOGISTICA" },
-                { ESTADO: "1", NOMBRE: "asignacion_rutas", AREA: "LOGISTICA" },
-                { ESTADO: "0", NOMBRE: "inventario_transito", AREA: "LOGISTICA" }
-            ],
-            VENTAS: [
-                { ESTADO: "1", NOMBRE: "registro_oportunidades", AREA: "VENTAS" },
-                { ESTADO: "1", NOMBRE: "listado_clientes", AREA: "VENTAS" },
-                { ESTADO: "0", NOMBRE: "panel_cotizaciones", AREA: "VENTAS" },
-                { ESTADO: "0", NOMBRE: "analitica_ventas", AREA: "VENTAS" }
-            ],
-            MARKETING: [
-                { ESTADO: "1", NOMBRE: "calendario_campanas", AREA: "MARKETING" },
-                { ESTADO: "0", NOMBRE: "gestion_contenido", AREA: "MARKETING" },
-                { ESTADO: "0", NOMBRE: "audiencia_segmentacion", AREA: "MARKETING" },
-                { ESTADO: "1", NOMBRE: "reportes_campanas", AREA: "MARKETING" }
-            ],
-            SISTEMAS: [
-                { ESTADO: "1", NOMBRE: "gestion_usuarios", AREA: "SISTEMAS" },
-                { ESTADO: "1", NOMBRE: "roles_permisos", AREA: "SISTEMAS" },
-                { ESTADO: "0", NOMBRE: "monitor_servicios", AREA: "SISTEMAS" },
-                { ESTADO: "0", NOMBRE: "auditoria_accesos", AREA: "SISTEMAS" }
-            ],
-            FACTURACION: [
-                { ESTADO: "1", NOMBRE: "emision_facturas", AREA: "FACTURACION" },
-                { ESTADO: "0", NOMBRE: "notas_credito", AREA: "FACTURACION" },
-                { ESTADO: "1", NOMBRE: "consulta_facturas", AREA: "FACTURACION" },
-                { ESTADO: "0", NOMBRE: "reporte_cobros", AREA: "FACTURACION" }
-            ]
-        };
 
         // Variables globales
         let currentColaboradorId = null;
+        let currentColaboradorUsername = null;
         let isUserEditing = false;
+        let allAvailableSubvistas = [];
+        let permittedSubvistas = [];
         
         // Variables para paginación
         let colaboradoresData = [];
@@ -1490,6 +1483,7 @@
         // Función para abrir modal de permisos
         function openPermissionsModal(personaId, nombreCompleto) {
             currentColaboradorId = personaId;
+            currentColaboradorUsername = null;
             
             // Llenar información del usuario
             document.getElementById('employeeName').textContent = nombreCompleto;
@@ -1500,8 +1494,9 @@
             
             // Cargar permisos del colaborador
             loadPermissionsData(personaId);
-            // Cargar permisos por sub vistas
-            loadSubvistasData(personaId);
+            // Cargar sub vistas permitidas y disponibles
+            loadPermittedSubvistas();
+            loadAvailableSubvistas();
             
             // Mostrar el modal
             document.getElementById('permissionsModal').classList.add('show');
@@ -1511,6 +1506,7 @@
         function closePermissionsModal() {
             document.getElementById('permissionsModal').classList.remove('show');
             currentColaboradorId = null;
+            currentColaboradorUsername = null;
             isUserEditing = false;
             
             // Resetear estado de edición
@@ -1523,10 +1519,11 @@
                 apiStatusSub.className = 'api-status loading';
                 apiStatusSub.innerHTML = '<i class="fas fa-spinner"></i>';
             }
-            const subviewsContainer = document.getElementById('subviewsContainer');
-            if (subviewsContainer) {
-                subviewsContainer.innerHTML = '';
-            }
+            // Limpiar tablas de sub vistas
+            document.getElementById('permittedSubvistasTableBody').innerHTML = '<tr><td colspan="3" class="loading"><i class="fas fa-spinner"></i><p>Cargando...</p></td></tr>';
+            document.getElementById('availableSubvistasTableBody').innerHTML = '<tr><td colspan="3" class="loading"><i class="fas fa-spinner"></i><p>Cargando...</p></td></tr>';
+            permittedSubvistas = [];
+            allAvailableSubvistas = [];
         }
 
         // Función para cargar datos de permisos
@@ -1550,6 +1547,9 @@
                     // Actualizar información de usuario en el modal
                     if (data.USUARIO) {
                         document.getElementById('username').value = data.USUARIO;
+                        currentColaboradorUsername = data.USUARIO;
+                        // Cargar sub vistas permitidas ahora que tenemos el username
+                        loadPermittedSubvistas();
                     }
                     if (data.CONTRASEÑA) {
                         document.getElementById('password').value = data.CONTRASEÑA;
@@ -1578,211 +1578,330 @@
             }
         }
 
-        // Helpers para Sub Vistas
-        const AREAS_KEYS = ['GERENCIA','ADMINISTRACION','IMPORTACION','LOGISTICA','VENTAS','MARKETING','SISTEMAS','FACTURACION'];
-
-        function areaLabel(areaKey) {
-            switch (areaKey) {
-                case 'ADMINISTRACION': return 'ADMINISTRACIÓN';
-                case 'IMPORTACION': return 'IMPORTACIONES';
-                case 'LOGISTICA': return 'LOGÍSTICA';
-                case 'FACTURACION': return 'FACTURACIÓN';
-                default: return areaKey;
-            }
-        }
-
-        function normalizeArea(areaName) {
-            if (!areaName) return '';
-            const upper = areaName.toUpperCase();
-            switch (upper) {
-                case 'ADMINISTRACIÓN':
-                case 'ADMINISTRACION':
-                    return 'ADMINISTRACION';
-                case 'IMPORTANCIONES':
-                case 'IMPORTACIONES':
-                case 'IMPORTACION':
-                    return 'IMPORTACION';
-                case 'LOGÍSTICA':
-                case 'LOGISTICA':
-                    return 'LOGISTICA';
-                case 'FACTURACIÓN':
-                case 'FACTURACION':
-                    return 'FACTURACION';
-                default:
-                    return upper;
-            }
-        }
-
-        function buildSubvistasBlocks() {
-            const container = document.getElementById('subviewsContainer');
-            if (!container) return;
-            container.innerHTML = AREAS_KEYS.map(areaKey => `
-                <div class="subviews-block" id="block-${areaKey}">
-                    <div class="subviews-header">
-                        <i class="fas fa-folder-tree"></i>
-                        ${areaLabel(areaKey)}
-                    </div>
-                    <table class="subviews-table">
-                        <thead>
-                            <tr>
-                                <th>ESTADO</th>
-                                <th>NOMBRE</th>
-                            </tr>
-                        </thead>
-                        <tbody id="subviews-body-${areaKey}">
-                            <tr><td colspan="2" class="subviews-empty">Sin vistas</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            `).join('');
-        }
-
-        function displaySubvistasData(listOrGrouped) {
+        // ========== FUNCIONES PARA GESTIÓN DE SUB VISTAS ==========
+        
+        // Función para cargar sub vistas permitidas del usuario
+        async function loadPermittedSubvistas() {
             const apiStatus = document.getElementById('apiStatusSubvistas');
-            if (apiStatus) {
-                apiStatus.className = 'api-status success';
-                apiStatus.innerHTML = '<i class="fas fa-check"></i>';
+            const tbody = document.getElementById('permittedSubvistasTableBody');
+            
+            if (!currentColaboradorUsername) {
+                // Esperar a que se cargue el username
+                setTimeout(() => {
+                    if (currentColaboradorUsername) {
+                        loadPermittedSubvistas();
+                    }
+                }, 500);
+                return;
             }
-
-            // Asegurar bloques
-            buildSubvistasBlocks();
-
-            // Agrupar por área si viene como lista
-            const grouped = Array.isArray(listOrGrouped)
-                ? listOrGrouped.reduce((acc, item) => {
-                    const key = normalizeArea(item.AREA);
-                    if (!acc[key]) acc[key] = [];
-                    acc[key].push(item);
-                    return acc;
-                }, {})
-                : listOrGrouped;
-
-            // Rellenar cada bloque
-            AREAS_KEYS.forEach(areaKey => {
-                const tbody = document.getElementById(`subviews-body-${areaKey}`);
-                if (!tbody) return;
-                const items = (grouped && grouped[areaKey]) ? grouped[areaKey] : [];
-                if (!items.length) {
-                    tbody.innerHTML = '<tr><td colspan="2" class="subviews-empty">Sin vistas</td></tr>';
-                    return;
-                }
-                tbody.innerHTML = items.map((item, index) => {
-                    const checked = String(item.ESTADO) === '1' ? 'checked' : '';
-                    const safeName = (item.NOMBRE || '').trim();
-                    const safeArea = areaKey;
-                    return `
-                        <tr>
-                            <td>
-                                <div class="permission-status">
-                                    <label class="toggle-switch">
-                                        <input type="checkbox" id="subvista-${safeArea}-${index}" data-area="${safeArea}" data-nombre="${safeName}" ${checked} onchange="updateSubviewStatus('${safeArea}', ${index})">
-                                        <span class="slider"></span>
-                                    </label>
-                                    <span class="permission-text ${checked ? 'granted' : 'denied'}" id="subvista-status-${safeArea}-${index}">${checked ? 'Concedido' : 'Denegado'}</span>
-                                </div>
-                            </td>
-                            <td>${safeName}</td>
-                        </tr>
-                    `;
-                }).join('');
-            });
-        }
-
-        async function loadSubvistasData(personaId) {
-            const apiStatus = document.getElementById('apiStatusSubvistas');
-            if (apiStatus) {
-                apiStatus.className = 'api-status loading';
-                apiStatus.innerHTML = '<i class="fas fa-spinner"></i>';
-            }
+            
             try {
-                console.log('Cargando subvistas disponibles desde API...');
+                if (apiStatus) {
+                    apiStatus.className = 'api-status loading';
+                    apiStatus.innerHTML = '<i class="fas fa-spinner"></i> Cargando...';
+                }
+                
+                console.log('Cargando sub vistas permitidas para usuario:', currentColaboradorUsername);
+                const api = "https://colaboradores-2946605267.us-central1.run.app";
+                const metodo = "subvistas";
+                
+                const response = await fetch(`${api}?metodo=${metodo}&user=${currentColaboradorUsername}`);
+                console.log('Status de respuesta sub vistas permitidas:', response.status);
+                
+                if (response.status === 200) {
+                    const data = await response.json();
+                    console.log('Sub vistas permitidas cargadas:', data);
+                    
+                    permittedSubvistas = Array.isArray(data) ? data : [];
+                    displayPermittedSubvistas();
+                    
+                    if (apiStatus) {
+                        apiStatus.className = 'api-status success';
+                        apiStatus.innerHTML = '<i class="fas fa-check"></i>';
+                    }
+                } else {
+                    console.error('Error cargando sub vistas permitidas:', response.status);
+                    permittedSubvistas = [];
+                    displayPermittedSubvistas();
+                    if (apiStatus) {
+                        apiStatus.className = 'api-status error';
+                        apiStatus.innerHTML = '<i class="fas fa-exclamation-triangle"></i>';
+                    }
+                }
+            } catch (error) {
+                console.error('Error cargando sub vistas permitidas:', error);
+                permittedSubvistas = [];
+                displayPermittedSubvistas();
+                if (apiStatus) {
+                    apiStatus.className = 'api-status error';
+                    apiStatus.innerHTML = '<i class="fas fa-exclamation-triangle"></i>';
+                }
+            }
+        }
+
+        // Función para mostrar sub vistas permitidas en la tabla
+        function displayPermittedSubvistas() {
+            const tbody = document.getElementById('permittedSubvistasTableBody');
+            
+            if (!permittedSubvistas || permittedSubvistas.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="3" class="no-data">
+                            <i class="fas fa-info-circle"></i>
+                            <p>No hay sub vistas permitidas</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = permittedSubvistas.map((item, index) => {
+                const nombre = (item.NOMBRE || '').replace(/'/g, "\\'");
+                const id = item.ID_SUB_VISTAS || item.ID || '';
+                return `
+                <tr>
+                    <td>${item.NOMBRE || ''}</td>
+                    <td>
+                        ${item.URL ? `<a href="${item.URL}" target="_blank" class="url-link">${item.URL}</a>` : 'N/A'}
+                    </td>
+                    <td>
+                        <button class="btn-delete" onclick="removeSubvista(${id}, '${nombre}')">
+                            <i class="fas fa-trash"></i>
+                            Eliminar
+                        </button>
+                    </td>
+                </tr>
+            `;
+            }).join('');
+        }
+
+        // Función para cargar todas las sub vistas disponibles
+        async function loadAvailableSubvistas() {
+            const tbody = document.getElementById('availableSubvistasTableBody');
+            
+            try {
+                console.log('Cargando todas las sub vistas disponibles...');
                 const api = "https://colaboradores-2946605267.us-central1.run.app";
                 const metodo = "sub_vistas";
                 
                 const response = await fetch(`${api}?metodo=${metodo}`);
-                console.log('Status de respuesta subvistas:', response.status);
+                console.log('Status de respuesta sub vistas disponibles:', response.status);
                 
                 if (response.status === 200) {
                     const data = await response.json();
-                    console.log('Datos de subvistas cargados desde API:', data);
+                    console.log('Sub vistas disponibles cargadas:', data);
                     
-                    // Procesar las subvistas según el formato de la API
-                    const subvistasList = Array.isArray(data) ? data : [];
-                    
-                    if (subvistasList.length > 0) {
-                        // Convertir formato de API a formato interno y configurar todas como habilitadas
-                        const subvistasHabilitadas = subvistasList.map(item => ({
-                            ID: item.ID,
-                            NOMBRE: item.SUB_VISTA, // Mapear SUB_VISTA a NOMBRE
-                            AREA: item.AREA,
-                            ESTADO: "1" // Todas habilitadas por defecto
-                        }));
-                        
-                        console.log('Subvistas procesadas:', subvistasHabilitadas);
-                        displaySubvistasData(subvistasHabilitadas);
-                        return;
-                    }
+                    allAvailableSubvistas = Array.isArray(data) ? data : [];
+                    populateAreaFilter();
+                    filterAvailableSubvistas();
                 } else {
-                    console.error('Error en la respuesta de subvistas:', response.status);
+                    console.error('Error cargando sub vistas disponibles:', response.status);
+                    allAvailableSubvistas = [];
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="3" class="no-data">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <p>Error al cargar sub vistas disponibles</p>
+                            </td>
+                        </tr>
+                    `;
                 }
-                
-                // Fallback a mocks si la API falla
-                console.log('Usando datos de prueba como respaldo para subvistas...');
-                displaySubvistasData(mockSubvistasData);
-            } catch (err) {
-                console.error('Error cargando subvistas desde API:', err);
-                // Fallback a mocks si hay error de red
-                console.log('Error de red, usando datos de prueba para subvistas...');
-                displaySubvistasData(mockSubvistasData);
+            } catch (error) {
+                console.error('Error cargando sub vistas disponibles:', error);
+                allAvailableSubvistas = [];
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="3" class="no-data">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <p>Error de conexión</p>
+                        </td>
+                    </tr>
+                `;
             }
         }
 
-        function updateSubviewStatus(areaKey, index) {
-            const checkbox = document.getElementById(`subvista-${areaKey}-${index}`);
-            const statusText = document.getElementById(`subvista-status-${areaKey}-${index}`);
-            if (!checkbox || !statusText) return;
-            if (checkbox.checked) {
-                statusText.textContent = 'Concedido';
-                statusText.className = 'permission-text granted';
-            } else {
-                statusText.textContent = 'Denegado';
-                statusText.className = 'permission-text denied';
-            }
+        // Función para poblar el filtro de áreas
+        function populateAreaFilter() {
+            const filterSelect = document.getElementById('filterArea');
+            if (!filterSelect) return;
+            
+            // Obtener áreas únicas
+            const areas = [...new Set(allAvailableSubvistas.map(item => item.AREA).filter(Boolean))].sort();
+            
+            // Limpiar opciones existentes (excepto "Todas las Áreas")
+            filterSelect.innerHTML = '<option value="">Todas las Áreas</option>';
+            
+            // Agregar opciones de áreas
+            areas.forEach(area => {
+                const option = document.createElement('option');
+                option.value = area;
+                option.textContent = area;
+                filterSelect.appendChild(option);
+            });
         }
 
-        async function saveSubvistas() {
-            if (!currentColaboradorId) {
-                alert('Error: No se ha seleccionado un colaborador');
+        // Función para filtrar sub vistas disponibles
+        function filterAvailableSubvistas() {
+            const tbody = document.getElementById('availableSubvistasTableBody');
+            const filterArea = document.getElementById('filterArea')?.value || '';
+            const searchText = document.getElementById('searchSubvista')?.value.toLowerCase() || '';
+            
+            if (!allAvailableSubvistas || allAvailableSubvistas.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="3" class="no-data">
+                            <i class="fas fa-info-circle"></i>
+                            <p>No hay sub vistas disponibles</p>
+                        </td>
+                    </tr>
+                `;
                 return;
             }
-            // Recopilar todos los toggles
-            const inputs = document.querySelectorAll('#subviewsContainer input[type="checkbox"][data-area][data-nombre]');
-            const subvistas = Array.from(inputs).map(input => ({
-                area: input.getAttribute('data-area'),
-                nombre: input.getAttribute('data-nombre'),
-                estado: input.checked ? 1 : 0
-            }));
+
+            // Filtrar sub vistas
+            let filtered = allAvailableSubvistas.filter(item => {
+                // Filtrar por área
+                if (filterArea && item.AREA !== filterArea) {
+                    return false;
+                }
+                // Filtrar por búsqueda de texto
+                if (searchText) {
+                    const nombre = (item.SUB_VISTA || '').toLowerCase();
+                    if (!nombre.includes(searchText)) {
+                        return false;
+                    }
+                }
+                return true;
+            });
+
+            // Excluir las que ya están permitidas
+            const permittedIds = permittedSubvistas.map(p => p.ID_SUB_VISTAS);
+            filtered = filtered.filter(item => !permittedIds.includes(item.ID));
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="3" class="no-data">
+                            <i class="fas fa-info-circle"></i>
+                            <p>No hay sub vistas disponibles con los filtros aplicados</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(item => {
+                const nombre = (item.SUB_VISTA || '').replace(/'/g, "\\'");
+                const id = item.ID || '';
+                return `
+                <tr>
+                    <td>${item.SUB_VISTA || ''}</td>
+                    <td>${item.AREA || ''}</td>
+                    <td>
+                        <button class="btn-add" onclick="addSubvista(${id}, '${nombre}')">
+                            <i class="fas fa-plus"></i>
+                            Agregar
+                        </button>
+                    </td>
+                </tr>
+            `;
+            }).join('');
+        }
+
+        // Función para agregar una sub vista
+        async function addSubvista(subvistaId, subvistaNombre) {
+            if (!currentColaboradorUsername) {
+                alert('Error: No se ha cargado el usuario del colaborador');
+                return;
+            }
+
+            if (!confirm(`¿Está seguro de agregar la sub vista "${subvistaNombre}"?`)) {
+                return;
+            }
+
             try {
                 const api = "https://colaboradores-2946605267.us-central1.run.app";
                 const metodo = "subvistas";
-                const body = { subvistas };
-                console.log('Enviando sub vistas:', body);
-                const response = await fetch(`${api}?metodo=${metodo}&id=${currentColaboradorId}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(body)
+                
+                // Nota: Necesitamos verificar la estructura exacta de la API para agregar
+                // Por ahora asumimos que se envía el ID de la sub vista y el usuario
+                const data = {
+                    id_sub_vista: subvistaId,
+                    user: currentColaboradorUsername
+                };
+
+                console.log('Agregando sub vista:', data);
+                
+                const response = await fetch(`${api}?metodo=${metodo}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
                 });
+
+                console.log('Status de respuesta agregar sub vista:', response.status);
+
                 if (response.status === 200) {
-                    alert('Sub vistas guardadas exitosamente');
+                    alert('Sub vista agregada exitosamente');
+                    // Recargar ambas listas
+                    await loadPermittedSubvistas();
+                    filterAvailableSubvistas();
                 } else {
-                    try {
-                        const errorData = await response.text();
-                        console.error('Detalles del error (subvistas):', errorData);
-                    } catch {}
-                    alert('Error al guardar sub vistas. Intente nuevamente.');
+                    const errorData = await response.text().catch(() => '');
+                    console.error('Error agregando sub vista:', errorData);
+                    alert('Error al agregar la sub vista. Por favor intente nuevamente.');
                 }
-            } catch (err) {
-                console.error('Error guardando sub vistas:', err);
+            } catch (error) {
+                console.error('Error agregando sub vista:', error);
+                alert('Error de conexión. Por favor intente nuevamente.');
+            }
+        }
+
+        // Función para eliminar una sub vista
+        async function removeSubvista(subvistaId, subvistaNombre) {
+            if (!currentColaboradorUsername) {
+                alert('Error: No se ha cargado el usuario del colaborador');
+                return;
+            }
+
+            if (!confirm(`¿Está seguro de eliminar la sub vista "${subvistaNombre}"?`)) {
+                return;
+            }
+
+            try {
+                const api = "https://colaboradores-2946605267.us-central1.run.app";
+                const metodo = "subvistas";
+                
+                const data = {
+                    id_sub_vista: subvistaId,
+                    user: currentColaboradorUsername
+                };
+
+                console.log('Eliminando sub vista:', data);
+                
+                const response = await fetch(`${api}?metodo=${metodo}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                console.log('Status de respuesta eliminar sub vista:', response.status);
+
+                if (response.status === 200) {
+                    alert('Sub vista eliminada exitosamente');
+                    // Recargar ambas listas
+                    await loadPermittedSubvistas();
+                    filterAvailableSubvistas();
+                } else {
+                    const errorData = await response.text().catch(() => '');
+                    console.error('Error eliminando sub vista:', errorData);
+                    alert('Error al eliminar la sub vista. Por favor intente nuevamente.');
+                }
+            } catch (error) {
+                console.error('Error eliminando sub vista:', error);
                 alert('Error de conexión. Por favor intente nuevamente.');
             }
         }
